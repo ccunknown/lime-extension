@@ -1,0 +1,32 @@
+{
+  "author": "NECTEC INO",
+  "content_scripts": [
+    {
+      "css": [
+        "static/css/extension.css"
+      ],
+      "js": [
+        "static/js/extension.js"
+      ]
+    }
+  ],
+  "description": "Live Modbus Extension (LiME) is modbus extension for Mozilla-Iot gateway.",
+  "gateway_specific_settings": {
+    "webthings": {
+      "exec": "{nodeLoader} {path}",
+      "primary_type": "extension",
+      "strict_max_version": "*",
+      "strict_min_version": "0.10.0"
+    }
+  },
+  "homepage_url": "https://github.com/ccunknown/lime-extension",
+  "id": "lime-extension",
+  "license": "ISC",
+  "manifest_version": 1,
+  "name": "LiME Extension",
+  "short_name": "LimeExt",
+  "version": "0.1.0",
+  "web_accessible_resources": [
+    "static/*"
+  ]
+}

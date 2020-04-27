@@ -1,0 +1,48 @@
+{
+  "name": "lime-extension",
+  "version": "1.0.0",
+  "description": "Live Modebus Extension (LiME)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ccunknown/lime-extension.git"
+  },
+  "keywords": [
+    "mozilla",
+    "iot",
+    "extension",
+    "modbus",
+    "lime"
+  ],
+  "author": "pakawat_tinsirisuk@hotmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ccunknown/lime-extension/issues"
+  },
+  "devDependencies": {
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.8.0"
+  },
+  "homepage": "https://github.com/ccunknown/lime-extension#readme",
+  "files": [
+    "README.md",
+    "SHA256SUMS",
+    "index.js",
+    "manifest.json"
+  ],
+  "moziot": {
+    "api": {
+      "min": 2,
+      "max": 2
+    },
+    "type": "extension",
+    "plugin": true,
+    "exec": "{nodeLoader} {path}"
+  },
+  "dependencies": {
+    "jsonschema": "^1.2.5"
+  }
+}
