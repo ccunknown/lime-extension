@@ -1,7 +1,7 @@
 'use strict';
 
 const {APIHandler, APIResponse} = require('gateway-addon');
-const {Errors} = require('../constants/constants');
+const {Errors} = require('../constants/errors');
 const manifest = require('../manifest.json');
 
 const configManager = require('./config-manager');

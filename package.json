@@ -43,6 +43,6 @@
     "exec": "{nodeLoader} {path}"
   },
   "dependencies": {
-    "jsonschema": "^1.2.5"
+    "jsonschema": "^1.2.6"
   }
 }
