@@ -70,6 +70,21 @@ class RoutesManager extends APIHandler{
             });
           }
         }
+      },
+
+      /***  Resource : /system/portlist  ***/
+      {
+        "resource": /\/system\/portlist/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`modbus-service`)
+              .then((service) => service.obj.getSerialPortList())
+              .then((serialPortList) => resolve(this.makeJsonRespond(JSON.stringify(serialPortList))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
       }
     ];
   }

@@ -43,6 +43,7 @@
     "exec": "{nodeLoader} {path}"
   },
   "dependencies": {
-    "jsonschema": "^1.2.6"
+    "jsonschema": "^1.2.6",
+    "serialport": "^8.0.7"
   }
 }

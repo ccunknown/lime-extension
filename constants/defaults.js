@@ -97,7 +97,7 @@ var Defaults = {
             }
           }
         }
-      }
+      },
       "service":{
         "type": "array",
         "items": {
