@@ -17,7 +17,51 @@ var Defaults = {
       "list": [
         {
           "name": "SDM120CT",
-          "readpath": ""
+          "path": {
+            "readmap": "../../template/sdm12ct/readMap",
+            "calcmap": "../../template/sdm12ct/calcMap"
+          }
+        }
+      ]
+    },
+    "vthing": {
+      "list": [
+        {
+          "id": `test`,
+          "name": `SDM120CT Power Meter`,
+          "address": 1,
+          "template": `SDM120CT`,
+          "type": `modbus-device`,
+          "@context": `https://iot.mozilla.org/schemas`,
+          "@type": [`EnergyMonitor`],
+          "properties": {
+            "voltage": {
+              "name": "voltage",
+              "label": "Voltage",
+              "value": 0,
+              "metadata": {
+                "address": 0x0000,
+                "@type": "InstantaneousPowerProperty",
+                "title": "Voltage",
+                "type": "number",
+                "unit": "V",
+                "table": "inputRegisters"
+              }
+            },
+            "current": {
+              "name": "current",
+              "label": "Current",
+              "value": 0,
+              "metadata": {
+                "address": 0x0006,
+                "@type": "InstantaneousPowerProperty",
+                "title": "Current",
+                "type": "number",
+                "unit": "A",
+                "table": "inputRegisters"
+              }
+            }
+          }
         }
       ]
     },
@@ -92,6 +136,45 @@ var Defaults = {
                 },
                 "calcpath": {
                   "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "vthing": {
+        "type": "object",
+        "required": [
+          "list"
+        ],
+        "properties": {
+          "list": {
+            "type": "array",
+            "default": [],
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "template",
+                "properties"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "template": {
+                  "type": "string"
+                },
+                "properties": {
+                  "type": "array",
+                  "default": [],
+                  "items": {
+                    "type": ["number"]
+                  }
                 }
               }
             }

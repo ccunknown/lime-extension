@@ -4,6 +4,8 @@ const Validator = require('jsonschema').Validator;
 const Database = require('./lib/my-database');
 const {Defaults, Errors} = require('../constants/constants.js');
 
+const util = require('util');
+
 class ConfigManager {
   constructor(extension) {
     this.addonManager = extension.addonManager;
@@ -22,6 +24,7 @@ class ConfigManager {
             resolve(config);
         });
       } catch(err) {
+        console.log(`getConfig error.`);
         err = (err) ? err : new Errors.ErrorObjectNotReturn();
         reject(err);
       }
@@ -93,8 +96,7 @@ class ConfigManager {
   }
 
   initialConfig() {
-    //console.log("Defaults : "+JSON.stringify(Defaults, null, 2));
-    var config = Object.assign({}, Defaults.config);
+    let config = JSON.parse(JSON.stringify(Defaults.config));
     return config;
   }
 

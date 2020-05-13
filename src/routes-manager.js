@@ -6,6 +6,8 @@ const {APIHandler, APIResponse} = require('gateway-addon');
 const {Errors} = require('../constants/constants');
 //const manifest = require('../manifest.json');
 
+const util = require('util');
+
 class RoutesManager extends APIHandler{
   constructor(extension) {
     super(extension.addonManager, extension.manifest.id);
@@ -28,7 +30,10 @@ class RoutesManager extends APIHandler{
           "GET": (req) => {
             return new Promise((resolve, reject) => {
               this.configManager.getConfig()
-              .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
+              .then((conf) => {
+                console.log(`conf : ${JSON.stringify(conf, null, 2)}`);
+                resolve(this.makeJsonRespond(JSON.stringify(conf)))
+              })
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
