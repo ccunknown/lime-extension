@@ -80,6 +80,8 @@ class modbusService extends EventEmitter {
     console.log(`prop: ${JSON.stringify(prop, null, 2)}`);
     console.log(`template: ${template}`);
 
+    this.modbus.setID(address);
+
     return new Promise(async (resolve, reject) => {
       if(!this.templateList.hasOwnProperty(template)) {
         if(!this.isinTemplateList(template)) {
@@ -107,11 +109,11 @@ class modbusService extends EventEmitter {
 
       
       //console.log(`element : ${JSON.stringify(elem, null, 2)}`);
-      console.log(`read address : ${addr}`);
-      console.log(`number to read : ${ntr}`);
-      console.log(`function : ${elem.translator.name}`);
+      //console.log(`read address : ${addr}`);
+      //console.log(`number to read : ${ntr}`);
+      //console.log(`function : ${elem.translator.name}`);
       
-
+      /*
       let val = null;
       switch(prop.table) {
         case `coils`:
@@ -129,11 +131,58 @@ class modbusService extends EventEmitter {
         default:
           console.error(`${prop.table} not in scope.`);
           break;
+      }*/
+
+      let val = null;
+      let tryNum = 2;
+
+      //console.log(tname);
+      let func = () => {
+        return new Promise(async (resolve, reject) => {
+          let res;
+          setTimeout(() => {resolve(null)}, 1000);
+          switch(prop.table) {
+            case `coils`:
+              res = await this.modbus.readCoils(addr, ntr);
+              break;
+            case `contacts`:
+              res = await this.modbus.readDiscreteInputs(addr, ntr);
+              break;
+            case `inputRegisters`:
+              res = await this.modbus.readInputRegisters(addr, ntr);
+              break;
+            case `holdingRegisters`:
+              res = await this.modbus.readHoldingRegisters(addr, ntr);
+              break;
+            default:
+              console.error(`${prop.table} not in scope.`);
+              break;
+          }
+          resolve(res);
+        });
+      };
+
+      while(tryNum > 0) {
+        tryNum = tryNum - 1;
+        val = await func();
+        if(val)
+          break;
+        else if(tryNum > 0)
+          console.log(`!!! Unsuccess to read "${elem.name}", try to read again.`);
+        else
+          console.log(`!!! Fail to read "${elem.name}".`);
       }
 
-      let result = elem.translator(val.buffer, elem);
-      console.log(`hex : ${val.buffer.toString('hex')}`);
-      console.log(`result : ${result}`);
+      let result;
+      if(val) {
+        result = elem.translator(val.buffer, elem);
+        console.log(`hex : ${val.buffer.toString('hex')}`);
+        console.log(`result : ${result}`);
+      }
+      else {
+        result = null;
+        console.log(`${elem.name} : null`);
+      }
 
       resolve(result);
 

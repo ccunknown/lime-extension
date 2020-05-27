@@ -59,7 +59,7 @@ class vthingService extends EventEmitter {
     console.log(`vthingService: start() >> `);
     return new Promise((resolve, reject) => {
       this.initialVAdapter()
-      .then(() => this.setReadPeriode(5000))
+      .then(() => this.setReadPeriode(10000))
       .then(() => resolve());
     });
   }
@@ -96,31 +96,36 @@ class vthingService extends EventEmitter {
   periodeWorker() {
     console.log(`vthingService: periodeWorker() >> `);
 
-    this.deviceList.forEach(async (elem) => {
-      let device = elem.device;
-      let schema = elem.schema;
-      let address = elem.address;
+    let func = async () => {
+      for(let j in this.deviceList) {
+        let elem = this.deviceList[j];
+      //this.deviceList.forEach((elem) => {
+        let device = elem.device;
+        let schema = elem.schema;
+        let address = elem.address;
 
-      for(let i in schema.properties) {
-        let property = schema.properties[i];
-        //device.getProperty(i);
+        console.log(`${address} > `);
 
-        let deviceAddr = address;
-        let prop = {
-          table: property.metadata.table,
-          address: property.metadata.address
-        };
-        let template = `SDM120CT`;
-        let result = await this.modbusService.read(deviceAddr, prop, template);
-        console.log(`${i} : ${result}`);
+        for(let i in schema.properties) {
+          let property = schema.properties[i];
+          //device.getProperty(i);
 
-        //let devProp = device.getProperty(i);
-        //devProp.setValue(result);
-        //device.getProperty(i)
-        //.then((p) => p.setValue(result));
-        device.setProperty(i, result);
-      }
-    });
+          let deviceAddr = address;
+          let prop = {
+            table: property.metadata.table,
+            address: property.metadata.address
+          };
+          let template = `SDM120CT`;
+          let result = await this.modbusService.read(deviceAddr, prop, template);
+          console.log(`${address} > ${i} : ${result}`);
+
+          device.setProperty(i, result);
+        }
+      }//);
+    }
+
+    func();
+      
   }
 
   createVDevice(schema) {

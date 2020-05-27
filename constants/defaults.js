@@ -27,10 +27,60 @@ var Defaults = {
     "vthing": {
       "list": [
         {
-          "id": `test`,
+          "id": `device01`,
           "name": `SDM120CT Power Meter`,
-          "address": 1,
+          "address": 11,
           "template": `SDM120CT`,
+          "type": `modbus-device`,
+          "@context": `https://iot.mozilla.org/schemas`,
+          "@type": [`EnergyMonitor`],
+          "properties": {
+            "voltage": {
+              "name": "voltage",
+              "label": "Voltage",
+              "value": 0,
+              "metadata": {
+                "address": 0x0000,
+                "@type": "InstantaneousPowerProperty",
+                "title": "Voltage",
+                "type": "number",
+                "unit": "V",
+                "table": "inputRegisters"
+              }
+            },
+            "current": {
+              "name": "current",
+              "label": "Current",
+              "value": 0,
+              "metadata": {
+                "address": 0x0006,
+                "@type": "InstantaneousPowerProperty",
+                "title": "Current",
+                "type": "number",
+                "unit": "A",
+                "table": "inputRegisters"
+              }
+            },
+            "iae": {
+              "name": "importActiveEnergy",
+              "label": "Import Active Energy",
+              "value": 0,
+              "metadata": {
+                "address": 0x0048,
+                "@type": "InstantaneousPowerProperty",
+                "title": "Import Active Energy",
+                "type": "number",
+                "unit": "kWh",
+                "table": "inputRegisters"
+              }
+            }
+          }
+        },
+        {
+          "id": `device02`,
+          "name": `SDM120M Power Meter`,
+          "address": 12,
+          "template": `SDM120M`,
           "type": `modbus-device`,
           "@context": `https://iot.mozilla.org/schemas`,
           "@type": [`EnergyMonitor`],
