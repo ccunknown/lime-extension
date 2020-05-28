@@ -1,1 +1,580 @@
+:root {
+  --blue: #007bff;
+  --indigo: #6610f2;
+  --purple: #6f42c1;
+  --pink: #e83e8c;
+  --red: #dc3545;
+  --orange: #fd7e14;
+  --yellow: #ffc107;
+  --green: #28a745;
+  --teal: #20c997;
+  --cyan: #17a2b8;
+  --white: #fff;
+  --gray: #6c757d;
+  --gray-dark: #343a40;
+  --primary: #007bff;
+  --secondary: #6c757d;
+  --success: #28a745;
+  --info: #17a2b8;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --light: #f8f9fa;
+  --dark: #343a40;
+  --breakpoint-xs: 0;
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+#main-menu #extension-lime-extension-menu-item {
+  background-image: url('../images/menu-icon.svg');
+}
+
+/* Container and Nav */
+#extension-lime-extension-view {
+  height: calc(100% - 7.6rem);
+  box-sizing: border-box;
+  overflow: auto;
+  position: relative;
+  top: 7.6rem;
+}
+
+#lime-container .lime-container-nav {
+  height: fit-content;
+}
+
+#lime-container .nav .nav-link {
+  background: var(--light);
+  margin-bottom: 5px;
+  color: var(--dark);
+  border-radius: 0.5rem 0rem 0rem 0.5rem;
+}
+
+#lime-container .nav .nav-link:hover {
+  background-color: var(--warning);
+  opacity: 1;
+}
+
+#lime-container .nav .nav-link.active {
+  background-color: var(--dark);
+  opacity: 1;
+}
+
+#lime-container .nav .nav-link.disabled {
+  background-color: var(--gray);
+  color: var(--light);
+  opacity: 0.5;
+}
+
+#lime-container .lime-container-content {
+  max-height: 100%;
+  overflow: auto;
+  height: fit-content;
+}
+
+#lime-container .lime-tab-content {
+  font-size: medium;
+  height: fit-content;
+  min-height: 150px;
+}
+
+#lime-container .lime-tab-content.active {
+  display: flex;
+  flex-direction: column;
+  /* justify-content: center; */
+}
+
+#lime-container .lime-content-section {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+#lime-container .lime-slide-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+#lime-container .lime-slide-base {
+  position: relative;
+  display: none;
+}
+
+#lime-container .lime-slide-slide.hide ~ .lime-slide-base {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+#lime-container .lime-slide-slide {
+  position: relative;
+  left: 0%;
+  top: 0%;
+  width: 100%;
+  height: 100%;
+  background: var(--dark);
+  z-index: 1;
+
+  transition: left 0.5s;
+}
+
+#lime-container .lime-slide-slide .card-header {
+  white-space: nowrap;
+}
+
+#lime-container .lime-slide-slide .card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+#lime-container .lime-slide-slide.hide {
+  left: 110%;
+  display: inline-block;
+  position: absolute;
+
+  transition: left 0.5s, position 0.5s 0.5s;
+}
+
+/* Webhook Item Customization */
+#lime-container .lime-webhook-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+#lime-container .lime-webhook-item {
+  margin: 10px;
+  height: 150px;
+  width: 100%;
+  border-color: var(--gray);
+  transition: 0.2s;
+}
+
+#lime-container .lime-webhook-item:hover {
+  border-color: var(--light);
+  transition: 0.2s;
+}
+
+#lime-container .lime-webhook-item-adder {
+  border: 2px;
+  border-style: dashed;
+  border-color: var(--dark);
+}
+
+#lime-container .lime-webhook-item-adder .card-body {
+  background-color: var(--dark);
+  color: var(--gray);
+  transition: 0.2s;
+}
+
+#lime-container .lime-webhook-item-adder .card-body:hover {
+  background-color: var(--secondary);
+  color: var(--light);
+  transition: 0.2s;
+}
+
+#lime-container .lime-card-header-btn-box {
+  white-space: nowrap;
+}
+
+#lime-container .lime-card-header-btn-box .btn {
+  width: 30px;
+}
+
+#lime-container .lime-webhook-item .card-body {
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+#lime-container .lime-webhook-item .card-body p {
+  font-size: 1.2rem;
+}
+
+#lime-container .lime-webhook-item .card-body .card-title {
+  font-size: 1.5rem;
+}
+
+#lime-container .lime-badge-http-method-post,
+#lime-container .lime-badge-http-method-put,
+#lime-container .lime-badge-http-method-patch {
+  color: var(--dark);
+  background-color: var(--warning);
+}
+
+#lime-container .lime-badge-http-method-get {
+  color: var(--light);
+  background-color: var(--success);
+}
+
+#lime-container .lime-badge-http-method-delete {
+  color: var(--dark);
+  background-color: var(--danger);
+}
+
+#lime-container .lime-badge-http-method-head,
+#lime-container .lime-badge-http-method-connect,
+#lime-container .lime-badge-http-method-option,
+#lime-container .lime-badge-http-method-trace {
+  color: var(--dark);
+  background-color: var(--light);
+}
+
+#lime-container .lime-webhook-item .card-text {
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  overflow: hidden;
+}
+
+/* History Item */
+#lime-container .lime-history-container {
+  width: 100%;
+  min-height: 80px;
+}
+
+#lime-container .lime-history-item {
+  border-color: var(--secondary);
+  transition: 0.2s;
+  margin-bottom: 10px;
+  max-width: 700px;
+  min-width: 50px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#lime-container .lime-history-item:last-child {
+  margin-bottom: 0px;
+}
+
+#lime-container .lime-history-item:hover {
+  border-color: var(--light);
+  transition: 0.2s;
+}
+
+#lime-container .lime-history-item .card-header{
+  background-color: var(--dark);
+  padding: 5px;
+  font-size: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+#lime-container .lime-history-item .card-body {
+  background-color: var(--secondary);
+  font-size: 1.4rem;
+  padding: 5px;
+}
+
+#lime-container .lime-history-item-element {
+  width: 100%;
+  margin-bottom: 5px;
+  border-radius: 3px;
+  display: flex;
+
+  border-style: solid;
+  border-width: 1px;
+  border-color: var(--dark);
+  transition: 0.2s;
+}
+
+#lime-container .lime-history-item-element:hover {
+  border-color: var(--light);
+  transition: 0.2s;
+}
+
+#lime-container .lime-history-item-element:last-child {
+  margin-bottom: 0px;
+}
+
+#lime-container .lime-history-item-element > * {
+  padding: 0px 5px 0px 5px;
+  border-width: 0px
+}
+
+#lime-container .lime-history-item-element > div {
+  background-color: var(--dark);
+  display: flex;
+  align-items: center;
+}
+
+#lime-container .lime-history-item-element > div:first-child {
+  min-width: 32px;
+}
+
+#lime-container .lime-history-item-element > button {
+  display: flex;
+  flex-wrap: nowrap;
+  transition: 0.2s;
+}
+
+#lime-container .lime-history-item-element > button:hover {
+  background-color: var(--warning);
+  color: var(--dark);
+  transition: 0.2s;
+}
+
+#lime-container .lime-history-item-element > *:first-child {
+  border-radius: 3px 0px 0px 3px;
+  min-width: 30px;
+  background-color: var(--dark);
+  opacity: 0.5;
+}
+
+#lime-container .lime-history-item-element > *:last-child {
+  border-radius: 0px 3px 3px 0px;
+}
+
+#lime-container .lime-history-item-req {
+
+}
+
+#lime-container .lime-history-item-res {
+
+}
+
+/* Modal item */
+#lime-container .lime-modal {
+
+}
+
+#lime-container .lime-modal .modal-header,
+#lime-container .lime-modal .modal-body,
+#lime-container .lime-modal .modal-footer {
+  background-color: var(--dark);
+}
+
+#lime-container .lime-modal .modal-body input {
+  font: 400 13.3333px Arial;
+}
+
+/* Setting item */
+#lime-container .lime-setting-item {
+  margin-bottom: 5px;
+
+  border-color: var(--secondary);
+  transition: 0.2s;
+}
+
+#lime-container .lime-setting-item:hover {
+  border-color: var(--light);
+  transition: 0.2s;
+}
+
+#lime-container .lime-setting-item:last-child {
+  margin-bottom: 0px;
+}
+
+#lime-container .lime-setting-item > .card-header {
+  padding: 5px;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Service item */
+#lime-container .lime-service-item {
+  border-color: var(--secondary);
+}
+
+#lime-container .lime-service-item > .card-headers {
+  background-color: var(--dark);
+}
+
+#lime-container .lime-service-item > .card-bodys {
+  background-color: var(--secondary);
+}
+
+/* E-Form Customization */
+#lime-container .lime-form-container {
+  display: flex;
+  flex-direction: column;
+  font-size: small;
+  /* flex-wrap:wrap; */
+  margin: auto;
+}
+
+#lime-container .lime-form-row {
+  display: flex;
+  /* justify-content: space-between; */
+}
+
+#lime-container .lime-badge-header-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  max-width: 100%;
+  min-width: 50px;
+}
+
+#lime-container .lime-badge-header-group:last-child {
+  margin-bottom: 0px;
+}
+
+#lime-container .lime-form-row.flex-column .lime-badge-header-group {
+  margin-bottom: 0px;
+  margin-right: 5px;
+}
+
+#lime-container .lime-badge-header-group:last-child {
+  margin-bottom: 0px;
+}
+
+#lime-container .grow-1 {
+  flex-grow: 1;
+}
+
+#lime-container .lime-label-badge {
+  width: fit-content;
+  border-radius: 3px 3px 0 0;
+  margin-bottom: 0;
+
+  display: inline-block;
+  padding: 0.25em 0.4em;
+  font-size: 75%;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+#lime-container .lime-badge-union {
+  position: relative;
+  top: calc(-1px);
+  border-top-left-radius: 0;
+  border-radius: 0 3px 3px 3px;
+  border-style: solid;
+  border-width: 2px;
+}
+
+#lime-container input.lime-badge-union {
+  height: 24px;
+  background-color: var(--light);
+}
+
+#lime-container textarea.lime-badge-union {
+  height: fit-content;
+}
+
+#lime-container .border-dash {
+  border: 1px;
+  border-style: dashed;
+  border-color: var(--dark);
+}
+
+/* Headers Item */
+#lime-container .header-item {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 5px;
+  max-width: 100%;
+  /* overflow: hidden; */
+}
+
+#lime-container .header-item:last-child {
+  margin-bottom: 0px;
+}
+
+#lime-container .header-item span {
+  display: inline-block;
+  padding: 0.25em 0.4em;
+  font-size: 75%;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+  max-width: calc(50% - 10px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#lime-container .header-item span:first-child {
+  border-top-left-radius: 0.25rem;
+  border-bottom-left-radius: 0.25rem;
+  
+}
+
+#lime-container .header-item span:last-child {
+  border-top-right-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+}
+
+#lime-container .header-item span:hover {
+  opacity: 0.7;
+  transition: 0.2s;
+}
+
+#lime-container .header-item-key {
+  color: var(--light);
+  background-color: var(--info);
+}
+
+#lime-container .header-item-value {
+  color: var(--dark);
+  background-color: var(--warning);
+}
+
+#lime-container .header-item-remove {
+  color: var(--light);
+  background-color: var(--danger);
+}
+
+/* Millicious Components */
+#lime-container .progress-bar-black-striped {
+  background-image: linear-gradient(45deg, rgba(0, 0, 0, 0.75) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.75) 50%, rgba(0, 0, 0, 0.75) 75%, transparent 75%, transparent);
+  background-size: 1rem 1rem;
+}
+
+/* Millicious Settings */
+#lime-container .no-resize {
+  resize: none;
+}
+
+#lime-container .hide {
+  display: none;
+}
+
+#lime-container .font-size-inherit {
+  font-size: inherit;
+}
+
+/* Responsive Customization */
+@media (min-width: 0px) {
+  #lime-container .lime-webhook-item {
+    min-width: 200px;
+    width: calc(100%);
+  }
+}
+
+@media (min-width: 576px) {
+  #lime-container .lime-webhook-item {
+    min-width: calc(100% - 20px);
+  }
+}
+
+@media (min-width: 768px) {
+  #lime-container .lime-webhook-item {
+    min-width: calc(50% - 20px);
+    width: calc(50% - 20px);
+  }
+}
+
+@media (min-width: 1200px) {
+  #lime-container .lime-webhook-item {
+    min-width: calc(33% - 20px);
+    width: calc(33% - 20px);
+  }
+}
 
