@@ -1,10 +1,5 @@
 (function() {
 
-  // Used for call "TurnipRaid.stringAutoId" function instead of it's full name.
-  var said;
-  var saidObj;
-  var ui;
-
   class LimeExtension extends window.Extension {
     constructor() {
       super('lime-extension');
@@ -12,27 +7,66 @@
 
       this.constants = {
         "idRegex": /^extension-lime/,
-        "scriptAddrPrefix": `/extensions/${this.id}/`
+        "scriptAddrPrefix": `/extensions/${this.id}/static/js`,
+        "pageAddrPrefix": `/extensions/${this.id}/static/views`
       };
 
       this.promise = [];
       this.content = '';
       this.contents = {};
 
-      //  Load script.
       let scriptArr = [
-        "static/js/jquery.min.js",
-        "static/js/popper.min.js",
-        "static/js/bootstrap.min.js",
+        `/jquery.min.js`,
+        `/popper.min.js`,
+        `/bootstrap.min.js`,
         
-        "static/js/lime-api.js",
-        "static/js/lime-raid.js"
+        `/sys/lime-console.js`,
+        `/sys/lime-collector.js`,
+        `/sys/lime-api.js`,
+        `/sys/lime-raid.js`,
+        `/sys/lime-ui.js`
       ];
+
+      let pageSchema = null;
+      let prom = this.loadScriptSync(`/extensions/${this.id}/static/js/page/page-schema.js`)
+      .then(() => {
+        pageSchema = LimeExtensionPageStructure;
+        console.log(`page schema : ${JSON.stringify(pageSchema, null, 2)}`);
+        return ;
+      })
+      .then(() => {
+        let pageArr = [];
+        pageSchema.page.forEach((page) => pageArr.push(page.view.path));
+        let loadScript = this.loadSequential(scriptArr);
+        let loadPage = this.loadParallel(pageArr);
+      });
+      this.promise.push(prom);
+
+      /*
+      let loadScript = this.loadSequential(scriptArr);
+
+      let loadPage = this.loadParallel(pageArr)
+      .then((list) => {
+        let schema = {};
+        for(let i in pageArr) {
+          this.contents[pageArr[i].match(/(?:-)([^.]+)(?:.)/i)[1]] = list[i];
+        }
+        
+        let content = new DOMParser().parseFromString(mainPage, "text/html");
+      });
+
+      let prom = Promise.all([
+        loadScript,
+        loadPage
+      ]);
+      this.promise.push(prom);*/
 
       //for(let i in scriptArr)
       //  this.loadScriptSync(`${scriptAddrPrefix}${scriptArr[i]}`);
 
       //  Load resource.
+
+      /*
       let prom = Promise.all([
         this.loadResource(`/extensions/${this.id}/static/views/main.html`),
         this.loadResource(`/extensions/${this.id}/static/views/webhook.html`),
@@ -89,7 +123,7 @@
           resolve();
         });
       });
-      this.promise.push(prom);
+      this.promise.push(prom);*/
     }
 
     show() {
@@ -107,12 +141,38 @@
       });
     }
 
-    loadScript(scriptList) {
-      return new Promise(async(resolve, reject) => {
-        for(let i in scriptList)
-          await this.loadScriptSync(`${this.constants.scriptAddrPrefix}${scriptList[i]}`);
-        resolve();
+    loadParallel(list) {
+      return new Promise((resolve, reject) => {
+        let result = [];
+        for(let i in list)
+          result.push(this.loadResource(`${list[i]}`));
+        Promise.all(result)
+        .then((arr) => {
+          resolve(arr);
+        });
       });
+    }
+
+    loadSequential(list) {
+      return new Promise(async(resolve, reject) => {
+        result = [];
+        for(let i in list)
+          result.push(await this.loadResource(`${list[i]}`));
+        resolve(result);
+      });
+    }
+
+    loadResource(path) {
+      if(path.endsWith(`.js`)) {
+        return this.loadScriptSync(path);
+      }
+      else if(path.endsWith(`.html`)) {
+        return this.loadPageSync(path);
+      }
+      else {
+        console.error(`${path} not match file type.`);
+        return null;
+      }
     }
 
     loadScriptSync(src) {
@@ -137,7 +197,7 @@
       });
     }
 
-    loadResource(url, type) {
+    loadPageSync(url, type) {
       return new Promise((resolve, reject) => {
         fetch(url).then((res) => {
           resolve((type == "json") ? res.json() : res.text());
@@ -156,102 +216,22 @@
 
     pageRender(config) {
       console.log("pageRender() >> ");
-
       return new Promise((resolve, reject) => {
-        ((config) ? Promise.resolve(config) : this.api.getConfig())
-        .then((conf) => (config = conf))
-        .then(() => this.renderNav(config))
-        .then(() => this.renderContent(config))
-        .then(() => this.turnipRaid.updateIdList(this.idRegex))
-        .then(() => resolve())
-        .catch((err) => {
-          alert(err);
-          reject(err);
-        });
+        resolve(true);
       });
     }
 
-    webUi() {
-      return {
-        show: (id) => saidObj(id).removeClass("hide"),
-        hide: (id) => saidObj(id).addClass("hide"),
-        enable: (id) => saidObj(id).removeClass("disabled"),
-        disable: (id) => saidObj(id).addClass("disabled"),
-        click: (id) => saidObj(id).click()
-      }
+    renderContent() {
+      console.log("renderContent() >> ");
+      return new Promise((resolve, reject) => {
+        resolve(true);
+      });
     }
 
-    renderNav(param) {
+    renderNav() {
       console.log(`renderNav() >> `);
       return new Promise((resolve, reject) => {
-        let navList = this.navList;
-        if(typeof param == "string") {
-          for(let i in navList) {
-            if(navList[i].id == ) {
-
-            }
-          }
-        }
-      });
-    }
-
-    renderNav2(param) {
-      //  'param' can be {workmode} or {config}.
-      console.log("renderNav() >> ");
-      return new Promise((resolve, reject) => {
-        ((param) ? Promise.resolve(param) : this.api.getWorkMode())
-        .then((input) => (input.account) ? this.api.getWorkMode(input.account) : input)
-        .then((workmode) => {
-          console.log(`renderNav() : workmode : ${workmode}`);
-          switch(workmode) {
-            case this.constants.workMode.noAccount:
-              ui.click(`turnip.nav.account`);
-              ui.disable(`turnip.nav.webhook`);
-              ui.disable(`turnip.nav.setting`);
-              ui.enable(`turnip.nav.account`);
-              break;
-            case this.constants.workMode.wrongToken:
-              ui.click(`turnip.nav.account`);
-              ui.disable(`turnip.nav.webhook`);
-              ui.disable(`turnip.nav.setting`);
-              ui.enable(`turnip.nav.account`);
-              break;
-            case this.constants.workMode.allReady:
-              ui.click(`turnip.nav.webhook`);
-              ui.enable(`turnip.nav.webhook`);
-              ui.enable(`turnip.nav.setting`);
-              ui.enable(`turnip.nav.account`);
-              break;
-            default :
-              console.error("renderNav() >> error : workMode invalid : "+workmode);
-              break;
-          }
-          resolve(workmode);
-        })
-        .catch((err) => {
-          alert(err);
-          reject(err);
-        });
-      });
-    }
-
-    renderContent(config) {
-      console.log("renderContent() >> ");
-
-      return new Promise((resolve, reject) => {
-        ((config) ? Promise.resolve(config) : this.api.getConfig())
-        .then((conf) => {
-          config = conf;
-          return config;
-        })
-        .then(() => this.webhook.render(config))
-        .then(() => this.setting.render(config))
-        .then(() => this.account.render(config))
-        .then(() => resolve(config))
-        .catch((err) => {
-          alert(err);
-          reject(err);
-        });
+        resolve(true);
       });
     }
   }
