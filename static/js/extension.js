@@ -15,20 +15,8 @@
       this.content = '';
       this.contents = {};
 
-      let scriptArr = [
-        `/jquery.min.js`,
-        `/popper.min.js`,
-        `/bootstrap.min.js`,
-        
-        `/sys/lime-console.js`,
-        `/sys/lime-collector.js`,
-        `/sys/lime-api.js`,
-        `/sys/lime-raid.js`,
-        `/sys/lime-ui.js`
-      ];
-
       let pageSchema = null;
-      let prom = this.loadScriptSync(`/extensions/${this.id}/static/js/page/page-schema.js`)
+      let promPage = this.loadScriptSync(`/extensions/${this.id}/static/js/page/page-schema.js`)
       .then(() => {
         pageSchema = LimeExtensionPageStructure;
         console.log(`page schema : ${JSON.stringify(pageSchema, null, 2)}`);
@@ -40,7 +28,9 @@
         let loadScript = this.loadSequential(scriptArr);
         let loadPage = this.loadParallel(pageArr);
       });
-      this.promise.push(prom);
+
+      this.promise.push(promScript);
+      this.promise.push(promPage);
 
       /*
       let loadScript = this.loadSequential(scriptArr);

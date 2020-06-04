@@ -1,54 +1,100 @@
-var LimeExtensionPageStructure = {
-  "page": {
-    "vthings": {
-      "view": {
-        "path": "/views/page-vthings.html",
-        "icon": "fas fa-user"
-      },
-      "js": {
-        "path": "/js/page/vthings.js",
-        "object": "LimeExtensionPageVthings"
+var LimeExtensionLoadStructure = {
+  "flow": [
+    {
+      "type": "loader",
+      "load": {
+        ""
       }
+    }
+  ],
+
+  "define": {
+    "jquery": {
+      "type": "script",
+      "path": "/js/jquery.min.js"
     },
-    "devices": {
-      "view": {
-        "path": "/views/page-devices.html",
-        "icon": "fas fa-user"
-      },
-      "js": {
-        "path": "/js/page/devices.js",
-        "object": "LimeExtensionPageDevices"
-      }
+    "popper": {
+      "type": "script",
+      "path": "/js/popper.min.js"
+    }
+    "bootstrap": {
+      "type": "script",
+      "path": "/js/bootstrap.min.js"
     },
-    "scripts": {
-      "view": {
-        "path": "/views/page-scripts.html",
-        "icon": "fas fa-user"
-      },
-      "js": {
-        "path": "/js/page/scripts.js",
-        "object": "LimeExtensionPageScripts"
-      }
+    "lime-console": {
+      "type": "script",
+      "path": "/js/sys/lime-console.js"
     },
-    "engines": {
-      "view": {
-        "path": "/views/page-engines.html",
-        "icon": "fas fa-user"
-      },
-      "js": {
-        "path": "/js/page/engines.js",
-        "object": "LimeExtensionPageEngines"
-      }
+    "lime-collector": {
+      "type": "script",
+      "path": "/js/sys/lime-collector.js"
     },
-    "sysport": {
-      "view": {
-        "path": "/views/page-sysport.html",
-        "icon": "fas fa-user"
-      },
-      "js": {
-        "path": "/js/page/sysport.js",
-        "object": "LimeExtensionPageSysport"
-      }
+    "lime-api": {
+      "type": "script",
+      "path": "/js/sys/lime-api.js"
+    },
+    "lime-raid": {
+      "type": "script",
+      "path": "/js/sys/lime-raid.js"
+    },
+    "lime-ui": {
+      "type": "script",
+      "path": "/js/sys/lime-ui.js"
+    },
+
+    "page-vthings": {
+      "type": "page",
+      "path": "/views/page-vthings.html",
+      "icon": "fas fa-user"
+    },
+    "script-vthings": {
+      "type": "page-script",
+      "path": "/js/page/vthings.js",
+      "object": "LimeExtensionPageVthings"
+    }
+
+    "page-devices": {
+      "type": "page",
+      "path": "/views/page-devices.html",
+      "icon": "fas fa-user"
+    },
+    "script-devices": {
+      "type": "page-script",
+      "path": "/js/page/devices.js",
+      "object": "LimeExtensionPageDevices"
+    }
+
+    "page-scripts": {
+      "type": "page",
+      "path": "/views/page-scripts.html",
+      "icon": "fas fa-user"
+    },
+    "script-scripts": {
+      "type": "page-script",
+      "path": "/js/page/scripts.js",
+      "object": "LimeExtensionPageScripts"
+    }
+
+    "page-engines": {
+      "type": "page",
+      "path": "/views/page-engines.html",
+      "icon": "fas fa-user"
+    },
+    "script-engines": {
+      "type": "page-script",
+      "path": "/js/page/engines.js",
+      "object": "LimeExtensionPageEngines"
+    }
+
+    "page-sysport": {
+      "type": "page",
+      "path": "/views/page-sysport.html",
+      "icon": "fas fa-user"
+    },
+    "script-sysport": {
+      "type": "page-script",
+      "path": "/js/page/sysport.js",
+      "object": "LimeExtensionPageSysport"
     }
   }
 };
