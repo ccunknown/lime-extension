@@ -7,30 +7,33 @@
 
       this.constants = {
         "idRegex": /^extension-lime/,
-        "scriptAddrPrefix": `/extensions/${this.id}/static/js`,
-        "pageAddrPrefix": `/extensions/${this.id}/static/views`
+        "urlPrefix": `/extensions/${this.id}`
       };
 
       this.promise = [];
       this.content = '';
       this.contents = {};
+      this.resourceSchema = null;
+      this.resourceObj = null;
 
-      let pageSchema = null;
-      let promPage = this.loadScriptSync(`/extensions/${this.id}/static/js/page/page-schema.js`)
+      let prom = this.loadResource(`/extensions/${this.id}/static/js/page/page-schema.js`)
       .then(() => {
-        pageSchema = LimeExtensionPageStructure;
-        console.log(`page schema : ${JSON.stringify(pageSchema, null, 2)}`);
-        return ;
+        this.resourceSchema = LimeExtensionLoadStructure;
+        //console.log(`page schema : ${JSON.stringify(this.resourceSchema, null, 2)}`);
       })
       .then(() => {
-        let pageArr = [];
-        pageSchema.page.forEach((page) => pageArr.push(page.view.path));
-        let loadScript = this.loadSequential(scriptArr);
-        let loadPage = this.loadParallel(pageArr);
+        return new Promise(async(resolve, reject) => {
+          this.resourceObj = await this.load(this.resourceSchema);
+          this.console = new LimeConsole(`LimeExtension`);
+          this.console.log(`Resource file loaded.`);
+          this.content = this.render();
+          //this.content = await this.render();
+          //this.raid = new LimeRaid();
+          resolve();
+        });
       });
 
-      this.promise.push(promScript);
-      this.promise.push(promPage);
+      this.promise.push(prom);
 
       /*
       let loadScript = this.loadSequential(scriptArr);
@@ -112,8 +115,13 @@
 
           resolve();
         });
-      });
-      this.promise.push(prom);*/
+      });*/
+    }
+
+    render() {
+      this.console.trace(`render() >> `);
+      let schema = this.resourceSchema;
+
     }
 
     show() {
@@ -125,34 +133,61 @@
           }
           else
             this.config = config;
-          console.log(JSON.stringify(this.config, null, 2));
+          this.console.log(JSON.stringify(this.config, null, 2));
           this.pageRender();
         });
       });
     }
 
-    loadParallel(list) {
-      return new Promise((resolve, reject) => {
-        let result = [];
-        for(let i in list)
-          result.push(this.loadResource(`${list[i]}`));
-        Promise.all(result)
-        .then((arr) => {
-          resolve(arr);
-        });
-      });
-    }
-
-    loadSequential(list) {
-      return new Promise(async(resolve, reject) => {
-        result = [];
-        for(let i in list)
-          result.push(await this.loadResource(`${list[i]}`));
-        resolve(result);
+    load(schema, obj) {
+      return new Promise(async (resolve, reject) => {
+        obj = (obj) ? obj : JSON.parse(JSON.stringify(schema.flow));
+        let result = {};
+        switch(typeof obj) {
+          case "string":
+            //console.log(`load string`);
+            if(schema.define.hasOwnProperty(obj)) {
+              result[obj] = await this.loadResource(`${schema.define[obj].path}`);
+              resolve(result);
+            }
+            else
+              reject(`"${obj}" not define!!!`);
+            break;
+          case "object":
+            //console.log(`load object`);
+            if(obj.type == "sequential") {
+              for(let i in obj.load) {
+                let res = await this.load(schema, obj.load[i]);
+                Object.assign(result, res);
+              }
+              resolve(result);
+            }
+            else if(obj.type == "parallel") {
+              let prom = [];
+              for(let i in obj.load) {
+                let res = this.load(schema, obj.load[i]);
+                prom.push(res);
+              }
+              Promise.all(prom)
+              .then((arr) => {
+                arr.forEach((elem) => Object.assign(result, elem));
+                resolve(result);
+              });
+            }
+            else
+              reject(`Incorrect schema : ${JSON.stringify(obj, null, 2)}`);
+            break;
+          default:
+            reject(`load type ${typeof obj} not allow!!!`);
+            break;
+        }
+        
       });
     }
 
     loadResource(path) {
+      let prefix = this.constants.urlPrefix;
+      path = (path.startsWith(prefix) || path.startsWith(`http`)) ? path : [prefix, `static`, path].join("/").replace(/\/+/g, "/");
       if(path.endsWith(`.js`)) {
         return this.loadScriptSync(path);
       }
@@ -173,23 +208,25 @@
         s.async = false;
 
         s.addEventListener("load", () => {
-          console.log(`loadScriptSync("${src}"") : finish`);
+          //console.log(`loadScriptSync("${src}") : finish`);
           resolve();
         });
 
         s.addEventListener("error", (err) => {
-          console.log(`loadScriptSync("${src}"") : error`);
+          console.log(`loadScriptSync("${src}") : error`);
           reject(err);
         });
 
-        console.log(`loadScriptSync("${src}"") : start`);
+        //console.log(`loadScriptSync("${src}") : start`);
         document.getElementsByTagName('head')[0].appendChild(s);
       });
     }
 
     loadPageSync(url, type) {
       return new Promise((resolve, reject) => {
+        //console.log(`loadPageSync("${url}") : start`);
         fetch(url).then((res) => {
+          //console.log(`loadPageSync("${url}") : finish`);
           resolve((type == "json") ? res.json() : res.text());
         }).catch((e) => {
           console.error(`Failed to fetch "${url}" : ${e}`);
@@ -203,28 +240,7 @@
           return this.id;
       }).get();
     }
-
-    pageRender(config) {
-      console.log("pageRender() >> ");
-      return new Promise((resolve, reject) => {
-        resolve(true);
-      });
-    }
-
-    renderContent() {
-      console.log("renderContent() >> ");
-      return new Promise((resolve, reject) => {
-        resolve(true);
-      });
-    }
-
-    renderNav() {
-      console.log(`renderNav() >> `);
-      return new Promise((resolve, reject) => {
-        resolve(true);
-      });
-    }
   }
 
-  new TurnipExtension();
+  new LimeExtension();
 })();
