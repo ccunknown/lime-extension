@@ -5,9 +5,18 @@
       super('lime-extension');
       this.addMenuEntry('Lime Extension');
 
+      /*
       this.constants = {
         "idRegex": /^extension-lime/,
         "urlPrefix": `/extensions/${this.id}`
+      };
+      */
+      this.config = {
+        "url-prefix": `/extensions/${this.id}`,
+        "api": {
+          "path": `/extensions/${this.id}/static/core/js/lime-api.js`,
+          "object": `LimeExtensionApi`
+        },
       };
 
       this.promise = [];
@@ -16,6 +25,7 @@
       this.resourceSchema = null;
       this.resourceObj = null;
 
+      /*
       let prom = this.loadResource(`/extensions/${this.id}/static/js/page/page-schema.js`)
       .then(() => {
         this.resourceSchema = LimeExtensionLoadStructure;
@@ -33,7 +43,34 @@
         });
       });
 
+      this.promise.push(prom);*/
+
+
+
+
+      let prom =this.loadResource(`/extensions/${this.id}/static/core/js/lime-api.js`)
+      .then(() => {
+        return new Promise((resolve, reject) => {
+          //this.api = new window[`${this.config.api.object}`]();
+          //this.api = new LimeExtensionApi();
+          this.api = eval(`new ${this.config.api.object}()`);
+          this.api.init({
+            "url-prefix": `/extensions/${this.id}`,
+            "load-script-path": `/config/load-script.json`
+          })
+          .then(() => {
+            resolve();
+          });
+        });
+      });
+
       this.promise.push(prom);
+
+
+
+
+
+
 
       /*
       let loadScript = this.loadSequential(scriptArr);
@@ -186,7 +223,8 @@
     }
 
     loadResource(path) {
-      let prefix = this.constants.urlPrefix;
+      //let prefix = this.constants.urlPrefix;
+      let prefix = this.config[`url-prefix`];
       path = (path.startsWith(prefix) || path.startsWith(`http`)) ? path : [prefix, `static`, path].join("/").replace(/\/+/g, "/");
       if(path.endsWith(`.js`)) {
         return this.loadScriptSync(path);

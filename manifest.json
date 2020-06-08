@@ -3,11 +3,11 @@
   "content_scripts": [
     {
       "css": [
-        "static/css/extension-bootstrap.css",
-        "static/css/extension.css"
+        "static/core/css/extension-bootstrap.css",
+        "static/core/css/extension.css"
       ],
       "js": [
-        "static/js/extension.js"
+        "static/core/js/extension.js"
       ]
     }
   ],

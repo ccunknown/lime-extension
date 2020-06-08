@@ -1,4 +1,4 @@
-class LimeConsole {
+class LimeExtensionConsole {
   constructor(options) {
     this.constants = {
       "debugLevelValue": {
@@ -16,9 +16,9 @@ class LimeConsole {
     this.debugLevel = `log`;
     if(options) {
       if(options.headingWord)
-        this.setHeadingWord(options.headingWord);
+        this.setHeadingWord(options[`heading-word`]);
       if(options.debugLevel)
-        this.setDebugLevel(options.debugLevel);
+        this.setDebugLevel(options[`debug-level`]);
     }
   }
 
@@ -43,6 +43,10 @@ class LimeConsole {
           this.disable(i);
       }
     }
+  }
+
+  getDebugLevel() {
+    return `${this.debugLevel}`
   }
 
   enable(func) {

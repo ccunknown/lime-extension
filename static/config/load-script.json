@@ -1,0 +1,159 @@
+{
+  "flow": {
+    "type": "sequential",
+    "load": [
+      {
+        "type": "parallel",
+        "load": [
+          {
+            "type": "sequential",
+            "load": [
+              "jquery",
+              "popper",
+              "bootstrap",
+              "lime-console",
+              "lime-collector",
+              "lime-raid",
+              "lime-ui"
+            ]
+          },
+          {
+            "type": "parallel",
+            "load": [
+              "page-vthings",
+              "page-devices",
+              "page-scripts",
+              "page-engines",
+              "page-sysport"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "parallel",
+        "load": [
+          "script-vthings",
+          "script-devices",
+          "script-scripts",
+          "script-engines",
+          "script-sysport"
+        ]
+      }
+    ]
+  },
+
+  "define": {
+
+    "lime-console": {
+      "type": "core-api-script",
+      "path": "/core/js/lime-console.js",
+      "object-name": "LimeExtensionConsole",
+      "core": "console"
+    },
+    "lime-collector": {
+      "type": "core-api-script",
+      "path": "/core/js/lime-collector.js",
+      "object-name": "LimeExtensionConsole",
+      "core": "collector"
+    },
+    "lime-raid": {
+      "type": "core-script",
+      "path": "/core/js/lime-raid.js",
+      "object-name": "LimeExtensionRaid",
+      "core": "raid"
+    },
+    "lime-ui": {
+      "type": "core-script",
+      "path": "/core/js/lime-ui.js",
+      "object-name": "LimeExtensionUi",
+      "core": "ui"
+    },
+
+    "lime-resource": {
+      "type": "core-view",
+      "path": "/core/views/lime-page.html"
+    },
+    "page-main": {
+      "type": "core-view",
+      "path": "/core/views/main.html"
+    },
+
+    "jquery": {
+      "type": "script",
+      "path": "/js/jquery.min.js"
+    },
+    "popper": {
+      "type": "script",
+      "path": "/js/popper.min.js"
+    },
+    "bootstrap": {
+      "type": "script",
+      "path": "/js/bootstrap.min.js"
+    },
+
+
+    "page-vthings": {
+      "type": "custom-view",
+      "path": "/custom/views/vthings.html",
+      "icon": "fas fa-user",
+      "link-script": "script-vthings"
+    },
+    "script-vthings": {
+      "type": "custom-script",
+      "path": "/custom/js/vthings.js",
+      "object-name": "LimeExtensionPageVthings"
+    },
+
+
+    "page-devices": {
+      "type": "custom-view",
+      "path": "/custom/views/devices.html",
+      "icon": "fas fa-cogs",
+      "link-script": "script-devices"
+    },
+    "script-devices": {
+      "type": "custom-script",
+      "path": "/custom/js/devices.js",
+      "object-name": "LimeExtensionPageDevices"
+    },
+
+
+    "page-scripts": {
+      "type": "custom-view",
+      "path": "/custom/views/scripts.html",
+      "icon": "fas fa-user",
+      "link-script": "script-scripts"
+    },
+    "script-scripts": {
+      "type": "custom-script",
+      "path": "/custom/js/scripts.js",
+      "object-name": "LimeExtensionPageScripts"
+    },
+
+
+    "page-engines": {
+      "type": "custom-view",
+      "path": "/custom/views/engines.html",
+      "icon": "fas fa-user",
+      "link-script": "script-engines"
+    },
+    "script-engines": {
+      "type": "custom-script",
+      "path": "/custom/js/engines.js",
+      "object-name": "LimeExtensionPageEngines"
+    },
+
+
+    "page-sysport": {
+      "type": "custom-view",
+      "path": "/custom/views/sysport.html",
+      "icon": "fas fa-user",
+      "link-script": "script-sysport"
+    },
+    "script-sysport": {
+      "type": "custom-script",
+      "path": "/custom/js/sysport.js",
+      "object-name": "LimeExtensionPageSysport"
+    }
+  }
+}

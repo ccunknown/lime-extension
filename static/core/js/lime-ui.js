@@ -1,0 +1,9 @@
+class LimeExtensionUi {
+  constructor() {
+
+  }
+
+  getNav() {
+    
+  }
+}
