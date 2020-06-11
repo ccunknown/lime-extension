@@ -1,5 +1,5 @@
 //  LimeRaid class used for predict and verify id of html.
-class LimeRaid {
+export default class ExtensionRaid {
   constructor(idList) {
     this.idList = (idList) ? idList : [];
     let duplicateList = this.findDuplicate();

@@ -1,0 +1,191 @@
+(function() {
+
+  let script = {
+    "extension": {
+      "short": "lime",
+      "full": "lime-extension",
+      "title-short": "LiME",
+      "title-full": "LiME Extension",
+      "debug-level": "debug"
+    },
+    "view": {
+      "id": {
+        "prefix": "extension-lime"
+      }
+    },
+    "flow": {
+      "type": "sequential",
+      "load": [
+        {
+          "type": "parallel",
+          "load": [
+            {
+              "type": "sequential",
+              "load": [
+                "jquery",
+                "popper",
+                "bootstrap",
+                
+                "extension-script-collector",
+                "extension-script-api",
+                "extension-script-raid",
+                "extension-script-ui"
+              ]
+            },
+            {
+              "type": "parallel",
+              "load": [
+                "page-vthings",
+                "page-devices",
+                "page-scripts",
+                "page-engines",
+                "page-sysport"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "parallel",
+          "load": [
+            "extension-view-main",
+            "extension-view-resource",
+            "script-vthings",
+            "script-devices",
+            "script-scripts",
+            "script-engines",
+            "script-sysport"
+          ]
+        }
+      ]
+    },
+
+    "define": {
+
+      "extension-script-collector": {
+        "type": "core-script",
+        "path": "/core/js/collector.js",
+        "object-name": "ExtensionConsole",
+        "core": "collector"
+      },
+      "extension-script-api": {
+        "type": "core-script",
+        "path": "/core/js/api.js",
+        "object-name": "ExtensionApi",
+        "core": "api"
+      },
+      "extension-script-raid": {
+        "type": "core-script",
+        "path": "/core/js/raid.js",
+        "object-name": "ExtensionRaid",
+        "core": "raid"
+      },
+      "extension-script-ui": {
+        "type": "core-script",
+        "path": "/core/js/ui.js",
+        "object-name": "ExtensionUi",
+        "core": "ui"
+      },
+
+      "extension-view-resource": {
+        "type": "core-view",
+        "path": "/core/views/resource.html"
+      },
+      "extension-view-main": {
+        "type": "core-view",
+        "path": "/core/views/main.html"
+      },
+
+      "jquery": {
+        "type": "script",
+        "path": "/js/jquery.min.js"
+      },
+      "popper": {
+        "type": "script",
+        "path": "/js/popper.min.js"
+        //"path": "/js/popper.js"
+      },
+      "bootstrap": {
+        "type": "script",
+        "path": "/js/bootstrap.min.js"
+      },
+
+
+      "page-vthings": {
+        "name": "vthings",
+        "type": "custom-view",
+        "path": "/custom/views/vthings.html",
+        "icon": "fas fa-user",
+        "link-script": "script-vthings"
+      },
+      "script-vthings": {
+        "type": "custom-script",
+        "path": "/custom/js/vthings.js",
+        "object-name": "LimeExtensionPageVthings"
+      },
+
+
+      "page-devices": {
+        "name": "devices",
+        "type": "custom-view",
+        "path": "/custom/views/devices.html",
+        "icon": "fas fa-cogs",
+        "link-script": "script-devices"
+      },
+      "script-devices": {
+        "type": "custom-script",
+        "path": "/custom/js/devices.js",
+        "object-name": "LimeExtensionPageDevices"
+      },
+
+
+      "page-scripts": {
+        "name": "scripts",
+        "type": "custom-view",
+        "path": "/custom/views/scripts.html",
+        "icon": "fas fa-user",
+        "link-script": "script-scripts"
+      },
+      "script-scripts": {
+        "type": "custom-script",
+        "path": "/custom/js/scripts.js",
+        "object-name": "LimeExtensionPageScripts"
+      },
+
+
+      "page-engines": {
+        "name": "engines",
+        "type": "custom-view",
+        "path": "/custom/views/engines.html",
+        "icon": "fas fa-user",
+        "link-script": "script-engines"
+      },
+      "script-engines": {
+        "type": "custom-script",
+        "path": "/custom/js/engines.js",
+        "object-name": "LimeExtensionPageEngines"
+      },
+
+
+      "page-sysport": {
+        "name": "sysport",
+        "type": "custom-view",
+        "path": "/custom/views/sysport.html",
+        "icon": "fas fa-user",
+        "link-script": "script-sysport"
+      },
+      "script-sysport": {
+        "type": "custom-script",
+        "path": "/custom/js/sysport.js",
+        "object-name": "LimeExtensionPageSysport"
+      }
+    }
+  };
+
+  return new Promise(async (resolve, reject) => {
+    let Extension = (await import(`/extensions/${script.extension.full}/static/core/js/extension.js`)).default;
+    //console.log(Extension);
+    new Extension(script);
+    resolve();
+  });
+
+}) ();

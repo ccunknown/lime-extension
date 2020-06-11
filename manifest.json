@@ -7,7 +7,7 @@
         "static/core/css/extension.css"
       ],
       "js": [
-        "static/core/js/extension.js"
+        "static/config/load-script.js"
       ]
     }
   ],

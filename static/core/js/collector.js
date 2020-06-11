@@ -1,16 +1,10 @@
 //  JSON resource keeper, this class used by api.
 
-class LimeExtensionCollector {
+export default class ExtensionCollector {
   constructor(extension) {
-    this.api = extension.api;
-    let consoleObj = api.getCoreObject(`console`);
-    this.console = new consoleObj({
-      "heading-word": `${extension.console.getHeadingWord()} >> ExtensionCollector`,
-      "debug-level": extension.console.getDebugLevel()
-    });
+    this.extension = extension;
+    this.console = this.extension.console;
 
-    this.console = (extension) ? extension.console : console;
-    this.console.trace(`${this.consolePrefix} constructor()`);
     this.resource = {
       static: {},
       dynamic: {}

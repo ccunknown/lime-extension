@@ -1,4 +1,4 @@
-class LimeExtensionUi {
+export default class ExtensionUi {
   constructor() {
 
   }
