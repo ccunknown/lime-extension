@@ -29,16 +29,17 @@
                 "extension-script-collector",
                 "extension-script-api",
                 "extension-script-raid",
-                "extension-script-ui"
+                "extension-script-ui",
+                "extension-script-page"
               ]
             },
             {
               "type": "parallel",
               "load": [
-                "page-vthings",
-                "page-devices",
-                "page-scripts",
-                "page-engines",
+                //"page-vthings",
+                //"page-devices",
+                //"page-scripts",
+                //"page-engines",
                 "page-sysport"
               ]
             }
@@ -49,10 +50,10 @@
           "load": [
             "extension-view-main",
             "extension-view-resource",
-            "script-vthings",
-            "script-devices",
-            "script-scripts",
-            "script-engines",
+            //"script-vthings",
+            //"script-devices",
+            //"script-scripts",
+            //"script-engines",
             "script-sysport"
           ]
         }
@@ -85,14 +86,22 @@
         "object-name": "ExtensionUi",
         "core": "ui"
       },
+      "extension-script-page": {
+        "type": "core-script",
+        "path": "/core/js/page.js",
+        "object-name": "ExtensionPage",
+        "core": "page"
+      },
 
       "extension-view-resource": {
         "type": "core-view",
-        "path": "/core/views/resource.html"
+        "path": "/core/views/resource.html",
+        "core": "page-resource"
       },
       "extension-view-main": {
         "type": "core-view",
-        "path": "/core/views/main.html"
+        "path": "/core/views/main.html",
+        "core": "page-main"
       },
 
       "jquery": {
@@ -102,7 +111,6 @@
       "popper": {
         "type": "script",
         "path": "/js/popper.min.js"
-        //"path": "/js/popper.js"
       },
       "bootstrap": {
         "type": "script",
@@ -176,7 +184,7 @@
       "script-sysport": {
         "type": "custom-script",
         "path": "/custom/js/sysport.js",
-        "object-name": "LimeExtensionPageSysport"
+        "object-name": "PageSysport"
       }
     }
   };

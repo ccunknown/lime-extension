@@ -1,25 +1,19 @@
-class LimeExtensionPageSysport {
-  constructor(parent, raid) {
-    this.constants = {
-      "logPrefix": `LimeExtension-Page-Sysport`
-    };
-    this.log(`constructor()`);
+export default class PageSysport {
+  constructor(extension) {
+    this.extension = extension;
+    this.console = this.extension.console;
   }
 
   init() {
-    this.log(`init()`);
+    this.trace(`init()`);
+
   }
 
   renderNav(config) {
-    this.log(`renderNav()`);
+    this.trace(`renderNav()`);
   }
 
   renderPage(config) {
-    this.log(`renderPage()`);
-  }
-
-  log(str) {
-    let prefix = this.constants.logPrefix;
-    console.log(`${prefix} >> str`);
+    this.trace(`renderPage()`);
   }
 }

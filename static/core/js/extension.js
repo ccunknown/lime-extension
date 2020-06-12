@@ -1,8 +1,8 @@
 export default class ExtensionMain extends window.Extension {
-  constructor(script) {
-    super(script.extension.full);
-    this.script = JSON.parse(JSON.stringify(script));
-    this.addMenuEntry(`${this.script.extension[`title-full`]}`);
+  constructor(schema) {
+    super(schema.extension.full);
+    this.schema = JSON.parse(JSON.stringify(schema));
+    this.addMenuEntry(`${this.schema.extension[`title-full`]}`);
 
     this.promise = [];
     this.content = '';
@@ -95,22 +95,13 @@ export default class ExtensionMain extends window.Extension {
   }
 
   initCoreObject() {
-    return new Promise((resolve, reject) => {
-      let coreArr = [
-        //"console",
-        "collector",
-        "api",
-        //"raid",
-        "ui"
-      ];
-      coreArr.forEach((objName) => {
-        let obj = this.loader.getCoreObject(`${objName}`);
-        //console.log(this.console);
-        this.console.log(`objName : ${objName}`);
-        //this.console.log(`obj : ${obj}`);
-        this[`${objName}`] = new obj(this);
-      });
-      //this.loader.initConsole();
+    return new Promise(async (resolve, reject) => {
+      this.api = new (this.loader.getCoreObject(`api`))(this);
+      this.ui = new (this.loader.getCoreObject(`ui`))(this);
+
+      await this.api.init();
+      await this.ui.init();
+
       resolve();
     });
   }

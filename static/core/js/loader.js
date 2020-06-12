@@ -1,22 +1,22 @@
 export default class ExtensionLoader {
   constructor(extension) {
     this.extension = extension;
-    this.script = (this.extension) ? this.extension.script : undefined;
+    this.schema = (this.extension) ? this.extension.schema : undefined;
     this.console = this.extension.console;
     this.define = {
-      "url-prefix" : (this.script) ? `/extensions/${this.script.extension.full}` : `/`
+      "url-prefix" : (this.schema) ? `/extensions/${this.schema.extension.full}` : `/`
     };
   }
 
-  init(scriptPath) {
+  init(schemaPath) {
     return new Promise(async (resolve, reject) => {
-      if(scriptPath)
-        this.script = await this.loadResource(scriptPath);
+      if(schemaPath)
+        this.schema = await this.loadResource(schemaPath);
 
-      if(!this.script)
-        reject(`Have no script to load.`);
+      if(!this.schema)
+        reject(`Have no schema to load.`);
 
-      this.objects = await this.loadBySchema(this.script);
+      this.objects = await this.loadBySchema(this.schema);
 
       console.log(this.objects);
 
@@ -35,7 +35,7 @@ export default class ExtensionLoader {
             if(schema.define[obj][`object-name`])
               result[obj] = await this.loadObject(`${schema.define[obj].path}`);
             else
-              await this.loadResource(`${schema.define[obj].path}`);
+              result[obj] = await this.loadResource(`${schema.define[obj].path}`);
             resolve(result);
           }
           else
@@ -75,7 +75,7 @@ export default class ExtensionLoader {
 
   loadResource(path) {
     //console.log(`loadResource() : ${path}`);
-    let prefix = `/extensions/${this.script.extension.full}`;
+    let prefix = `/extensions/${this.schema.extension.full}`;
     //path = (path.startsWith(prefix) || path.startsWith(`http`)) ? path : [prefix, `static`, path].join("/").replace(/\/+/g, "/");
     path = this.path(`${path}`);
     if(path.endsWith(`.js`))
@@ -92,7 +92,7 @@ export default class ExtensionLoader {
 
   loadObject(path) {
     return new Promise(async (resolve, reject) => {
-      let prefix = `/extensions/${this.script.extension.full}`;
+      let prefix = `/extensions/${this.schema.extension.full}`;
       //path = (path.startsWith(prefix) || path.startsWith(`http`)) ? path : [prefix, `static`, path].join("/").replace(/\/+/g, "/");
       path = this.path(`${path}`);
       //console.log(`object : ${path} : `);
@@ -148,7 +148,7 @@ export default class ExtensionLoader {
   }
 
   getCoreObjectId(core) {
-    let define = this.script.define;
+    let define = this.schema.define;
     for(let i in define) {
       if(define[i].core == core)
         return i;
@@ -156,7 +156,28 @@ export default class ExtensionLoader {
     return undefined;
   }
 
-  getScriptDefine(id) {
-    return this.script.define[id];
+  getCustomObjects() {
+    return this.getObjects(`type`, `custom-script`);
+  }
+
+  getCustomViews() {
+    return this.getObjects(`type`, `custom-view`);
+  }
+
+  getObject(id) {
+    return this.objects[id];
+  }
+
+  getObjects(key, value) {
+    let list = {};
+    for(let i in this.objects) {
+      if(this.schema.define[i][key] == value)
+        list[i] = this.objects[i];
+    }
+    return list;
+  }
+
+  getSchemaDefine(id) {
+    return this.schema.define[id];
   }
 }

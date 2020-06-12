@@ -7,7 +7,7 @@
         "static/core/css/extension.css"
       ],
       "js": [
-        "static/config/load-script.js"
+        "static/config/load-schema.js"
       ]
     }
   ],
