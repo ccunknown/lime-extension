@@ -4,14 +4,10 @@
     "extension": {
       "short": "lime",
       "full": "lime-extension",
+      "html": "extension-lime",
       "title-short": "LiME",
       "title-full": "LiME Extension",
       "debug-level": "debug"
-    },
-    "view": {
-      "id": {
-        "prefix": "extension-lime"
-      }
     },
     "flow": {
       "type": "sequential",
@@ -23,6 +19,8 @@
               "type": "sequential",
               "load": [
                 "jquery",
+                "mustache",
+                "jquery-mustache",
                 "popper",
                 "bootstrap",
                 
@@ -107,6 +105,14 @@
       "jquery": {
         "type": "script",
         "path": "/js/jquery.min.js"
+      },
+      "mustache": {
+        "type": "script",
+        "path": "/js/mustache.js"
+      },
+      "jquery-mustache": {
+        "type": "script",
+        "path": "/js/jquery.mustache.js"
       },
       "popper": {
         "type": "script",

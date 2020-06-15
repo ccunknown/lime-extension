@@ -3,6 +3,7 @@
   "content_scripts": [
     {
       "css": [
+        "static/css/all.min.css",
         "static/core/css/extension-bootstrap.css",
         "static/core/css/extension.css"
       ],

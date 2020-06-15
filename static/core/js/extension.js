@@ -12,7 +12,8 @@ export default class ExtensionMain extends window.Extension {
 
     this.console = console;
     this.console.trace = () => {};
-    this.init();
+    //let prom = this.init();
+    this.promise.push(this.init());
 
     //  Load resource.
 
@@ -79,7 +80,8 @@ export default class ExtensionMain extends window.Extension {
     return new Promise(async (resolve, reject) => {
       await this.initLoader();
       await this.initCoreObject();
-      await this.initPageObject();
+
+      resolve();
     });
   }
 
@@ -106,12 +108,6 @@ export default class ExtensionMain extends window.Extension {
     });
   }
 
-  initPageObject() {
-    return new Promise((resolve, reject) => {
-      resolve();
-    });
-  }
-
   render() {
     this.console.trace(`render() >> `);
     let schema = this.resourceSchema;
@@ -120,15 +116,11 @@ export default class ExtensionMain extends window.Extension {
 
   show() {
     Promise.all(this.promise).then(() => {
-      this.view.innerHTML = this.content;
+      this.view.innerHTML = this.ui.view;
       this.api.getConfig().then((config) => {
-        if(!this.config) {
-          this.config = config;
-        }
-        else
-          this.config = config;
+        this.console.log(`get config`);
+        this.config = config;
         this.console.log(JSON.stringify(this.config, null, 2));
-        this.pageRender();
       });
     });
   }

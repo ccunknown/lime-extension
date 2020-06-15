@@ -2,15 +2,15 @@
 
   <!-- Nav Template -->
   <div id="extension-template-nav">
-    <a class="nav-link" id="{{ext.prefix}}-nav-{{def[index].name}}" data-toggle="pill" href="#{{ext.prefix}}-content-{{def[index].name}}" role="tab" aria-controls="{{ext.prefix}}-content-{{def[index].name}}" aria-selected="false">
-      <center><i class="fas {{def[index].icon}} fa-3x"></i></center>
+    <a class="nav-link" id="{{ext.html}}-nav-{{page.schema.name}}" data-toggle="pill" href="#{{ext.html}}-content-{{page.schema.name}}" role="tab" aria-controls="{{ext.html}}-content-{{page.schema.name}}" aria-selected="false">
+      <center><i class="{{page.schema.icon}} fa-3x"></i></center>
     </a>
   </div>
 
   <!-- Content Template -->
   <div id="extension-template-content">
-    <div class="tab-pane fade {{ext.short}}-tab-content" id="{{ext.prefix}}-content-{{def[index].name}}" role="tabpanel" aria-labelledby="{{ext.prefix}}-nav-{{def[index].name}}">
-      {{def[index].content}}
+    <div class="tab-pane fade {{ext.html}}-tab-content" id="{{ext.html}}-content-{{page.schema.name}}" role="tabpanel" aria-labelledby="{{ext.html}}-nav-{{page.schema.name}}">
+      {{{page.view}}}
     </div>
   </div>
 
