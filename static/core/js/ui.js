@@ -5,6 +5,9 @@ export default class ExtensionUi {
 
     this.mustache = window.Mustache;
 
+    this.ext = this.extension.schema.extension;
+    this.def = this.extension.schema.define;
+
     this.page = {};
     this.view = null;
   }
@@ -12,22 +15,21 @@ export default class ExtensionUi {
   init() {
     return new Promise(async (resolve, reject) => {
       await this.initView();
-      await this.initRaid();
-      await this.initScript();
+      await this.initRaid(this.view);
+      this.initFunction();
+      //await this.initScript();
       resolve();
     });
   }
 
   initView() {
-    let ext = this.extension.schema.extension;
-    let define = this.extension.schema.define;
     let mainView = this.extension.loader.getCoreObject(`page-main`);
     let resourceView = this.extension.loader.getCoreObject(`page-resource`);
     let customViews = this.extension.loader.getCustomViews();
     let customObjects = this.extension.loader.getCustomObjects();
     let data = {
-      ext: ext,
-      define: define,
+      ext: this.ext,
+      def: this.def,
       page: null,
       nav: ``,
       content: ``
@@ -55,17 +57,48 @@ export default class ExtensionUi {
     console.log(this.dom);
   }
 
-  initRaid() {
-    
+  initRaid(str) {
+    return new Promise((resolve, reject) => {
+      //let list = this.getHtmlId(str);
+      str = (str) ? str : $(`#${this.extension.schema.extension.html}-extension-view`).html();
+      let list = this.getHtmlId(str);
+      if(!this.raid) {
+        this.console.log(`new raid`);
+        const raid = this.extension.loader.getCoreObject(`raid`);
+        this.raid = new raid(list);
+      }
+      else {
+        this.console.log(`update raid`);
+        this.raid.updateIdList(list);
+      }
+      this.console.log(list);
+      this.said = this.raid.stringAutoId.bind(this.raid);
+      this.saidObj = this.raid.stringAutoIdObject.bind(this.raid);
+      resolve();
+    });
   }
 
-  initScript() {
-
+  initFunction() {
+    this.show = (id) => this.saidObj(id).removeClass(`hide`);
+    this.hide = (id) => this.saidObj(id).addClass(`hide`);
+    this.enable = (id) => this.saidObj(id).removeClass(`disabled`);
+    this.disable = (id) => this.saidObj(id).addClass(`disabled`);
+    this.click = (id) => this.saidObj(id).click();
   }
 
-  htmlCompile(html) {
-    let str = `${html}`;
+  initNavEvent() {
+    for(let i in this.page) {
+      //this.console.log(this.saidObj);
+      let navObj = this.saidObj(`${this.ext.html}.nav.${this.page[i].schema.name}`);
+      navObj.on(`click`, () => {
+        this.onNavClick(this.page[i].schema.name);
+      });
+      //this.console.log(navObj);
+    }
+  }
 
+  onNavClick(name) {
+    this.console.log(`onNavClick(${name})`);
   }
 
   render() {
@@ -74,5 +107,12 @@ export default class ExtensionUi {
 
   getNav() {
     
+  }
+
+  getHtmlId(str) {
+    return $(`*`, str).map(function() {
+      if(this.id)
+        return this.id;
+    }).get();
   }
 }

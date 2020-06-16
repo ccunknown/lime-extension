@@ -15,6 +15,18 @@ export default class ExtensionMain extends window.Extension {
     //let prom = this.init();
     this.promise.push(this.init());
 
+    Promise.all(this.promise).then(() => {
+      this.view.innerHTML = this.ui.view;
+      this.ui.initRaid();
+      this.ui.initNavEvent();
+      this.api.getConfig().then((config) => {
+        this.console.log(`get config`);
+        this.config = config;
+        this.console.log(JSON.stringify(this.config, null, 2));
+        this.ui.render(this.config);
+      });
+    });
+
     //  Load resource.
 
     /*
@@ -115,6 +127,7 @@ export default class ExtensionMain extends window.Extension {
   }
 
   show() {
+    /*
     Promise.all(this.promise).then(() => {
       this.view.innerHTML = this.ui.view;
       this.api.getConfig().then((config) => {
@@ -123,6 +136,7 @@ export default class ExtensionMain extends window.Extension {
         this.console.log(JSON.stringify(this.config, null, 2));
       });
     });
+    */
   }
 
   idOfText(content) {

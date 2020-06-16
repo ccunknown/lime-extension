@@ -4,9 +4,11 @@ export default class PageSysport {
     this.console = this.extension.console;
   }
 
-  init() {
+  init(config) {
     this.trace(`init()`);
-
+    return new Promise((resolve, reject) => {
+      resolve();
+    });
   }
 
   renderNav(config) {

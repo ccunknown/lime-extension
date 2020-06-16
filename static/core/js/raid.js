@@ -9,10 +9,14 @@ export default class ExtensionRaid {
 
   updateIdList(idRegex) {
     let list = [];
-    $('*').each((i, obj) => {
-      let id = $(obj).attr('id');
-        (id && id.match(idRegex)) ? list.push(id) : {};
-    });
+    if(Array.isArray(idRegex))
+      list = idRegex;
+    else {
+      $('*').each((i, obj) => {
+        let id = $(obj).attr('id');
+          (id && id.match(idRegex)) ? list.push(id) : {};
+      });
+    }
     this.idList = list;
     let duplicateList = this.findDuplicate();
     if(duplicateList.length)
@@ -40,7 +44,7 @@ export default class ExtensionRaid {
 
   stringAutoId(str, opt) {
     let arr = (opt && opt.array) ? opt.array : this.idList;
-    var delimiter = (opt && delimiter) ? opt.delimiter : '.';
+    var delimiter = (opt && opt.delimiter) ? opt.delimiter : '.';
     let shortest = (opt && opt.shortest) ? true : false;
 
     str = str.split(delimiter).join(`.*`);

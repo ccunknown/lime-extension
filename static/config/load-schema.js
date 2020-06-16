@@ -34,10 +34,10 @@
             {
               "type": "parallel",
               "load": [
-                //"page-vthings",
-                //"page-devices",
-                //"page-scripts",
-                //"page-engines",
+                "page-vthings",
+                "page-devices",
+                "page-scripts",
+                "page-engines",
                 "page-sysport"
               ]
             }
@@ -48,10 +48,10 @@
           "load": [
             "extension-view-main",
             "extension-view-resource",
-            //"script-vthings",
-            //"script-devices",
-            //"script-scripts",
-            //"script-engines",
+            "script-vthings",
+            "script-devices",
+            "script-scripts",
+            "script-engines",
             "script-sysport"
           ]
         }
@@ -128,7 +128,7 @@
         "name": "vthings",
         "type": "custom-view",
         "path": "/custom/views/vthings.html",
-        "icon": "fas fa-user",
+        "icon": "fas fa-paper-plane",
         "link-script": "script-vthings"
       },
       "script-vthings": {
@@ -142,7 +142,7 @@
         "name": "devices",
         "type": "custom-view",
         "path": "/custom/views/devices.html",
-        "icon": "fas fa-cogs",
+        "icon": "fas fa-calculator",
         "link-script": "script-devices"
       },
       "script-devices": {
@@ -156,7 +156,7 @@
         "name": "scripts",
         "type": "custom-view",
         "path": "/custom/views/scripts.html",
-        "icon": "fas fa-user",
+        "icon": "fas fa-file-code",
         "link-script": "script-scripts"
       },
       "script-scripts": {
@@ -170,7 +170,7 @@
         "name": "engines",
         "type": "custom-view",
         "path": "/custom/views/engines.html",
-        "icon": "fas fa-user",
+        "icon": "fas fa-cogs",
         "link-script": "script-engines"
       },
       "script-engines": {
@@ -184,7 +184,7 @@
         "name": "sysport",
         "type": "custom-view",
         "path": "/custom/views/sysport.html",
-        "icon": "fas fa-user",
+        "icon": "fab fa-usb",
         "link-script": "script-sysport"
       },
       "script-sysport": {
