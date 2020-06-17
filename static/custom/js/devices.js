@@ -5,17 +5,17 @@ export default class PageDevices {
   }
 
   init(config) {
-    this.trace(`init()`);
+    this.console.trace(`init()`);
     return new Promise((resolve, reject) => {
       resolve();
     });
   }
 
   renderNav(config) {
-    this.trace(`renderNav()`);
+    this.console.trace(`renderNav()`);
   }
 
   renderPage(config) {
-    this.trace(`renderPage()`);
+    this.console.trace(`renderPage()`);
   }
 }

@@ -19,6 +19,7 @@ export default class ExtensionMain extends window.Extension {
       this.view.innerHTML = this.ui.view;
       this.ui.initRaid();
       this.ui.initNavEvent();
+      this.ui.initScript();
       this.api.getConfig().then((config) => {
         this.console.log(`get config`);
         this.config = config;

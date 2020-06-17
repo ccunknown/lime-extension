@@ -5,7 +5,7 @@ export default class PageVthings {
   }
 
   init(config) {
-    this.trace(`init()`);
+    this.console.trace(`init()`);
     return new Promise((resolve, reject) => {
       resolve();
     });

@@ -73,16 +73,22 @@ export default class ExtensionApi {
 
   /***  Resource : /config  ***/
   getConfig() {
-    console.log(`rest.getConfig()`);
+    this.console.log(`rest.getConfig()`);
     return this.restCall(`get`, `/api/config`);
   }
   putConfig(config) {
-    console.log(`rest.putConfig()`);
+    this.console.log(`rest.putConfig()`);
     return this.restCall(`put`, `/config`, config);
   }
   deleteConfig() {
-    console.log(`rest.deleteConfig()`);
+    this.console.log(`rest.deleteConfig()`);
     return this.restCall(`delete`, `/config`);
+  }
+
+  /***  Resource : /api/system/portlist  ***/
+  getSystemPortlist() {
+    this.console.log(`getSystemPortlist`);
+    return this.restCall(`get`, `/api/system/portlist`);
   }
 
   restCall(method, path, body) {

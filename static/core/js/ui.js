@@ -18,6 +18,7 @@ export default class ExtensionUi {
       await this.initRaid(this.view);
       this.initFunction();
       //await this.initScript();
+      //await this.initScript();
       resolve();
     });
   }
@@ -86,19 +87,30 @@ export default class ExtensionUi {
     this.click = (id) => this.saidObj(id).click();
   }
 
+  initScript() {
+    for(let i in this.page) {
+      let page = this.page[i];
+      if(page.object && page.object.init)
+        page.object.init();
+    }
+  }
+
   initNavEvent() {
     for(let i in this.page) {
       //this.console.log(this.saidObj);
       let navObj = this.saidObj(`${this.ext.html}.nav.${this.page[i].schema.name}`);
       navObj.on(`click`, () => {
-        this.onNavClick(this.page[i].schema.name);
+        this.onNavClick(this.page[i]);
+        
       });
       //this.console.log(navObj);
     }
   }
 
-  onNavClick(name) {
-    this.console.log(`onNavClick(${name})`);
+  onNavClick(page) {
+    this.console.log(`onNavClick(${page.schema.name})`);
+    if(page.object)
+      page.object.render();
   }
 
   render() {
