@@ -20,7 +20,8 @@
               "load": [
                 "jquery",
                 "mustache",
-                "jquery-mustache",
+                "vue",
+                "vue-multiselect",
                 "popper",
                 "bootstrap",
                 
@@ -110,9 +111,13 @@
         "type": "script",
         "path": "/js/mustache.js"
       },
-      "jquery-mustache": {
+      "vue": {
         "type": "script",
-        "path": "/js/jquery.mustache.js"
+        "path": "/js/vue.js"
+      },
+      "vue-multiselect": {
+        "type": "script",
+        "path": "/js/vue-multiselect.min.js"
       },
       "popper": {
         "type": "script",

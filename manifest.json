@@ -4,6 +4,7 @@
     {
       "css": [
         "static/css/all.min.css",
+        "static/css/vue-multiselect.min.css",
         "static/custom/css/extension-bootstrap.css",
         "static/custom/css/extension.css"
       ],

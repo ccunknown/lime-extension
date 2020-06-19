@@ -10,6 +10,31 @@ var Defaults = {
       "name": null,
       "baudrate": 9600
     },
+    "sysport": {
+      "list": [
+        {
+          "name": "modbus-01",
+          "path": "/dev/ttyUSB0",
+          "config": {
+            "baudRate": 9600,
+            "databits": 8,
+            "parity": 'none',
+            "stopbits": 1,
+            "flowControl": false
+          },
+        }
+      ]
+    },
+    "engines": {
+      "dir": "/engines",
+      "list": [
+        {
+          "name": "",
+          "engine": "",
+          "port": ""
+        }
+      ]
+    },
     "template": {
       "default": {
         "calcpath": ""
@@ -126,7 +151,19 @@ var Defaults = {
         "enable": true,
         "status": "unknow",
         "description": "This service use to create things on mozilla-iot gateway."
-      }
+      },
+      {
+        "id": "sysport-service",
+        "enable": true,
+        "status": "unknow",
+        "description": "Port resource controller, provide port to engine."
+      },
+      {
+        "id": "engines-service",
+        "enable": false,
+        "status": "unknow",
+        "description": "Engine is a solution to provide data from port to script."
+      },
     ]
   },
   "schema": {

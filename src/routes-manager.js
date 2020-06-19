@@ -83,7 +83,7 @@ class RoutesManager extends APIHandler{
         "method": {
           "GET": (req) => {
             return new Promise((resolve, reject) => {
-              this.laborsManager.getService(`modbus-service`)
+              this.laborsManager.getService(`sysport-service`)
               .then((service) => service.obj.getSerialPortList())
               .then((serialPortList) => resolve(this.makeJsonRespond(JSON.stringify(serialPortList))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
