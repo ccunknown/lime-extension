@@ -1,4 +1,5 @@
 const servicePrefix = "./service/";
+const Path = require(`path`);
 
 class laborsManager {
   constructor(extension) {
@@ -31,7 +32,8 @@ class laborsManager {
         let serviceList = config.service;
         for(let i in serviceList) {
           let service = serviceList[i];
-          let serviceClass = require(`${servicePrefix}${service.id}`);
+          let path = Path.join(`${servicePrefix}`, `${service.path}`);
+          let serviceClass = require(`./${path}`);
           service.obj = new serviceClass(this.extension, config);
           console.log(`service : ${service.id}`);
           this.serviceList.push(service);

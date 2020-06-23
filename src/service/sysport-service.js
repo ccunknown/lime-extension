@@ -32,15 +32,30 @@ class sysportService extends EventEmitter {
     return new Promise((resolve, reject) => {
       console.log(`sysportService: start() >> `);
       config = (config) ? config : this.config;
-      let list = config.sysport.list;
+      let list = config[`sysport-service`].list;
       for(let i in list) {
         let port = {
-          "schema": list[i];
-          "obj": 
+          "schema": list[i],
+          "object": null
         };
+        port.object = new SerialPort(`${port.schema.path}`, port.schema.config);
+        this.portList[port.schema.name] = port;
         console.log(`${JSON.stringify(list[i], null, 2)}`);
       }
+      resolve();
     });
+  }
+
+  getPort(key) {
+    return this.portList[key];
+  }
+
+  getPortByAttribute(attr, val) {
+    for(let i in this.portList) {
+      if(this.portList[i].schema[attr] == val)
+        return this.portList[i];
+    }
+    return null;
   }
 
   getSerialPortList() {

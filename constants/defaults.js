@@ -10,7 +10,7 @@ var Defaults = {
       "name": null,
       "baudrate": 9600
     },
-    "sysport": {
+    "sysport-service": {
       "list": [
         {
           "name": "modbus-01",
@@ -20,18 +20,96 @@ var Defaults = {
             "databits": 8,
             "parity": 'none',
             "stopbits": 1,
-            "flowControl": false
-          },
+            "flowControl": false,
+            "autoOpen": false
+          }
         }
       ]
     },
-    "engines": {
-      "dir": "/engines",
+    "engines-service": {
+      "directory": "/engines",
+      "template": [
+        {
+          "name": "modbus-rtu",
+          "path": "modbus-rtu/modbus-rtu"
+        }
+      ],
       "list": [
         {
-          "name": "",
-          "engine": "",
-          "port": ""
+          "name": "modbus-engine-001",
+          "engine": "modbus-rtu",
+          "port": "modbus-01"
+        }
+      ]
+    },
+    "scripts-service": {
+      "directory": "/scripts"
+    },
+    "devices-service": {
+      "list": [
+        {
+          "id": "device-002",
+          "name": "SDM120CT Power Meter",
+          "type": "modbus-device",
+          "@context": `https://iot.mozilla.org/schemas`,
+          "@type": [`EnergyMonitor`],
+          "config": {
+            "script": "sdm120ct",
+            "engine": "modbus-engine-001",
+            "address": 11
+          },
+          "properties": {
+            "voltage": {
+              "name": "voltage",
+              "label": "Voltage",
+              "value": 0,
+              "config": {
+                "address": 0x0000,
+                "table": "inputRegisters",
+                "period": 2000
+              },
+              "metadata": {
+                "@type": "InstantaneousPowerProperty",
+                "title": "Voltage",
+                "type": "number",
+                "unit": "V"
+              }
+            },/*
+            "current": {
+              "name": "current",
+              "label": "Current",
+              "value": 0,
+              "config": {
+                "address": 0x0006,
+                "table": "inputRegisters",
+                "period": 2000
+              },
+              "metadata": {
+                "@type": "InstantaneousPowerProperty",
+                "title": "Current",
+                "type": "number",
+                "unit": "A"
+              }
+            },*/
+            "energy": {
+              "name": "energy",
+              //"label": "Import Active Energy",
+              "label": "Energy",
+              "value": 0,
+              "config": {
+                "address": 0x0048,
+                "table": "inputRegisters",
+                "period": 10000
+              },
+              "metadata": {
+                "@type": "InstantaneousPowerProperty",
+                //"title": "Import Active Energy",
+                "title": "Energy",
+                "type": "number",
+                "unit": "W"
+              }
+            }
+          }
         }
       ]
     },
@@ -141,29 +219,49 @@ var Defaults = {
       ]
     },
     "service": [
+    /*
       {
         "id": "modbus-service",
-        "enable": true,
+        "path": "/modbus-service",
+        "enable": false,
         "status": "unknow"
       },
       {
         "id": "vthing-service",
-        "enable": true,
+        "path": "/vthing-service",
+        "enable": false,
         "status": "unknow",
         "description": "This service use to create things on mozilla-iot gateway."
-      },
+      },*/
+      
       {
         "id": "sysport-service",
+        "path": "/sysport-service.js",
         "enable": true,
         "status": "unknow",
         "description": "Port resource controller, provide port to engine."
       },
       {
         "id": "engines-service",
-        "enable": false,
+        "path": "/engines-service/engines-service",
+        "enable": true,
         "status": "unknow",
         "description": "Engine is a solution to provide data from port to script."
       },
+      {
+        "id": "scripts-service",
+        "path": "/scripts-service/scripts-service",
+        "enable": true,
+        "status": "unknow",
+        "description": "Controller of scripts of slave serial devices, used to translatation for devices-service."
+      },
+      {
+        "id": "devices-service",
+        "path": "/devices-service/devices-service",
+        "enable": true,
+        "status": "unknow",
+        "description": "A combination of script and engine to define what was device should be."
+      }
     ]
   },
   "schema": {
