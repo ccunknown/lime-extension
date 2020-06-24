@@ -62,51 +62,43 @@ var Defaults = {
             "voltage": {
               "name": "voltage",
               "label": "Voltage",
+              "title": "Voltage",
+              "type": "number",
               "value": 0,
+              "unit": "V",
+              "readOnly": true,
               "config": {
                 "address": 0x0000,
                 "table": "inputRegisters",
-                "period": 2000
-              },
-              "metadata": {
-                "@type": "InstantaneousPowerProperty",
-                "title": "Voltage",
-                "type": "number",
-                "unit": "V"
+                "period": 5000
               }
-            },/*
+            },
             "current": {
               "name": "current",
               "label": "Current",
+              "title": "Current",
+              "type": "number",
               "value": 0,
+              "unit": "A",
+              "readOnly": true,
               "config": {
                 "address": 0x0006,
                 "table": "inputRegisters",
-                "period": 2000
-              },
-              "metadata": {
-                "@type": "InstantaneousPowerProperty",
-                "title": "Current",
-                "type": "number",
-                "unit": "A"
+                "period": 5000
               }
-            },*/
-            "energy": {
-              "name": "energy",
-              //"label": "Import Active Energy",
-              "label": "Energy",
+            },
+            "iae": {
+              "name": "iae",
+              "label": "Import Active Energy",
+              "title": "Import Active Energy",
+              "type": "number",
               "value": 0,
+              "unit": "kWh",
+              "readOnly": true,
               "config": {
                 "address": 0x0048,
                 "table": "inputRegisters",
                 "period": 10000
-              },
-              "metadata": {
-                "@type": "InstantaneousPowerProperty",
-                //"title": "Import Active Energy",
-                "title": "Energy",
-                "type": "number",
-                "unit": "W"
               }
             }
           }

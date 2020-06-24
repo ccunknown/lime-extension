@@ -56,7 +56,10 @@ class propertyWorker {
       console.log(`ret : ${ret.buffer.toString('hex')}`);
       let value = this.script.translator.map[table][address].translator(ret.buffer, this.script.readmap.map[table][address]);
       console.log(`${this.deviceId} : ${this.property.name} : ${typeof value} : ${value}`);
-      this.deviceObject.setProperty(this.property.name, value);
+
+      let prop = this.deviceObject.properties.get(this.property.name);
+      prop.setCachedValueAndNotify(value);
+      //this.deviceObject.setProperty(this.property.name, value);
 
       this.period = setTimeout(() => this.periodWork(), this.property.config.period);
       resolve();

@@ -25,14 +25,14 @@ class devicesService extends EventEmitter {
     this.laborsManager = this.extension.laborsManager;
     this.config = config;
 
-    this.deviceList = {};
     this.init();
   }
 
   init() {
     console.log(`devicesService: init() >> `);
+    this.deviceList = {};
+    this.adapter = new vAdapter(this.addonManager, this.manifest.name);
     return new Promise(async (resolve, reject) => {
-      this.adapter = new vAdapter(this.addonManager, this.manifest.name);
       resolve();
     });
   }
