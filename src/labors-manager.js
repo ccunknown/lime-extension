@@ -28,13 +28,15 @@ class laborsManager {
     console.log(`laborsManager: loadService() >> `);
     return new Promise((resolve, reject) => {
       this.configManager.getConfig()
-      .then((config) => {
+      .then(async (config) => {
         let serviceList = config.service;
         for(let i in serviceList) {
           let service = serviceList[i];
           let path = Path.join(`${servicePrefix}`, `${service.path}`);
           let serviceClass = require(`./${path}`);
-          service.obj = new serviceClass(this.extension, config);
+          config = JSON.parse(JSON.stringify(config));
+          service.obj = new serviceClass(this.extension, config, service.id);
+          await service.obj.init();
           console.log(`service : ${service.id}`);
           this.serviceList.push(service);
         }

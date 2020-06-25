@@ -1,38 +1,28 @@
 'use strict'
 
-const EventEmitter = require('events').EventEmitter;
-
 const {
   Adapter,
   Device,
-  Event,
   Property,
 } = require('gateway-addon');
 
+const Service = require(`../service`);
 const Database = require('../../lib/my-database');
 const {Defaults, Errors} = require('../../../constants/constants');
 const PropertyWorker = require(`./property-worker`);
 
-class devicesService extends EventEmitter {
-  constructor(extension, config) {
+class devicesService extends Service {
+  constructor(extension, config, id) {
     console.log(`devicesService: contructor() >> `);
-    super(extension.addonManager, extension.manifest.id);
-
-    this.extension = extension;
-    this.manifest = extension.manifest;
-    this.addonManager = extension.addonManager;
-
-    this.laborsManager = this.extension.laborsManager;
-    this.config = config;
-
-    this.init();
+    super(extension, config, id);
   }
 
-  init() {
+  init(config) {
     console.log(`devicesService: init() >> `);
-    this.deviceList = {};
-    this.adapter = new vAdapter(this.addonManager, this.manifest.name);
     return new Promise(async (resolve, reject) => {
+      this.config = (config) ? config : this.config;
+      this.deviceList = {};
+      this.adapter = new vAdapter(this.addonManager, this.manifest.name);
       resolve();
     });
   }
@@ -49,51 +39,54 @@ class devicesService extends EventEmitter {
     });
   }
 
-  initVAdapter() {
-    console.log(`vthingService: initialVAdapter() >> `);
-    this.adapter = new vAdapter(this.addonManager, this.manifest.name);
-    this.schemaList.forEach((schema) => {
-      console.log(`schema : ${JSON.stringify(schema, null, 2)}`);
-      const device = new vDevice(this.adapter, `${schema.id}`, schema);
-      
-      this.deviceList.push({
-        address: schema.address,
-        schema: schema,
-        device: device
-      });
-      
-      this.adapter.handleDeviceAdded(device);
-    });
-    return Promise.resolve();
-  }
-
   initDevices(config) {
     console.log(`devicesService: initDevices() >> `);
     return new Promise(async (resolve, reject) => {
       config = (config) ? config : this.config;
-      let list = config[`devices-service`].list;
+      let serviceSchema = this.getSchema();
+      let list = serviceSchema.config.list;
       this.deviceList = {};
-      for(let i in list) {
-        let device = {
-          "schema": list[i],
-          "object": new vDevice(this.adapter, `${list[i].id}`, list[i]),
-          "engine": this.enginesService.getEngine(list[i].config.engine).object,
-          "script": this.scriptsService.getScript(list[i].config.script),
-          "property": {}
-        };
-        //console.log(`device engine : `);
-        //console.log(device.engine);
-        for(let j in list[i].properties) {
-          let prop = new PropertyWorker({
-            "device": device,
-            "property": list[i].properties[j]
-          });
-          await prop.start();
-          device.property[j] = prop;
-        }
-        this.deviceList[list[i].id] = device;
-        this.adapter.handleDeviceAdded(this.deviceList[list[i].id].object);
+      for(let i in list)
+        await this.addDevice(list[i]);
+      resolve();
+    });
+  }
+
+  addDevice(schema) {
+    console.log(`devicesService: addDevice() >> `);
+    return new Promise(async (resolve, reject) => {
+      let device = {
+        "schema": schema,
+        "object": new vDevice(this.adapter, `${schema.id}`, schema),
+        "engine": this.enginesService.getEngine(schema.config.engine).object,
+        "script": this.scriptsService.getScript(schema.config.script),
+        "property": {}
+      };
+      //console.log(`device engine : `);
+      //console.log(device.engine);
+      for(let j in schema.properties) {
+        let prop = new PropertyWorker({
+          "device": device,
+          "property": schema.properties[j]
+        });
+        await prop.start();
+        device.property[j] = prop;
       }
+      this.deviceList[schema.id] = device;
+      this.adapter.handleDeviceAdded(this.deviceList[schema.id].object);
+      resolve();
+    });
+  }
+
+  removeDevice(id) {
+    console.log(`devicesService: removeDevice() >> `);
+    return new Promise((resolve, reject) => {
+      if(this.deviceList[id]) {
+        this.adapter.handleDeviceRemoved(this.deviceList[i].object);
+        delete this.deviceList[id];
+      }
+      else
+        console.warn(`Device "${id}" not found in list!!!`);
       resolve();
     });
   }

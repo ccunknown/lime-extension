@@ -1,37 +1,26 @@
 'use strict'
 
-const EventEmitter = require('events').EventEmitter;
+const Path = require(`path`);
+const SerialPort = require(`serialport`);
 
+const Service = require(`../service`);
 const Database = require('../../lib/my-database');
 const {Defaults, Errors} = require('../../../constants/constants');
 
-const SerialPort = require(`serialport`);
-
-//const ModbusRTU = require('modbus-serial');
-const Path = require(`path`);
-
-class enginesService extends EventEmitter {
-  constructor(extension, config) {
+class enginesService extends Service {
+  constructor(extension, config, id) {
     console.log(`enginesService: contructor() >> `);
-    super(extension.addonManager, extension.manifest.id);
-
-    this.extension = extension;
-    this.manifest = extension.manifest;
-    this.addonManager = extension.addonManager;
-
-    this.laborsManager = this.extension.laborsManager;
-    this.config = config;
-
-    this.engineList = {};
-    this.engineTemplateList = {};
-    this.init();
+    super(extension, config, id);
   }
 
-  init() {
+  init(config) {
     console.log(`enginesService: init() >> `);
     return new Promise((resolve, reject) => {
       //let sysport = this.laborsManager.getService(`sysport-service`);
       //this.sysportService = sysport.obj;
+      this.config = (config) ? config : this.config;
+      this.engineList = {};
+      this.engineTemplateList = {};
       resolve();
     });
   }
@@ -40,9 +29,12 @@ class enginesService extends EventEmitter {
     console.log(`enginesService: initEngineTemplate() >> `);
     return new Promise((resolve, reject) => {
       config = (config) ? config : this.config;
-      let list = config[`engines-service`].template;
+      //let list = config[`engines-service`].template;
       this.engineTemplateList = {};
+      let serviceSchema = this.getSchema();
+      let list = serviceSchema.config.template;
       for(let i in list) {
+        console.log(`engine path : ${list[i].path}`);
         let template = {
           "schema": list[i],
           "object": require(`./${Path.join(`./`, list[i].path)}`)
@@ -57,8 +49,10 @@ class enginesService extends EventEmitter {
     console.log(`enginesService: initEngine() >> `);
     return new Promise((resolve, reject) => {
       config = (config) ? config : this.config;
-      let list = config[`engines-service`].list;
+      //let list = config[`engines-service`].list;
       this.engineList = {};
+      let serviceSchema = this.getSchema();
+      let list = serviceSchema.config.list;
       for(let i in list) {
         let engine = {
           "schema": list[i],

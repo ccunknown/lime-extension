@@ -1,44 +1,43 @@
 'use strict'
 
-const EventEmitter = require('events').EventEmitter;
+//const EventEmitter = require('events').EventEmitter;
+const Service = require(`./service`);
 
 const Database = require('../lib/my-database');
 const {Defaults, Errors} = require('../../constants/constants');
 
 const SerialPort = require(`serialport`);
 
-class sysportService extends EventEmitter {
-  constructor(extension, config) {
+class sysportService extends Service {
+  constructor(extension, config, id) {
     console.log(`sysportService: contructor() >> `);
-    super(extension.addonManager, extension.manifest.id);
-
-    this.extension = extension;
-    this.manifest = extension.manifest;
-    this.addonManager = extension.addonManager;
-
-    this.laborsManager = this.extension.laborsManager;
-    this.config = config;
-
-    this.portList = {};
-    this.init();
+    super(extension, config, id);
   }
 
-  init() {
+  init(config) {
     console.log(`sysportService: init() >> `);
-
+    return new Promise(async (resolve, reject) => {
+      this.config = (config) ? config : this.config;
+      this.portList = {};
+      resolve();
+    });
   }
 
   start(config) {
     return new Promise((resolve, reject) => {
       console.log(`sysportService: start() >> `);
       config = (config) ? config : this.config;
-      let list = config[`sysport-service`].list;
+      this.portList = {};
+      //console.log(`sysport config : ${JSON.stringify(this.config, null, 2)}`);
+      let serviceSchema = this.getSchema();
+      console.log(JSON.stringify(serviceSchema));
+      let list = serviceSchema.config.list;
       for(let i in list) {
         let port = {
           "schema": list[i],
           "object": null
         };
-        port.object = new SerialPort(`${port.schema.path}`, port.schema.config);
+        port.object = new SerialPort(port.schema.path, port.schema.config);
         this.portList[port.schema.name] = port;
         console.log(`${JSON.stringify(list[i], null, 2)}`);
       }

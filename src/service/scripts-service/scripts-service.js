@@ -1,31 +1,22 @@
 'use strict'
 
 const Path = require(`path`);
-const EventEmitter = require('events').EventEmitter;
 
+const Service = require(`../service`);
 const Database = require('../../lib/my-database');
 const {Defaults, Errors} = require('../../../constants/constants');
 
-class scriptsService extends EventEmitter {
-  constructor(extension, config) {
+class scriptsService extends Service {
+  constructor(extension, config, id) {
     console.log(`scriptsService: contructor() >> `);
-    super(extension.addonManager, extension.manifest.id);
-
-    this.extension = extension;
-    this.manifest = extension.manifest;
-    this.addonManager = extension.addonManager;
-
-    this.laborsManager = this.extension.laborsManager;
-    this.config = config;
-
-    this.scriptsList = {};
-    this.init();
+    super(extension, config, id);
   }
 
-  init() {
+  init(config) {
     console.log(`scriptsService: init() >> `);
     return new Promise(async (resolve, reject) => {
-      //await this.initScript();
+      this.config = (config) ? config : this.config;
+      this.scriptsList = {};
       resolve();
     });
   }
@@ -42,12 +33,13 @@ class scriptsService extends EventEmitter {
     console.log(`scriptsService: initScript() >> `);
     return new Promise(async (resolve, reject) => {
       config = (config) ? config : this.config;
-      let list = await this.getDirectory(Path.join(__dirname, config[`scripts-service`].directory));
+      let serviceSchema = this.getSchema();
+      let list = await this.getDirectory(Path.join(__dirname, serviceSchema.config.directory));
       console.log(`list : ${list}`);
       this.scriptsList = {};
       for(let i in list) {
         console.log(`script : ${list[i]}`);
-        let path = Path.join(__dirname, config[`scripts-service`].directory, list[i]);
+        let path = Path.join(__dirname, serviceSchema.config.directory, list[i]);
         let files = await this.getDirectory(path);
         let readmap = (files && files.includes(`readMap.js`)) ? require(`${path}/readMap.js`) : null;
         let calcmap = (files && files.includes(`calcMap.js`)) ? require(`${path}/calcMap.js`) : null;
