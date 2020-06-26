@@ -57,7 +57,7 @@ class scriptsService extends Service {
 
   getScript(key) {
     console.log(`scriptService: getScript(${key})`);
-    console.log(this.scriptsList);
+    //console.log(this.scriptsList);
     return this.scriptsList[key];
   }
 

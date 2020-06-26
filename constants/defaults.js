@@ -9,7 +9,7 @@ var Defaults = {
     "service": [
       {
         "id": "sysport-service",
-        "path": "/sysport-service.js",
+        "path": "sysport-service/sysport-service.js",
         "enable": true,
         "status": "unknow",
         "description": "Port resource controller, provide port to engine.",
@@ -70,6 +70,7 @@ var Defaults = {
         "status": "unknow",
         "description": "A combination of script and engine to define what was device should be.",
         "config": {
+          "directory": "/devices",
           "list": [
             {
               "id": "device-002",
@@ -80,6 +81,7 @@ var Defaults = {
               "config": {
                 "script": "sdm120ct",
                 "engine": "modbus-engine-001",
+                "device": "modbus-rtu",
                 "address": 11
               },
               "properties": {
@@ -92,6 +94,7 @@ var Defaults = {
                   "unit": "V",
                   "readOnly": true,
                   "config": {
+                    "property": "default-property",
                     "address": 0x0000,
                     "table": "inputRegisters",
                     "period": 5000
@@ -106,6 +109,7 @@ var Defaults = {
                   "unit": "A",
                   "readOnly": true,
                   "config": {
+                    "property": "default-property",
                     "address": 0x0006,
                     "table": "inputRegisters",
                     "period": 5000
@@ -120,6 +124,7 @@ var Defaults = {
                   "unit": "kWh",
                   "readOnly": true,
                   "config": {
+                    "property": "default-property",
                     "address": 0x0048,
                     "table": "inputRegisters",
                     "period": 10000

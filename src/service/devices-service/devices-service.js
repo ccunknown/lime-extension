@@ -6,23 +6,65 @@ const {
   Property,
 } = require('gateway-addon');
 
+const Path = require(`path`);
 const Service = require(`../service`);
-const Database = require('../../lib/my-database');
-const {Defaults, Errors} = require('../../../constants/constants');
-const PropertyWorker = require(`./property-worker`);
+const Database = require(`../../lib/my-database`);
+const {Defaults, Errors} = require(`../../../constants/constants`);
+//const PropertyWorker = require(`./property-worker`);
 
 class devicesService extends Service {
   constructor(extension, config, id) {
     console.log(`devicesService: contructor() >> `);
     super(extension, config, id);
+    /*
+    constructor(extension, config, id) {
+      super(extension.addonManager, extension.manifest.id);
+
+      this.extension = extension;
+      this.manifest = extension.manifest;
+      this.addonManager = extension.addonManager;
+      this.laborsManager = this.extension.laborsManager;
+      this.configManager = this.extension.configManager;
+      this.routesManager = this.extension.routesManager;
+
+      this.config = JSON.parse(JSON.stringify(config));
+      this.id = id;
+    */
   }
 
   init(config) {
     console.log(`devicesService: init() >> `);
     return new Promise(async (resolve, reject) => {
       this.config = (config) ? config : this.config;
-      this.deviceList = {};
       this.adapter = new vAdapter(this.addonManager, this.manifest.name);
+      this.initDeviceTemplate();
+      resolve();
+    });
+  }
+
+  initDeviceTemplate() {
+    console.log(`devicesService: initDeviceTemplate() >> `);
+    return new Promise(async (resolve, reject) => {
+      this.deviceTemplate = {};
+      let dirs = await this.getDirectory(Path.join(__dirname, `/devices`));
+      dirs.forEach((elem) => {
+        this.deviceTemplate[elem] = require(`./devices/${elem}/device`);
+      });
+      resolve();
+    });
+  }
+
+  initDevices() {
+    console.log(`devicesService: initDevices() >> `);
+    return new Promise(async (resolve, reject) => {
+      let serviceSchema = this.getSchema();
+      let list = serviceSchema.config.list;
+      for(let i in list) {
+        //await this.addDevice(list[i]);
+        let device = new (this.deviceTemplate[list[i].config.device])(this, this.adapter, list[i]);
+        await device.init();
+        this.adapter.handleDeviceAdded(device);
+      }
       resolve();
     });
   }
@@ -39,19 +81,14 @@ class devicesService extends Service {
     });
   }
 
-  initDevices(config) {
-    console.log(`devicesService: initDevices() >> `);
-    return new Promise(async (resolve, reject) => {
-      config = (config) ? config : this.config;
-      let serviceSchema = this.getSchema();
-      let list = serviceSchema.config.list;
-      this.deviceList = {};
-      for(let i in list)
-        await this.addDevice(list[i]);
+  stop() {
+    console.log(`devicesService: stop() >> `);
+    return new Promise((resolve, reject) => {
       resolve();
     });
   }
 
+  /*
   addDevice(schema) {
     console.log(`devicesService: addDevice() >> `);
     return new Promise(async (resolve, reject) => {
@@ -77,6 +114,7 @@ class devicesService extends Service {
       resolve();
     });
   }
+  */
 
   removeDevice(id) {
     console.log(`devicesService: removeDevice() >> `);
@@ -90,39 +128,14 @@ class devicesService extends Service {
       resolve();
     });
   }
-}
 
-class vProperty extends Property {
-  constructor(device, name, schema) {
-    super(device, name, schema);
-    this.setCachedValue(schema.value);
-    this.device.notifyPropertyChanged(this);
-  }
-
-  setValue(value) {
+  getDirectory(path) {
     return new Promise((resolve, reject) => {
-      super.setValue(value).then((updatedValue) => {
-        resolve(updatedValue);
-        this.device.notifyPropertyChanged(this);
-      }).catch((err) => {
-        reject(err);
+      const fs = require(`fs`);
+      fs.readdir(path, (err, files) => {
+        (err) ? reject(err) : resolve(files);
       });
     });
-  }
-}
-
-class vDevice extends Device {
-  constructor(adapter, id, schema) {
-    super(adapter, id);
-    this.name = schema.name;
-    this.type = schema.type;
-    this['@type'] = schema['@type'];
-    this.description = schema.description;
-    for (const propertyName in schema.properties) {
-      const propertySchema = schema.properties[propertyName];
-      const property = new vProperty(this, propertyName, propertySchema);
-      this.properties.set(propertyName, property);
-    }
   }
 }
 
@@ -130,19 +143,6 @@ class vAdapter extends Adapter {
   constructor(addonManager, packageName) {
     super(addonManager, 'LimeAdapter', packageName);
     addonManager.addAdapter(this);
-  }
-
-  addDevice(deviceId, schema) {
-    return new Promise((resolve ,reject) => {
-      if(deviceId in this.devices) {
-        reject(`Device: ${deviceId} already exists.`);
-      }
-      else {
-        const device = new vDevice(this, deviceId, schema);
-        this.handleDeviceAdded(device);
-        resolve(device);
-      }
-    });
   }
 
   removeDevice(deviceId) {

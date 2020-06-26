@@ -1,3 +1,5 @@
+'use strict'
+
 const EventEmitter = require('events').EventEmitter;
 const SerialPort = require(`serialport`);
 const ModbusRTU = require('modbus-serial');
@@ -84,6 +86,8 @@ class ModbusRtu {
   }
 
   _act(cmd) {
+    //console.log(`ModbusRtu: _act() >> `);
+    //console.log(`cmd : ${JSON.stringify(cmd)}`);
     return new Promise(async (resolve, reject) => {
       if(cmd.action == `read`) {
         this.client.setID(cmd.id);

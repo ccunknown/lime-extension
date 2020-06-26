@@ -1,10 +1,9 @@
 'use strict'
 
 //const EventEmitter = require('events').EventEmitter;
-const Service = require(`./service`);
-
-const Database = require('../lib/my-database');
-const {Defaults, Errors} = require('../../constants/constants');
+const Service = require(`../service`);
+const Database = require('../../lib/my-database');
+const {Defaults, Errors} = require('../../../constants/constants');
 
 const SerialPort = require(`serialport`);
 

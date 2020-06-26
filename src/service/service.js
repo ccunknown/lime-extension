@@ -26,7 +26,7 @@ class Service extends EventEmitter {
       });
     else {
       let result = this.config.service.find((elem) => (elem.id == this.id));
-      console.log(`result : ${JSON.stringify(result, null, 2)}`);
+      //console.log(`result : ${JSON.stringify(result, null, 2)}`);
       return result;
     }
   }
