@@ -15,7 +15,8 @@ class enginesService extends Service {
 
   init(config) {
     console.log(`enginesService: init() >> `);
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+      this.sysportService = (await this.laborsManager.getService(`sysport-service`)).obj;
       //let sysport = this.laborsManager.getService(`sysport-service`);
       //this.sysportService = sysport.obj;
       this.config = (config) ? config : this.config;
@@ -47,35 +48,55 @@ class enginesService extends Service {
 
   initEngine(config) {
     console.log(`enginesService: initEngine() >> `);
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       config = (config) ? config : this.config;
       //let list = config[`engines-service`].list;
       this.engineList = {};
       let serviceSchema = this.getSchema();
       let list = serviceSchema.config.list;
       for(let i in list) {
-        let engine = {
-          "schema": list[i],
-          "object": new (this.engineTemplateList[list[i].engine].object)()
-        };
-        this.engineList[engine.schema.name] = engine;
-        console.log(`initEngine: ${engine.schema.name}`);
+        await this.add(list[i]);
       }
       resolve();
     });
   }
 
-  startEngine() {
-    console.log(`enginesService: startEngine() >> `);
+  add(schema) {
+    console.log(`enginesService: add("${schema.name}")`);
     return new Promise(async (resolve, reject) => {
-      this.sysportService = (await this.laborsManager.getService(`sysport-service`)).obj;
-      for(let i in this.engineList) {
-        //console.log(`sysport : `);
-        //console.log(this.sysportService);
-        let port = (await this.sysportService.getPort(this.engineList[i].schema.port)).object;
-        this.engineList[i].object.init(port);
-        this.engineList[i].object.start();
-      }
+      let engine = {
+        "schema": schema,
+        "object": new (this.engineTemplateList[schema.engine].object)()
+      };
+      this.engineList[schema.name] = engine;
+      await this.startEngine(schema.name);
+      resolve();
+    });
+  }
+
+  remove(name) {
+    console.log(`enginesService: remove("${name}")`);
+    return new Promise(async (resolve, reject) => {
+      await this.stopEngine(name);
+      delete this.engineList[name];
+      resolve();
+    });
+  }
+
+  startEngine(name) {
+    console.log(`enginesService: startEngine("${name}") >> `);
+    return new Promise(async (resolve, reject) => {
+      let port = (await this.sysportService.get(this.engineList[name].schema.port)).object;
+      this.engineList[name].object.init(port);
+      this.engineList[name].object.start();
+      resolve();
+    });
+  }
+
+  stopEngine(name) {
+    console.log(`enginesService: stopEngine("${name}") >> `);
+    return new Promise(async (resolve, reject) => {
+      await this.engineList[name].object.stop();
       resolve();
     });
   }
@@ -84,22 +105,17 @@ class enginesService extends Service {
     return new Promise(async (resolve, reject) => {
       await this.initEngineTemplate();
       await this.initEngine();
-      await this.startEngine();
       resolve();
     });
   }
 
-  getEngines() {
-    return this.engineList;
-  }
-
-  getEngine(key) {
+  get(key) {
     console.log(`enginesService: getEngine(${key}) >> `);
     //console.log(this.engineList);
-    return this.engineList[key];
+    return (key) ? this.engineList[key] : this.engineList;
   }
 
-  getEngineByAttribute(attr, val) {
+  getByAttribute(attr, val) {
     for(let i in this.engineList) {
       if(this.engineList[i].schema[attr] == val)
         return this.engineList[i];
@@ -107,7 +123,7 @@ class enginesService extends Service {
     return null;
   }
 
-  getEngineTemplate(key) {
+  getTemplate(key) {
     return this.engineTemplateList[key];
   }
 

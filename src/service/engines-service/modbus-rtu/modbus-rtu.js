@@ -74,6 +74,13 @@ class ModbusRtu {
     });
   }
 
+  stop() {
+    console.log(`ModbusRtu: stop() >> `);
+    return new Promise((resolve, reject) => {
+      resolve();
+    });
+  }
+
   act(cmd) {
     return new Promise((resolve, reject) => {
       let locker = this.lock[`act`].locker;

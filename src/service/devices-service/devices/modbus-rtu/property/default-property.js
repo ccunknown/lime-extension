@@ -18,8 +18,8 @@ class DefaultProperty extends Property{
     this.exConf = {
       "device-service": device.exConf[`devices-service`],
       "schema": schema,
-      "engine": device.exConf[`devices-service`].enginesService.getEngine(device.exConf.schema.config.engine).object,
-      "script": device.exConf[`devices-service`].scriptsService.getScript(device.exConf.schema.config.script),
+      "engine": device.exConf[`devices-service`].enginesService.get(device.exConf.schema.config.engine).object,
+      "script": device.exConf[`devices-service`].scriptsService.get(device.exConf.schema.config.script),
       "lock": {
         "period": {
           "key": `period`,

@@ -16,7 +16,7 @@ class scriptsService extends Service {
     console.log(`scriptsService: init() >> `);
     return new Promise(async (resolve, reject) => {
       this.config = (config) ? config : this.config;
-      this.scriptsList = {};
+      this.scriptList = {};
       resolve();
     });
   }
@@ -36,7 +36,7 @@ class scriptsService extends Service {
       let serviceSchema = this.getSchema();
       let list = await this.getDirectory(Path.join(__dirname, serviceSchema.config.directory));
       console.log(`list : ${list}`);
-      this.scriptsList = {};
+      this.scriptList = {};
       for(let i in list) {
         console.log(`script : ${list[i]}`);
         let path = Path.join(__dirname, serviceSchema.config.directory, list[i]);
@@ -49,16 +49,23 @@ class scriptsService extends Service {
           "calcmap": calcmap,
           "translator": this.rebuildReadMap(readmap, calcmap)
         };
-        this.scriptsList[list[i]] = script;
+        this.scriptList[list[i]] = script;
       }
       resolve();
     });
   }
 
-  getScript(key) {
+  add(schema) {
+    console.log(`scriptsService: add("${schema.name}") >> `);
+    return new Promise((resolve, reject) => {
+      resolve();
+    });
+  }
+
+  get(key) {
     console.log(`scriptService: getScript(${key})`);
-    //console.log(this.scriptsList);
-    return this.scriptsList[key];
+    //console.log(this.scriptList);
+    return (key) ? this.scriptList[key] : this.scriptList;
   }
 
   getDirectory(path) {

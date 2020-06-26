@@ -23,7 +23,7 @@ class sysportService extends Service {
   }
 
   start(config) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       console.log(`sysportService: start() >> `);
       config = (config) ? config : this.config;
       this.portList = {};
@@ -32,23 +32,45 @@ class sysportService extends Service {
       console.log(JSON.stringify(serviceSchema));
       let list = serviceSchema.config.list;
       for(let i in list) {
-        let port = {
-          "schema": list[i],
-          "object": null
-        };
-        port.object = new SerialPort(port.schema.path, port.schema.config);
-        this.portList[port.schema.name] = port;
-        console.log(`${JSON.stringify(list[i], null, 2)}`);
+        await this.add(list[i]);
       }
       resolve();
     });
   }
 
-  getPort(key) {
+  add(schema) {
+    console.log(`sysportService: addPort("${schema.name}": "${schema.path}") >> `);
+    return new Promise(async (resolve, reject) => {
+      if(this.portList[schema.name]) {
+        console.warn(`Port "${schema.path}" already open, reopen port operation!!!`);
+        await this.remove(schema.name);
+      }
+      let port = {
+        "schema": schema,
+        "object": new SerialPort(schema.path, schema.config)
+      };
+      this.portList[schema.name] = port;
+      resolve();
+    });
+  }
+
+  remove(name) {
+    console.log(`sysportService: removePort("${name}") >> `);
+    return new Promise((resolve, reject) => {
+      let port = this.portList[name];
+      if(!port)
+        reject(new Error(`Port "${name}" not found!!!`));
+      port.object.close((err) => {
+        (err) ? reject(err) : resolve();
+      });
+    });
+  }
+
+  get(key) {
     return this.portList[key];
   }
 
-  getPortByAttribute(attr, val) {
+  getByAttribute(attr, val) {
     for(let i in this.portList) {
       if(this.portList[i].schema[attr] == val)
         return this.portList[i];
