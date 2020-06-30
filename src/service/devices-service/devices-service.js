@@ -12,9 +12,9 @@ const Database = require(`../../lib/my-database`);
 const {Defaults, Errors} = require(`../../../constants/constants`);
 //const PropertyWorker = require(`./property-worker`);
 
-class devicesService extends Service {
+class DevicesService extends Service {
   constructor(extension, config, id) {
-    console.log(`devicesService: contructor() >> `);
+    console.log(`DevicesService: contructor() >> `);
     super(extension, config, id);
     /*
     constructor(extension, config, id) {
@@ -33,7 +33,7 @@ class devicesService extends Service {
   }
 
   init(config) {
-    console.log(`devicesService: init() >> `);
+    console.log(`DevicesService: init() >> `);
     return new Promise(async (resolve, reject) => {
       this.config = (config) ? config : this.config;
       this.adapter = new vAdapter(this.addonManager, this.manifest.name);
@@ -43,7 +43,7 @@ class devicesService extends Service {
   }
 
   initDeviceTemplate() {
-    console.log(`devicesService: initDeviceTemplate() >> `);
+    console.log(`DevicesService: initDeviceTemplate() >> `);
     return new Promise(async (resolve, reject) => {
       this.deviceTemplate = {};
       let dirs = await this.getDirectory(Path.join(__dirname, `/devices`));
@@ -55,22 +55,45 @@ class devicesService extends Service {
   }
 
   initDevices() {
-    console.log(`devicesService: initDevices() >> `);
+    console.log(`DevicesService: initDevices() >> `);
     return new Promise(async (resolve, reject) => {
       let serviceSchema = this.getSchema();
       let list = serviceSchema.config.list;
       for(let i in list) {
-        //await this.addDevice(list[i]);
-        let device = new (this.deviceTemplate[list[i].config.device])(this, this.adapter, list[i]);
-        await device.init();
-        this.adapter.handleDeviceAdded(device);
+        await this.add(list[i]);
       }
       resolve();
     });
   }
 
+  add(schema) {
+    return new Promise(async (resolve, reject) => {
+      let device = this.adapter.getDevice(schema.id);
+      if(device) {
+        console.warn(`Device id "${schema.id}" already exist. Remove old and add new!!!`);
+        await this.remove(schema.id);
+      }
+      device = new (this.deviceTemplate[schema.config.device])(this, this.adapter, schema);
+      await device.init();
+      this.adapter.handleDeviceAdded(device);
+      resolve();
+    });
+  }
+
+  remove(id) {
+    console.log(`DevicesService: removeDevice() >> `);
+    return new Promise((resolve, reject) => {
+      let device = this.adapter.getDevice(id);
+      if(device)
+        this.adapter.handleDeviceRemoved(device);
+      else
+        console.warn(`Device "${id}" not found in list!!!`);
+      resolve();
+    });
+  }
+
   start() {
-    console.log(`devicesService: start() >> `);    
+    console.log(`DevicesService: start() >> `);    
     return new Promise(async (resolve, reject) => {
       this.scriptsService = (await this.laborsManager.getService(`scripts-service`)).obj;
       this.enginesService = (await this.laborsManager.getService(`engines-service`)).obj;
@@ -82,49 +105,8 @@ class devicesService extends Service {
   }
 
   stop() {
-    console.log(`devicesService: stop() >> `);
+    console.log(`DevicesService: stop() >> `);
     return new Promise((resolve, reject) => {
-      resolve();
-    });
-  }
-
-  /*
-  addDevice(schema) {
-    console.log(`devicesService: addDevice() >> `);
-    return new Promise(async (resolve, reject) => {
-      let device = {
-        "schema": schema,
-        "object": new vDevice(this.adapter, `${schema.id}`, schema),
-        "engine": this.enginesService.getEngine(schema.config.engine).object,
-        "script": this.scriptsService.getScript(schema.config.script),
-        "property": {}
-      };
-      //console.log(`device engine : `);
-      //console.log(device.engine);
-      for(let j in schema.properties) {
-        let prop = new PropertyWorker({
-          "device": device,
-          "property": schema.properties[j]
-        });
-        await prop.start();
-        device.property[j] = prop;
-      }
-      this.deviceList[schema.id] = device;
-      this.adapter.handleDeviceAdded(this.deviceList[schema.id].object);
-      resolve();
-    });
-  }
-  */
-
-  removeDevice(id) {
-    console.log(`devicesService: removeDevice() >> `);
-    return new Promise((resolve, reject) => {
-      if(this.deviceList[id]) {
-        this.adapter.handleDeviceRemoved(this.deviceList[i].object);
-        delete this.deviceList[id];
-      }
-      else
-        console.warn(`Device "${id}" not found in list!!!`);
       resolve();
     });
   }
@@ -181,4 +163,4 @@ class vAdapter extends Adapter {
   }
 }
 
-module.exports = devicesService;
+module.exports = DevicesService;

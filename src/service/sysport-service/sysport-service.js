@@ -7,14 +7,14 @@ const {Defaults, Errors} = require('../../../constants/constants');
 
 const SerialPort = require(`serialport`);
 
-class sysportService extends Service {
+class SysportService extends Service {
   constructor(extension, config, id) {
-    console.log(`sysportService: contructor() >> `);
+    console.log(`SysportService: contructor() >> `);
     super(extension, config, id);
   }
 
   init(config) {
-    console.log(`sysportService: init() >> `);
+    console.log(`SysportService: init() >> `);
     return new Promise(async (resolve, reject) => {
       this.config = (config) ? config : this.config;
       this.portList = {};
@@ -24,7 +24,7 @@ class sysportService extends Service {
 
   start(config) {
     return new Promise(async (resolve, reject) => {
-      console.log(`sysportService: start() >> `);
+      console.log(`SysportService: start() >> `);
       config = (config) ? config : this.config;
       this.portList = {};
       //console.log(`sysport config : ${JSON.stringify(this.config, null, 2)}`);
@@ -39,7 +39,7 @@ class sysportService extends Service {
   }
 
   add(schema) {
-    console.log(`sysportService: addPort("${schema.name}": "${schema.path}") >> `);
+    console.log(`SysportService: addPort("${schema.name}": "${schema.path}") >> `);
     return new Promise(async (resolve, reject) => {
       if(this.portList[schema.name]) {
         console.warn(`Port "${schema.path}" already open, reopen port operation!!!`);
@@ -49,13 +49,17 @@ class sysportService extends Service {
         "schema": schema,
         "object": new SerialPort(schema.path, schema.config)
       };
+      port.object.on("close", (err) => {
+        console.log(`Port "${port.schema.name}" error : `);
+        console.error(err);
+      });
       this.portList[schema.name] = port;
       resolve();
     });
   }
 
   remove(name) {
-    console.log(`sysportService: removePort("${name}") >> `);
+    console.log(`SysportService: removePort("${name}") >> `);
     return new Promise((resolve, reject) => {
       let port = this.portList[name];
       if(!port)
@@ -79,7 +83,7 @@ class sysportService extends Service {
   }
 
   getSerialPortList() {
-    console.log(`sysportService: getSerialPortList() >> `);
+    console.log(`SysportService: getSerialPortList() >> `);
     return new Promise((resolve, reject) => {
       let portList = [];
       SerialPort.list()
@@ -102,4 +106,4 @@ class sysportService extends Service {
 
 }
 
-module.exports = sysportService;
+module.exports = SysportService;

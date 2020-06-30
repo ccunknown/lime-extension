@@ -18,8 +18,6 @@ class DefaultProperty extends Property{
     this.exConf = {
       "device-service": device.exConf[`devices-service`],
       "schema": schema,
-      "engine": device.exConf[`devices-service`].enginesService.get(device.exConf.schema.config.engine).object,
-      "script": device.exConf[`devices-service`].scriptsService.get(device.exConf.schema.config.script),
       "lock": {
         "period": {
           "key": `period`,
@@ -64,7 +62,7 @@ class DefaultProperty extends Property{
     let locker = this.exConf.lock.period.locker;
     let key = this.exConf.lock.period.key;
     return new Promise((resolve, reject) => {
-      locker.aquire(key, () => {
+      locker.acquire(key, () => {
         clearTimeout(this.period);
         return ;
       })
@@ -75,26 +73,37 @@ class DefaultProperty extends Property{
   periodWork() {
     console.log(`DefaultProperty: periodWork() >> `);
     return new Promise(async (resolve, reject) => {
+      let engine = this.device.getEngine();
+      let script = this.device.getScript();
+
       let ex = this.exConf;
       let id = this.device.exConf.schema.config.address;
       //console.log(`device : ${JSON.stringify(this.device.exConf.schema, null, 2)}`);
       let address = ex.schema.config.address;
       let table = ex.schema.config.table;
       //console.log(`script : ${JSON.stringify(this.script, null, 2)}`);
-      let ntr = ex.script.translator.map[table][address].registerSpec.number;
+      let ntr = script.map[table][address].registerSpec.number;
 
-      let ret = await ex.engine.act({
-        "action": "read",
-        "id": id,
-        "address": address,
-        "numtoread": ntr,
-        "table": table
-      });
+      try {
+        if(script && engine && engine.getState() == "running") {
+          let ret = await engine.act({
+            "action": "read",
+            "id": id,
+            "address": address,
+            "numtoread": ntr,
+            "table": table
+          });
 
-      console.log(`ret : ${ret.buffer.toString('hex')}`);
-      let value = ex.script.translator.map[table][address].translator(ret.buffer, ex.script.readmap.map[table][address]);
-      console.log(`${this.device.id} : ${this.name} : ${typeof value} : ${value}`);
-      this.setCachedValueAndNotify(value);
+          console.log(`ret : ${ret.buffer.toString('hex')}`);
+          let value = script.map[table][address].translator(ret.buffer, script.map[table][address]);
+          console.log(`${this.device.id} : ${this.name} : ${typeof value} : ${value}`);
+          this.setCachedValueAndNotify(value);
+        }
+      }
+      catch(err) {
+        console.log(`DefaultProperty: periodWork() >> Error!!!`);
+        console.error(err);
+      }
       //this.deviceObject.setProperty(this.property.name, value);
       
       resolve();

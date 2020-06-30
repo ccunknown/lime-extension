@@ -25,7 +25,9 @@ class ModbusDevice extends Device {
     */
     this.exConf = {
       "devices-service": devicesService,
-      "schema": schema
+      "schema": schema,
+      "engine": null,
+      "script": null
     };
     this.name = schema.name;
     this.type = schema.type;
@@ -38,10 +40,69 @@ class ModbusDevice extends Device {
     console.log(`ModbusDevice: init() >> `);
     return new Promise(async (resolve, reject) => {
       this.schema = (schema) ? schema : this.schema;
+      await this.initEngine();
+      await this.initScript();
       await this.initPropertyTemplate();
       await this.initProperty();
       resolve();
     });
+  }
+
+  initEngine(engineName) {
+    return new Promise((resolve, reject) => {
+      let enginesService = this.exConf[`devices-service`].enginesService;
+      let engine = enginesService.get(this.exConf.schema.config.engine).object;
+
+      engine.event.on(`running`, () => this.getScript() ? this.enableProperties() : null);
+      engine.event.on(`error`, () => {
+        console.log(`ModbusDevice: on engine error >> `);
+        this.disableProperties();
+      });
+
+      this.exConf.engine = engine;
+      resolve();
+    });
+  }
+
+  getEngine() {
+    let engine = this.exConf.engine;
+    let state = (engine) ? engine.getState() : null;
+    if(state != `running`)
+      this.disableProperties();
+    return (state == `running`) ? engine : null;
+  }
+
+  initScript(scriptName) {
+    return new Promise((resolve, reject) => {
+      let scriptsService = this.exConf[`devices-service`].scriptsService;
+      let script = scriptsService.get(this.exConf.schema.config.script);
+      this.exConf.script = this.rebuildReadMap(script.readmap, script.calcmap);
+      resolve();
+    });
+  }
+
+  getScript() {
+    return this.exConf.script;
+  }
+
+  enableProperties() {
+    console.log(`ModbusDevice: enableProperties() >> `);
+    let props = this.getPropertyDescriptions();
+    console.log(`Properties : ${JSON.stringify(props, null, 2)}`);
+    for(let i in props) {
+      let prop = this.findProperty(i);
+      prop.start();
+    }
+  }
+
+  disableProperties() {
+    console.log(`ModbusDevice: disableProperties() >> `);
+    let props = this.getPropertyDescriptions();
+    console.log(`Properties : ${JSON.stringify(props, null, 2)}`);
+    for(let i in props) {
+      let prop = this.findProperty(i);
+      prop.stop();
+    }
   }
 
   initPropertyTemplate() {
@@ -81,6 +142,61 @@ class ModbusDevice extends Device {
         (err) ? reject(err) : resolve(files);
       });
     });
+  }
+
+  rebuildReadMap(readMapConfig, calcMapConfig) {
+    console.log(`ScriptsService: rebuildReadMap() >> `);
+
+    let result = JSON.parse(JSON.stringify(readMapConfig));
+    let globalDefine = (result.map && result.map.define) ? result.map.define : null;
+    let tableList = [`coils`, `contacts`, `inputRegisters`, `holdingRegisters`];
+
+    for(let i in tableList) {
+      let tname = tableList[i];
+      let table = result.map[tname];
+      let localDefine = (table.define) ? table.define : null;
+
+      let define = JSON.parse(JSON.stringify((globalDefine) ? globalDefine : {}));
+      
+      //  registerSpec
+      if(localDefine && localDefine.registerSpec)
+        Object.assign(define, localDefine.registerSpec);
+
+      //  translator
+      if(localDefine && localDefine.translator)
+        Object.assign(define, localDefine.registerSpec);
+      
+      for(let j in table) {
+        let elem = JSON.parse(JSON.stringify(table[j]));
+
+        //  registerSpec
+        if((typeof elem.registerSpec) == `string`)
+          elem.registerSpec = JSON.parse(JSON.stringify((define.registerSpec[elem.registerSpec]) ? define.registerSpec[elem.registerSpec] : null));
+        if(!elem.registerSpec)
+          elem.registerSpec = {};
+        if(!elem.registerSpec.size)
+          elem.registerSpec.size = define.registerSpec.default.size;
+        if(!elem.registerSpec.number)
+          elem.registerSpec.number = define.registerSpec.default.number;
+
+        if(!elem.translator)
+          elem.translator = define.translator.default;
+
+        elem.translator = this.getTranslator(calcMapConfig, elem.translator);
+        result.map[tname][j] = elem;
+      }
+      delete table.define;
+    }
+    return result;
+  }
+
+  getTranslator(calcMapConfig, translatorDst) {
+    let taddr = translatorDst.split(`.`);
+    let pointer = calcMapConfig;
+    for(let i in taddr) {
+      pointer = (pointer[taddr[i]]) ? pointer[taddr[i]] : null;
+    }
+    return (typeof pointer == `function`) ? pointer : null;
   }
 }
 

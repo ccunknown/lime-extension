@@ -7,14 +7,14 @@ const Service = require(`../service`);
 const Database = require('../../lib/my-database');
 const {Defaults, Errors} = require('../../../constants/constants');
 
-class enginesService extends Service {
+class EnginesService extends Service {
   constructor(extension, config, id) {
-    console.log(`enginesService: contructor() >> `);
+    console.log(`EnginesService: contructor() >> `);
     super(extension, config, id);
   }
 
   init(config) {
-    console.log(`enginesService: init() >> `);
+    console.log(`EnginesService: init() >> `);
     return new Promise(async (resolve, reject) => {
       this.sysportService = (await this.laborsManager.getService(`sysport-service`)).obj;
       //let sysport = this.laborsManager.getService(`sysport-service`);
@@ -27,7 +27,7 @@ class enginesService extends Service {
   }
 
   initEngineTemplate(config) {
-    console.log(`enginesService: initEngineTemplate() >> `);
+    console.log(`EnginesService: initEngineTemplate() >> `);
     return new Promise((resolve, reject) => {
       config = (config) ? config : this.config;
       //let list = config[`engines-service`].template;
@@ -47,7 +47,7 @@ class enginesService extends Service {
   }
 
   initEngine(config) {
-    console.log(`enginesService: initEngine() >> `);
+    console.log(`EnginesService: initEngine() >> `);
     return new Promise(async (resolve, reject) => {
       config = (config) ? config : this.config;
       //let list = config[`engines-service`].list;
@@ -62,7 +62,7 @@ class enginesService extends Service {
   }
 
   add(schema) {
-    console.log(`enginesService: add("${schema.name}")`);
+    console.log(`EnginesService: add("${schema.name}")`);
     return new Promise(async (resolve, reject) => {
       let engine = {
         "schema": schema,
@@ -75,7 +75,7 @@ class enginesService extends Service {
   }
 
   remove(name) {
-    console.log(`enginesService: remove("${name}")`);
+    console.log(`EnginesService: remove("${name}")`);
     return new Promise(async (resolve, reject) => {
       await this.stopEngine(name);
       delete this.engineList[name];
@@ -84,7 +84,7 @@ class enginesService extends Service {
   }
 
   startEngine(name) {
-    console.log(`enginesService: startEngine("${name}") >> `);
+    console.log(`EnginesService: startEngine("${name}") >> `);
     return new Promise(async (resolve, reject) => {
       let port = (await this.sysportService.get(this.engineList[name].schema.port)).object;
       this.engineList[name].object.init(port);
@@ -94,7 +94,7 @@ class enginesService extends Service {
   }
 
   stopEngine(name) {
-    console.log(`enginesService: stopEngine("${name}") >> `);
+    console.log(`EnginesService: stopEngine("${name}") >> `);
     return new Promise(async (resolve, reject) => {
       await this.engineList[name].object.stop();
       resolve();
@@ -110,7 +110,7 @@ class enginesService extends Service {
   }
 
   get(key) {
-    console.log(`enginesService: getEngine(${key}) >> `);
+    console.log(`EnginesService: getEngine(${key}) >> `);
     //console.log(this.engineList);
     return (key) ? this.engineList[key] : this.engineList;
   }
@@ -141,4 +141,4 @@ class enginesService extends Service {
   }
 }
 
-module.exports = enginesService;
+module.exports = EnginesService;
