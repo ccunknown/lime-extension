@@ -76,7 +76,7 @@ class ModbusDevice extends Device {
     return new Promise((resolve, reject) => {
       let scriptsService = this.exConf[`devices-service`].scriptsService;
       let script = scriptsService.get(this.exConf.schema.config.script);
-      this.exConf.script = this.rebuildReadMap(script.readmap, script.calcmap);
+      this.exConf.script = this.rebuildReadMap(script.list.readmap, script.list.calcmap);
       resolve();
     });
   }
@@ -145,7 +145,7 @@ class ModbusDevice extends Device {
   }
 
   rebuildReadMap(readMapConfig, calcMapConfig) {
-    console.log(`ScriptsService: rebuildReadMap() >> `);
+    console.log(`ModbusDevice: rebuildReadMap() >> `);
 
     let result = JSON.parse(JSON.stringify(readMapConfig));
     let globalDefine = (result.map && result.map.define) ? result.map.define : null;

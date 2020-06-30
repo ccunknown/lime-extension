@@ -41,13 +41,16 @@ class ScriptsService extends Service {
         console.log(`script : ${list[i]}`);
         let path = Path.join(__dirname, serviceSchema.config.directory, list[i]);
         let files = await this.getDirectory(path);
-        let readmap = (files && files.includes(`readMap.js`)) ? require(`${path}/readMap.js`) : null;
-        let calcmap = (files && files.includes(`calcMap.js`)) ? require(`${path}/calcMap.js`) : null;
         let script = {
           "name": list[i],
-          "readmap": readmap,
-          "calcmap": calcmap
+          "list": {}
         };
+        let regex = /\..+$/gi;
+        for(let j in files) {
+          let index = files[j].replace(regex, ``).toLowerCase();
+          script.list[index] = require(`${path}/${files[j]}`);
+        }
+
         this.scriptList[list[i]] = script;
       }
       resolve();
