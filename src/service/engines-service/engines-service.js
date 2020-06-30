@@ -28,19 +28,23 @@ class EnginesService extends Service {
 
   initEngineTemplate(config) {
     console.log(`EnginesService: initEngineTemplate() >> `);
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       config = (config) ? config : this.config;
       //let list = config[`engines-service`].template;
-      this.engineTemplateList = {};
+
       let serviceSchema = this.getSchema();
-      let list = serviceSchema.config.template;
+      let list = await this.getDirectory(Path.join(__dirname, serviceSchema.config.directory));
+      console.log(`engine list : ${list}`);
+      this.engineTemplateList = {};
       for(let i in list) {
-        console.log(`engine path : ${list[i].path}`);
+        console.log(`engine : ${list[i]}`);
+        let path = Path.join(__dirname, serviceSchema.config.directory, list[i], `index.js`);
+        console.log(`engine path : ${path}`);
         let template = {
           "schema": list[i],
-          "object": require(`./${Path.join(`./`, list[i].path)}`)
+          "object": require(`${path}`)
         };
-        this.engineTemplateList[list[i].name] = template;
+        this.engineTemplateList[list[i]] = template;
       }
       resolve();
     });
@@ -127,16 +131,12 @@ class EnginesService extends Service {
     return this.engineTemplateList[key];
   }
 
-  getFileInDirectory(dirPath) {
-    const path = require(`path`);
-    const fs = require(`fs`);
-
-    const dest = path.join(__dirname, dirPath);
-
-    fs.readdir(directoryPath, (err, files) => {
-      if(err)
-        return console.error(`Unable to scan directory: '${err}'`);
-      return files;
+  getDirectory(path) {
+    return new Promise((resolve, reject) => {
+      const fs = require(`fs`);
+      fs.readdir(path, (err, files) => {
+        (err) ? reject(err) : resolve(files);
+      });
     });
   }
 }

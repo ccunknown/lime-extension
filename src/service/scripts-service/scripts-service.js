@@ -35,7 +35,7 @@ class ScriptsService extends Service {
       config = (config) ? config : this.config;
       let serviceSchema = this.getSchema();
       let list = await this.getDirectory(Path.join(__dirname, serviceSchema.config.directory));
-      console.log(`list : ${list}`);
+      console.log(`script list : ${list}`);
       this.scriptList = {};
       for(let i in list) {
         console.log(`script : ${list[i]}`);

@@ -38,12 +38,6 @@ var Defaults = {
         "description": "Engine is a solution to provide data from port to script.",
         "config": {
           "directory": "/engines",
-          "template": [
-            {
-              "name": "modbus-rtu",
-              "path": "modbus-rtu/modbus-rtu"
-            }
-          ],
           "list": [
             {
               "name": "modbus-engine-001",
