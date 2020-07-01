@@ -87,10 +87,29 @@ class ConfigManager {
             resolve(validateInfo.instance);
           });
         }
-        else{
+        else {
           console.error(`{Database} not found!!!`);
           reject(new Errors.DatabaseObjectUndefined(Database));
         }
+      }
+    });
+  }
+
+  deleteConfigFromDatabase() {
+    console.log("deleteConfigFromDatabase() >> ");
+    return new Promise((resolve, reject) => {
+      if(Database) {
+        this.db = new Database(this.manifest.name);
+        this.db.open()
+        .then(() => {
+          this.db.saveConfig({});
+          this.db.close();
+          resolve({});
+        });
+      }
+      else {
+        console.error(`{Database} not found!!!`);
+        reject(new Errors.DatabaseObjectUndefined(Database));
       }
     });
   }
@@ -105,11 +124,13 @@ class ConfigManager {
   }
 
   getDefaults() {
-    return Object.assign({}, Defaults);
+    //return Object.assign({}, Defaults);
+    return JSON.parse(JSON.stringify(Defaults));
   }
 
   getSchema() {
-    return Object.assign({}, Defaults.schema);
+    //return Object.assign({}, Defaults.schema);
+    return JSON.parse(JSON.stringify(Defaults.schema));
   }
 
   validate(data, schema) {

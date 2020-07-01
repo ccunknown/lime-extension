@@ -2,6 +2,10 @@ const config = {
   meta: {
     name: "SDM120CT",
     description: "Test template for SDM120CT from Eastron.",
+    tag: [
+      "modbus",
+      "modbus-rtu"
+    ]
   },
   map: {
     define: {

@@ -46,12 +46,63 @@ class RoutesManager extends APIHandler{
           },
           "DELETE": (req) => {
             return new Promise(async (resolve, reject) => {
+              this.configManager.saveConfig({})
+              .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+          /*
+          "DELETE": (req) => {
+            return new Promise(async (resolve, reject) => {
               let defaults = this.configManager.getDefaults();
               this.configManager.saveConfig(defaults.config)
               .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           }
+          */
+        }
+      },
+
+      /***  Resource : /service/scripts  ***/
+      {
+        "resource": /\/service\/scripts/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`scripts-service`)
+              .then((scriptService) => scriptService.obj.getJson())
+              .then((json) => {
+                console.log(`script list : ${JSON.stringify(json, null, 2)}`);
+                resolve(this.makeJsonRespond(JSON.stringify(json)));
+              })
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          "PUT": (req) => {
+            return new Promise(async (resolve, reject) => {
+              this.configManager.saveConfig(req.body)
+              .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          "DELETE": (req) => {
+            return new Promise(async (resolve, reject) => {
+              this.configManager.saveConfig({})
+              .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+          /*
+          "DELETE": (req) => {
+            return new Promise(async (resolve, reject) => {
+              let defaults = this.configManager.getDefaults();
+              this.configManager.saveConfig(defaults.config)
+              .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+          */
         }
       },
 

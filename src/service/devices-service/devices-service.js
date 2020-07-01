@@ -66,6 +66,25 @@ class DevicesService extends Service {
     });
   }
 
+  start() {
+    console.log(`DevicesService: start() >> `);    
+    return new Promise(async (resolve, reject) => {
+      this.scriptsService = (await this.laborsManager.getService(`scripts-service`)).obj;
+      this.enginesService = (await this.laborsManager.getService(`engines-service`)).obj;
+      //console.log(`engine service : `);
+      //console.log(this.enginesService);
+      await this.initDevices();
+      resolve();
+    });
+  }
+
+  stop() {
+    console.log(`DevicesService: stop() >> `);
+    return new Promise((resolve, reject) => {
+      resolve();
+    });
+  }
+
   add(schema) {
     return new Promise(async (resolve, reject) => {
       let device = this.adapter.getDevice(schema.id);
@@ -88,25 +107,6 @@ class DevicesService extends Service {
         this.adapter.handleDeviceRemoved(device);
       else
         console.warn(`Device "${id}" not found in list!!!`);
-      resolve();
-    });
-  }
-
-  start() {
-    console.log(`DevicesService: start() >> `);    
-    return new Promise(async (resolve, reject) => {
-      this.scriptsService = (await this.laborsManager.getService(`scripts-service`)).obj;
-      this.enginesService = (await this.laborsManager.getService(`engines-service`)).obj;
-      //console.log(`engine service : `);
-      //console.log(this.enginesService);
-      await this.initDevices();
-      resolve();
-    });
-  }
-
-  stop() {
-    console.log(`DevicesService: stop() >> `);
-    return new Promise((resolve, reject) => {
       resolve();
     });
   }
