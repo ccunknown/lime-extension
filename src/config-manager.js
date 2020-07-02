@@ -1,6 +1,7 @@
 'use strict';
 
 const Validator = require('jsonschema').Validator;
+const EventEmitter = require('events').EventEmitter;
 const Database = require('./lib/my-database');
 const {Defaults, Errors} = require('../constants/constants.js');
 
@@ -11,6 +12,7 @@ class ConfigManager {
     this.addonManager = extension.addonManager;
     this.manifest = extension.manifest;
     this.validator = new Validator();
+    this.event = new EventEmitter();
   }
 
   getConfig() {
@@ -19,9 +21,15 @@ class ConfigManager {
       try {
         this.getConfigFromDatabase().then((config) => {
           if(this.isEmptyObject(config))
-            resolve(this.initialConfig());
+            config = this.initialConfig();
+          let validateInfo = this.validate(config);
+          if(validateInfo.errors.length) {
+            console.warn(`Invalid config!!!`);
+            console.warn(JSON.stringify(validateInfo.errors, null, 2));
+          }
           else
-            resolve(config);
+            console.log(`Valid config.`);
+          resolve(config);
         });
       } catch(err) {
         console.log(`getConfig error.`);
@@ -38,6 +46,19 @@ class ConfigManager {
       .then((conf) => resolve(conf))
       .catch((err) => {
         //console.log(`saveConfig() : found error : ${err}`);
+        err = (err) ? err : new Errors.ErrorObjectNotReturn();
+        reject(err);
+      });
+    });
+  }
+
+  deleteConfig() {
+    console.log(`deleteConfig() >> `);
+    return new Promise((resolve, reject) => {
+      this.deleteConfigFromDatabase()
+      .then(() => this.getConfig())
+      .then((conf) => resolve(conf))
+      .catch((err) => {
         err = (err) ? err : new Errors.ErrorObjectNotReturn();
         reject(err);
       });

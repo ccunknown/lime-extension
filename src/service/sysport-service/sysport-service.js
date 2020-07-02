@@ -30,7 +30,8 @@ class SysportService extends Service {
       //console.log(`sysport config : ${JSON.stringify(this.config, null, 2)}`);
       let serviceSchema = this.getSchema();
       console.log(JSON.stringify(serviceSchema));
-      let list = serviceSchema.config.list;
+      //let list = serviceSchema.config.list;
+      let list = serviceSchema.list;
       for(let i in list) {
         await this.add(list[i]);
       }

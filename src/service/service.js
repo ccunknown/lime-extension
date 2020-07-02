@@ -15,19 +15,18 @@ class Service extends EventEmitter {
 
     this.config = JSON.parse(JSON.stringify(config));
     this.id = id;
-    console.log(`Service constructor : ${this.id}`);
+    this.setupConfigHandler();
+    //console.log(`Service constructor : ${this.id}`);
   }
 
   getSchema(options) {
     if(options && options.renew)
       return new Promise(async (resolve, reject) => {
         let config = await this.getConfig(options);
-        resolve(config.service.find((elem) => (elem.id == this.id)));
+        resolve(config[`service-config`].find((elem) => (elem.id == this.id)));
       });
     else {
-      let result = this.config.service.find((elem) => (elem.id == this.id));
-      //console.log(`result : ${JSON.stringify(result, null, 2)}`);
-      return result;
+      return this.config[`service-config`][this.id];
     }
   }
 
@@ -48,6 +47,12 @@ class Service extends EventEmitter {
     return new Promise(async (resolve, reject) => {
       this.config = JSON.parse(JSON.stringify(await this.configManager.getConfig()));
       resolve(this.config);
+    });
+  }
+
+  setupConfigHandler() {
+    this.configManager.event.on(`new-config`, () => {
+      console.log(`New config!`);
     });
   }
 }

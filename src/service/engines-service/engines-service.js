@@ -16,7 +16,8 @@ class EnginesService extends Service {
   init(config) {
     console.log(`EnginesService: init() >> `);
     return new Promise(async (resolve, reject) => {
-      this.sysportService = (await this.laborsManager.getService(`sysport-service`)).obj;
+      //this.sysportService = (await this.laborsManager.getService(`sysport-service`)).obj;
+      this.sysportService = this.laborsManager.getService(`sysport-service`).obj;
       //let sysport = this.laborsManager.getService(`sysport-service`);
       //this.sysportService = sysport.obj;
       this.config = (config) ? config : this.config;
@@ -33,12 +34,14 @@ class EnginesService extends Service {
       //let list = config[`engines-service`].template;
 
       let serviceSchema = this.getSchema();
-      let list = await this.getDirectory(Path.join(__dirname, serviceSchema.config.directory));
+      //let list = await this.getDirectory(Path.join(__dirname, serviceSchema.config.directory));
+      let list = await this.getDirectory(Path.join(__dirname, serviceSchema.directory));
       console.log(`engine list : ${list}`);
       this.engineTemplateList = {};
       for(let i in list) {
         console.log(`engine : ${list[i]}`);
-        let path = Path.join(__dirname, serviceSchema.config.directory, list[i], `index.js`);
+        //let path = Path.join(__dirname, serviceSchema.config.directory, list[i], `index.js`);
+        let path = Path.join(__dirname, serviceSchema.directory, list[i], `index.js`);
         console.log(`engine path : ${path}`);
         let template = {
           "schema": list[i],
@@ -57,7 +60,8 @@ class EnginesService extends Service {
       //let list = config[`engines-service`].list;
       this.engineList = {};
       let serviceSchema = this.getSchema();
-      let list = serviceSchema.config.list;
+      //let list = serviceSchema.config.list;
+      let list = serviceSchema.list;
       for(let i in list) {
         await this.add(list[i]);
       }

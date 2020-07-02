@@ -8,7 +8,7 @@ class laborsManager {
     this.configManager = extension.configManager;
     this.routesManager = extension.routesManager;
 
-    this.serviceList = [];
+    this.serviceList = {};
     this.init();
   }
 
@@ -35,10 +35,13 @@ class laborsManager {
           let path = Path.join(`${servicePrefix}`, `${service.path}`);
           let serviceClass = require(`./${path}`);
           config = JSON.parse(JSON.stringify(config));
-          service.obj = new serviceClass(this.extension, config, service.id);
+          //service.obj = new serviceClass(this.extension, config, service.id);
+          service.obj = new serviceClass(this.extension, config, i);
           await service.obj.init();
-          console.log(`service : ${service.id}`);
-          this.serviceList.push(service);
+          //console.log(`service : ${service.id}`);
+          console.log(`service : ${i}`);
+          //this.serviceList.push(service);
+          this.serviceList[i] = service;
         }
         resolve();
       });
@@ -63,8 +66,9 @@ class laborsManager {
     console.log(`laborsManager: startService(${(serviceId) ? serviceId : ``})`);
     return new Promise(async (resolve, reject) => {
       if(serviceId) {
-        this.getService(serviceId)
-        .then((service) => service.obj.start())
+      	this.getService(serviceId).obj.start()
+        //this.getService(serviceId)
+        //.then((service) => service.obj.start())
         .then(() => resolve());
       }
       else {
@@ -72,7 +76,8 @@ class laborsManager {
         for(var i in this.serviceList) {
           let service = this.serviceList[i];
           if(service.enable)
-            await this.startService(this.serviceList[i].id);
+          	await this.startService(i);
+            //await this.startService(this.serviceList[i].id);
         }
         resolve();
       }
@@ -89,7 +94,12 @@ class laborsManager {
     });
   }
 
-  getService(serviceId) {
+  getService(id) {
+  	console.log(`laborsManager: getService(${id}) >> `);
+  	return this.serviceList[id];
+  }
+
+  getService2(serviceId) {
     console.log(`laborsManager: getService(${serviceId}) >> `);
     return new Promise((resolve, reject) => {
       if(!serviceId)

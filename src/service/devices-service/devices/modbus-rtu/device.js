@@ -73,10 +73,11 @@ class ModbusDevice extends Device {
   }
 
   initScript(scriptName) {
-    return new Promise((resolve, reject) => {
-      let scriptsService = this.exConf[`devices-service`].scriptsService;
-      let script = scriptsService.get(this.exConf.schema.config.script);
-      this.exConf.script = this.rebuildReadMap(script.list.readmap, script.list.calcmap);
+    return new Promise(async (resolve, reject) => {
+      let ex = this.exConf;
+      let scriptsService = ex[`devices-service`].scriptsService;
+      let script = await scriptsService.get(ex.schema.config.script, {"object": true});
+      this.exConf.script = this.rebuildReadMap(script.list.readmap.object, script.list.calcmap.object);
       resolve();
     });
   }

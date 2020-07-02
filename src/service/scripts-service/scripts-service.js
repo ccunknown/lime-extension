@@ -34,14 +34,17 @@ class ScriptsService extends Service {
     return new Promise(async (resolve, reject) => {
       config = (config) ? config : this.config;
       let serviceSchema = this.getSchema();
-      let list = await this.getDirectory(Path.join(__dirname, serviceSchema.config.directory));
+      //let list = await this.getDirectory(Path.join(__dirname, serviceSchema.config.directory));
+      let list = await this.getDirectory(Path.join(__dirname, serviceSchema.directory));
       console.log(`script list : ${list}`);
       this.scriptList = {};
       for(let i in list) {
         console.log(`script : ${list[i]}`);
-        let path = Path.join(__dirname, serviceSchema.config.directory, list[i]);
+        //let path = Path.join(__dirname, serviceSchema.config.directory, list[i]);
+        let path = Path.join(__dirname, serviceSchema.directory, list[i]);
         await this.add(list[i], path);
       }
+      console.log(`scriptList : ${JSON.stringify(this.scriptList, null, 2)}`);
       resolve();
     });
   }
@@ -68,19 +71,22 @@ class ScriptsService extends Service {
       let script = {
         "name": name,
         "path": path,
-        "tag": [],
+        "meta": {},
         "list": {}
       };
       let regex = /\..+$/gi;
       for(let i in files) {
         let index = files[i].replace(regex, ``).toLowerCase();
-        let s = require(`${path}/${files[i]}`);
-        script.list[index] = s;
-        if(s.meta && s.meta.tag) {
-          s.meta.tag.forEach((tag) => {
-            if(!script.tag.includes(`${tag}`))
-              script.tag.push(`${tag}`);
-          });
+        //let s = require(`${path}/${files[i]}`);
+        //script.list[index] = s;
+        if(files[i] == `metadata.js`) {
+          let meta = require(`${script.path}/${files[i]}`);
+          script.meta = JSON.parse(JSON.stringify(meta));
+        }
+        else {
+          script.list[index] = {
+            "path": files[i]
+          };
         }
       }
       this.scriptList[name] = script;
@@ -88,67 +94,89 @@ class ScriptsService extends Service {
     });
   }
 
-  get(key) {
-    console.log(`ScriptsService: getScript(${key})`);
-    //console.log(this.scriptList);
-    return (key) ? this.scriptList[key] : this.scriptList;
-  }
-
-  getByTag(tag) {
-    console.log(`ScriptsService: getByTag(${tag}) >> `);
-    let result = [];
-    if(typeof tag == `string`)
-      for(let i in scriptList) {
-        if(scriptList[i].includes(tag))
-          result.push(scriptList[i]);
-      }
-    else {
-      let nameList = [];
-      for(let i in scriptList) {
-        for(let j in tag) {
-          if(scriptList[i].tag.includes(tag[j])) {
-            result.push(scriptList[i]);
-            break;
+  create(schema) {
+    /*
+      "schema" should be : 
+      {
+        "name": "string",
+        "meta": {
+          "title": "string",
+          "description": "string",
+          "tag": ["string"]
+        }
+        "list": {
+          "key": {
+            "path": "string",
+            "base64": "string"
           }
         }
       }
-    }
-    return result;
+    */
+    console.log(`ScriptsService: create() >> `);
+    //console.log(`schema : ${JSON.stringify(schema, null, 2)}`);
+    return new Promise(async (resolve, reject) => {
+      let serviceSchema = this.getSchema();
+      if(schema.meta) {
+        schema.list.meta = {
+          "path": "metadata.js",
+          "base64": this.base64Encode(this.initialMeta(schema.meta))
+        };
+      }
+      for(let i in schema.list) {
+        let path = Path.join(__dirname, serviceSchema.directory, schema.name, schema.list[i].path);
+        await this.createFile(path, schema.list[i]);
+      }
+      resolve({});
+    });
   }
 
-  getJson(key) {
+  createFile(path, schema) {
+    console.log(`ScriptsService: createFile() >> `);
+    console.log(`schema : ${JSON.stringify(schema, null, 2)}`);
+    return new Promise(async (resolve, reject) => {
+      let data = this.base64Decode(schema.base64);
+      console.log(`create file : ${path}`);
+      await this.writeFile(path, data);
+      resolve();
+    });
+  }
+
+  initialMeta(schema) {
+    const str = `
+      const meta = ${JSON.stringify(schema)};
+      module.exports = meta;
+    `;
+    return str;
+  }
+
+  get(key, options) {
+    console.log(`ScriptsService: getScript(${key})`);
+    //console.log(this.scriptList);
     return new Promise(async (resolve, reject) => {
       if(key) {
-        let script = this.scriptList[key];
-        let result = {
-          "name": script.name,
-          "tag": script.tag,
-          "path": script.path,
-          "list": {}
+        if(!this.scriptList[key])
+          resolve(undefined);
+        else {
+          let script = JSON.parse(JSON.stringify(this.scriptList[key]));
+          for(let i in script.list) {
+            let filepath = `${script.path}/${script.list[i].path}`
+            if(options && options.object)
+              script.list[i].object = require(`${filepath}`);
+            if(options && options.base64)
+              script.list[i].base64 = this.base64Encode(await this.readFile(filepath));
+          }
+          resolve(script);
         }
-        let files = await this.getDirectory(script.path);
-        let regex = /\..+$/gi;
-        for(let i in files) {
-          let index = files[i].replace(regex, ``).toLowerCase();
-          let str = await this.readFile(Path.join(script.path, files[i]));
-          let buff = new Buffer(str);
-          let base64 = buff.toString(`base64`);
-          result.list[index] = {
-            "path": files[i],
-            "base64": base64
-          };
-        }
-        resolve(result);
       }
       else {
         let result = [];
         for(let i in this.scriptList) {
-          let script = await this.getJson(this.scriptList[i].name);
-          result.push(script);
+          result.push(JSON.parse(JSON.stringify(this.scriptList[i])));
         }
         resolve(result);
       }
     });
+    //return (key) ? this.scriptList[key] : this.scriptList;
   }
 
   getDirectory(path) {
@@ -161,16 +189,39 @@ class ScriptsService extends Service {
   }
 
   base64Encode(data) {
-    let buff = new Buffer(data);
+    let buff = Buffer.from(data);
     let base64 = buff.toString(`base64`);
     return base64;
   }
 
-  readFile(path) {
+  base64Decode(data, encoding) {
+    //let buff = new Buffer(data, `base64`);
+    let buff = Buffer.from(data, `base64`);
+    let result = buff.toString((encoding) ? encoding : `utf8`);
+    return result;
+  }
+
+  readFile(path, encoding) {
     return new Promise((resolve, reject) => {
       const fs = require(`fs`);
-      fs.readFile(path, (err, data) => {
+      encoding = (encoding) ? encoding : `utf8`;
+      fs.readFile(path, encoding, (err, data) => {
         (err) ? reject(err) : resolve(data);
+      });
+    });
+  }
+
+  writeFile(path, data, encoding) {
+    return new Promise((resolve, reject) => {
+      const fs = require(`fs`);
+      encoding = (encoding) ? encoding : `utf8`;
+      let dir = path.replace(/[^/]+$/g, ``);
+      console.log(`dir : ${dir}`);
+      if (!fs.existsSync(dir)){
+        fs.mkdirSync(dir);
+      }
+      fs.writeFile(path, data, encoding, (err) => {
+        (err) ? reject(err) : resolve();
       });
     });
   }

@@ -46,7 +46,9 @@ class DevicesService extends Service {
     console.log(`DevicesService: initDeviceTemplate() >> `);
     return new Promise(async (resolve, reject) => {
       this.deviceTemplate = {};
-      let dirs = await this.getDirectory(Path.join(__dirname, `/devices`));
+      let serviceSchema = this.getSchema();
+      //let dirs = await this.getDirectory(Path.join(__dirname, `/devices`));
+      let dirs = await this.getDirectory(Path.join(__dirname, serviceSchema.directory));
       dirs.forEach((elem) => {
         this.deviceTemplate[elem] = require(`./devices/${elem}/device`);
       });
@@ -58,7 +60,7 @@ class DevicesService extends Service {
     console.log(`DevicesService: initDevices() >> `);
     return new Promise(async (resolve, reject) => {
       let serviceSchema = this.getSchema();
-      let list = serviceSchema.config.list;
+      let list = serviceSchema.list;
       for(let i in list) {
         await this.add(list[i]);
       }
@@ -69,8 +71,10 @@ class DevicesService extends Service {
   start() {
     console.log(`DevicesService: start() >> `);    
     return new Promise(async (resolve, reject) => {
-      this.scriptsService = (await this.laborsManager.getService(`scripts-service`)).obj;
-      this.enginesService = (await this.laborsManager.getService(`engines-service`)).obj;
+      //this.scriptsService = (await this.laborsManager.getService(`scripts-service`)).obj;
+      //this.enginesService = (await this.laborsManager.getService(`engines-service`)).obj;
+      this.scriptsService = this.laborsManager.getService(`scripts-service`).obj;
+      this.enginesService = this.laborsManager.getService(`engines-service`).obj;
       //console.log(`engine service : `);
       //console.log(this.enginesService);
       await this.initDevices();
