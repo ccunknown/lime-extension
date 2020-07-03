@@ -38,12 +38,14 @@ export default class PageSysport {
   }
 
   initialList(list) {
-    let template = this.ui.saidObj(`content.sysport.listpanel.template.item`).html();
-    this.ui.saidObj(`content.sysport.listpanel`).empty();
+    let template = this.ui.saidObj(`content.sysport.base.listpanel.template.item`).html();
+    this.ui.saidObj(`content.sysport.base.listpanel`).empty();
     list.forEach((data) => {
       let elem = this.ui.mustache.render(template, data);
-      this.ui.saidObj(`content.sysport.listpanel`).append(elem);
+      this.ui.saidObj(`content.sysport.base.listpanel`).append(elem);
     });
+    let adder = this.ui.saidObj(`content.sysport.base.listpanel.template.adder`).html();
+    this.ui.saidObj(`content.sysport.base.listpanel`).append(adder);
   }
 
   getPortList() {
@@ -64,7 +66,7 @@ export default class PageSysport {
 
   initFunction() {
     this.console.log(`initFunction()`);
-    this.ui.saidObj(`content.sysport.header.reload`).on(`click`, () => {
+    this.ui.saidObj(`content.sysport.base.header.reload`).on(`click`, () => {
       this.console.log(`reload click`);
       //this.getPortList()
       //.then((list) => this.initialList(list));
@@ -74,13 +76,13 @@ export default class PageSysport {
 
   showLoading() {
     this.console.log(`showLoading()`);
-    this.ui.saidObj(`content.sysport.listpanel`).addClass(`hide`);
-    this.ui.saidObj(`content.sysport.loading`).removeClass(`hide`);
+    this.ui.saidObj(`content.sysport.base.listpanel`).addClass(`hide`);
+    this.ui.saidObj(`content.sysport.base.loading`).removeClass(`hide`);
   }
 
   showContent() {
     this.console.log(`showContent()`);
-    this.ui.saidObj(`content.sysport.loading`).addClass(`hide`);
-    this.ui.saidObj(`content.sysport.listpanel`).removeClass(`hide`);
+    this.ui.saidObj(`content.sysport.base.loading`).addClass(`hide`);
+    this.ui.saidObj(`content.sysport.base.listpanel`).removeClass(`hide`);
   }
 }

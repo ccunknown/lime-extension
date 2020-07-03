@@ -51,16 +51,23 @@ class RoutesManager extends APIHandler{
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           }
-          /*
-          "DELETE": (req) => {
-            return new Promise(async (resolve, reject) => {
-              let defaults = this.configManager.getDefaults();
-              this.configManager.saveConfig(defaults.config)
-              .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
-              .catch((err) => resolve(this.catchErrorRespond(err)));
+        }
+      },
+
+      /***  Resource : /config/schema  ***/
+      {
+        "resource": /\/config\/schema/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              try {
+                let schema = this.configManager.getSchema();
+                resolve(this.makeJsonRespond(JSON.stringify(schema)));
+              } catch(err) {
+                resolve(this.catchErrorRespond(err))
+              };
             });
           }
-          */
         }
       },
 
