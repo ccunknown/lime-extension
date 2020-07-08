@@ -23,7 +23,7 @@ export default class ExtensionMain extends window.Extension {
       this.api.getConfig().then((config) => {
         this.console.log(`get config`);
         this.config = config;
-        this.console.log(JSON.stringify(this.config, null, 2));
+        this.console.log(this.config);
         this.ui.render(this.config);
       });
     });
@@ -111,6 +111,7 @@ export default class ExtensionMain extends window.Extension {
 
   initCoreObject() {
     return new Promise(async (resolve, reject) => {
+      this.collector = new (this.loader.getCoreObject(`api`))(this);
       this.api = new (this.loader.getCoreObject(`api`))(this);
       this.ui = new (this.loader.getCoreObject(`ui`))(this);
 

@@ -3,6 +3,7 @@ export default class ExtensionApi {
     this.extension = extension;
 
     this.console = this.extension.console;
+    this.collector = this.extension.collector;
 
     this.init();
   }
@@ -83,6 +84,12 @@ export default class ExtensionApi {
   deleteConfig() {
     this.console.log(`rest.deleteConfig()`);
     return this.restCall(`delete`, `/config`);
+  }
+
+  /***  Resource : /schema  ***/
+  getSchema() {
+    this.console.log(`rest.getSchema()`);
+    return this.restCall(`get`, `/api/schema`);
   }
 
   /***  Resource : /api/system/portlist  ***/

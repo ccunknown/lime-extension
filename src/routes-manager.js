@@ -54,9 +54,9 @@ class RoutesManager extends APIHandler{
         }
       },
 
-      /***  Resource : /config/schema  ***/
+      /***  Resource : /schema  ***/
       {
-        "resource": /\/config\/schema/,
+        "resource": /\/schema/,
         "method": {
           "GET": (req) => {
             return new Promise((resolve, reject) => {

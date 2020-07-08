@@ -1,15 +1,14 @@
-<div class="" id="extension-lime-content-sysport-section" class="miso-slide-container">
+<div class="miso-slide-container" id="extension-lime-content-sysport-section">
 
   <div class="miso-slide-slide hide" id="extension-lime-content-sysport-slider">
-    This is slider.
-    <div class="card-header bg-warning border-warning">
+    <div class="card text-dark border-warning w-100">
 
       <div class="card-header bg-warning border-warning">
         <div class="d-flex justify-content-between">
           <!-- Icon & Title -->
           <div class="text-truncate">
             <i class="fab fa-usb mr-2"></i>
-            <b id="extension-lime-content-sysport-base-header-title">System Port</b>
+            <b id="extension-lime-content-sysport-slider-header-title">System Port</b>
           </div>
           <!-- Header Button -->
           <div class="text-light">
@@ -21,6 +20,71 @@
             </button>
           </div>
         </div>
+      </div>
+
+      <div class="card-body bg-dark" id="extension-lime-content-sysport-slider-body">
+
+        <div 
+        class=""
+        id="extension-lime-content-sysport-slider-loading" >
+          <div class="d-flex flex-column justify-content-center">
+            <br>
+            <div class="text-light">
+              <center>
+                Please wait, this process will take a while.
+              </center>
+            </div>
+            <br>
+            <div class="progress">
+              <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-100 hide" id="extension-lime-content-sysport-slider-body-form">
+
+          <div class="miso-form-row mb-3">
+            <div class="miso-badge-header-group w-100">
+              <label class="miso-label-badge badge-info">Port</label>
+              <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
+                
+                <div class="miso-badge-header-group grow-1">
+                  <label class="miso-label-badge badge-secondary">Name</label>
+                  <input type="text" class="miso-badge-union border-secondary" id="extension-lime-content-sysport-slider-body-form-name">
+                </div>
+
+                <div class="miso-badge-header-group grow-1">
+                  <label class="miso-label-badge badge-secondary">Serial Port</label>
+                  <select class="miso-badge-union border-secondary" id="extension-lime-content-sysport-slider-body-form-port">
+                    <option value="">/dev/ttyUSBx</option>
+                    <option value="">/dev/ttyUSBy</option>
+                    <option value="">/dev/ttyUSBz</option>
+                  </select>
+                </div>
+
+                <div class="miso-badge-header-group grow-1">
+                  <label class="miso-label-badge badge-secondary">Description</label>
+                  <textarea class="miso-badge-union border-secondary no-resize" rows="4" type="text" id="extension-lime-content-sysport-slider-body-form-description"></textarea>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="miso-form-row">
+            <div class="miso-badge-header-group w-100">
+              <label class="miso-label-badge badge-info">Config</label>
+              <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
+
+                
+                <input type="text" class="" id="extension-lime-content-sysport-slider-body-form-baudRate">
+              </div>
+            </div>
+          </div>
+
+        </div>
+
       </div>
 
     </div>
@@ -77,25 +141,25 @@
             <div class="card-header d-flex justify-content-between bg-dark text-light">
               <div 
               class="text-truncate" 
-              id="extension-lime-content-sysport-base-listpanel-item-{{{index}}}-path">
-                {{{path}}}
+              id="extension-lime-content-sysport-base-listpanel-item-{{{index}}}-name">
+                {{{name}}}
               </div>
             </div>
             <div class="card-body bg-secondary">
               <span class="header-item">
-                <span class="bg-dark text-light">pnpId</span>
+                <span class="bg-dark text-light">path</span>
                 <span 
                   class="bg-warning text-dark"
-                  id="extension-lime-content-sysport-base-listpanel-item-{{{index}}}-pnpid">
-                  {{{pnpid}}}
+                  id="extension-lime-content-sysport-base-listpanel-item-{{{index}}}-path">
+                  {{{path}}}
                 </span>
               </span>
               <span class="header-item">
-                <span class="bg-dark text-light">manufacturer</span>
+                <span class="bg-dark text-light">config</span>
                 <span
                   class="bg-warning text-dark"
-                  id="extension-lime-content-sysport-base-listpanel-item-{{{index}}}-manufacturer">
-                  {{{manufacturer}}}
+                  id="extension-lime-content-sysport-base-listpanel-item-{{{index}}}-config-baud">
+                  {{{config.baudRate}}}/{{{config.databits}}}/{{{config.parity}}}/{{{config.stopbits}}}
                 </span>
               </span>
             </div>

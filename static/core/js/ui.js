@@ -127,4 +127,17 @@ export default class ExtensionUi {
         return this.id;
     }).get();
   }
+
+  genComponent(type, id, schema) {
+    let result = ``;
+    switch(type) {
+      case `input-text`:
+        result = `<input type="text" class="" id="${id}">`
+        break;
+      default :
+        console.warn(`genComponent with 'type': '${type}' not support!!!`);
+        break;
+    }
+    return result;
+  }
 }

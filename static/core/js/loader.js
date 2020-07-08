@@ -18,7 +18,7 @@ export default class ExtensionLoader {
 
       this.objects = await this.loadBySchema(this.schema);
 
-      console.log(this.objects);
+      //console.log(this.objects);
 
       resolve();
     });
