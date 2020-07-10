@@ -1,6 +1,7 @@
 'use strict';
 
 const EventEmitter = require('events').EventEmitter;
+const Crypto = require(`crypto`);
 
 const {APIHandler, APIResponse} = require('gateway-addon');
 const {Errors} = require('../constants/constants');
@@ -48,6 +49,27 @@ class RoutesManager extends APIHandler{
             return new Promise(async (resolve, reject) => {
               this.configManager.saveConfig({})
               .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /hash/sha256/config  ***/
+      {
+        "resource": /\/hash\/sha256\/config/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              this.configManager.getConfig()
+              .then((config) => {
+                return {
+                  "hash": "sha256",
+                  "digest": "hex",
+                  "value": Crypto.createHash(`sha256`).update(JSON.stringify(config)).digest(`hex`)
+                }
+              })
+              .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           }

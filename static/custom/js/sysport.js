@@ -8,8 +8,75 @@ export default class PageSysport {
 
   init(config) {
     this.console.trace(`init()`);
-    return new Promise((resolve, reject) => {
-      this.initFunction();
+    return new Promise(async (resolve, reject) => {
+      //this.initFunction();
+      await this.initVue();
+      resolve();
+    });
+  }
+
+  initVue() {
+    this.console.trace(`initVue()`);
+    return new Promise(async (resolve, reject) => {
+      let id = this.ui.said(`content.sysport.section`);
+      this.console.log(`id : ${id}`);
+      let config = await this.getConfig();
+      let schema = await this.getSchema();
+      let portlist = await this.getPortList();
+
+      //  initial `path` with `portlist`
+      schema.properties.list.items.properties.path.enum = portlist.map((elem) => elem.path);
+      schema.properties.list.items.properties.path.default = (portlist.length) ? portlist[0].path : ``;
+
+      this.vue = {};
+      let vue = new Vue({
+        "el": `#${id}`,
+        "data": {
+          "sysport": {
+            /** Config & Schema & PortList. **/
+            "config": config,
+            "schema": schema,
+            "portList": portlist,
+            /** Slider configuration. **/
+            "slider": {
+              "ready": false,
+              "form": this.generateFromSchema(schema.properties.list.items)
+            },
+            /** Base configuration. **/
+            "base": {
+              "ready": false
+            },
+            /** Function **/
+            "function": {
+              "add": () => {
+                console.log(`sysport.add()`);
+                this.vue.slider.form = this.generateFromSchema(schema.properties.list.items);
+                this.renderSlider();
+              },
+              "edit": (name) => {
+                console.log(`sysport.edit()`);
+
+              },
+              "updatePortList": async () => {
+                console.log(`sysport.updatePortList()`);
+                this.vue.portList = await this.getPortList();
+              },
+              "isAvailable": (port) => {}
+            }
+          }
+        },
+        methods: {}
+      });
+      this.vue = vue.sysport;
+
+      this.vue.function.isAvailable = (port) => {
+        console.log(`sysport.isAvailable()`);
+        return !this.vue.config.list.find((elem) => elem.path == port.path);
+      };
+
+      this.console.log(`config : ${JSON.stringify(this.vue.config, null, 2)}`);
+      this.console.log(`form : ${JSON.stringify(this.vue.slider.form, null, 2)}`);
+
       resolve();
     });
   }
@@ -30,74 +97,36 @@ export default class PageSysport {
     this.console.trace(`renderNav()`);
   }
 
-  renderPage() {
-    this.console.trace(`renderPage()`);
-    return new Promise(async (resolve, reject) => {
-      /*
-      this.getPortList()
-      .then((list) => this.initialList(list, schema))
-      .then(() => resolve());
-      */
-      await this.renderBase();
-      resolve();
-    });
-  }
-
-  /*
-  initialList(list) {
-    let template = this.ui.saidObj(`content.sysport.base.listpanel.template.item`).html();
-    this.ui.saidObj(`content.sysport.base.listpanel`).empty();
-    list.forEach((data) => {
-      let elem = this.ui.mustache.render(template, data);
-      this.ui.saidObj(`content.sysport.base.listpanel`).append(elem);
-    });
-    let adder = this.ui.saidObj(`content.sysport.base.listpanel.template.adder`).html();
-    this.ui.saidObj(`content.sysport.base.listpanel`).append(adder);
-  }
-  */
-
   renderBase() {
+    this.console.log(`renderBase()`);
     return new Promise(async (resolve, reject) => {
-      this.showLoading();
+      this.vue.base.ready = false;
+      //this.showLoading();
 
       let config = await this.getConfig();
-      console.log(config);
+      this.vue.config = config;
 
-      let template = this.ui.saidObj(`content.sysport.base.listpanel.template.item`).html();
-      this.ui.saidObj(`content.sysport.base.listpanel`).empty();
-      config.list.forEach((data) => {
-        let elem = this.ui.mustache.render(template, data);
-        this.ui.saidObj(`content.sysport.base.listpanel`).append(elem);
-      });
-      let adder = this.ui.saidObj(`content.sysport.base.listpanel.template.adder`).html();
-      //this.ui.saidObj(`content.sysport.base.listpanel`).append(adder);
-      let adderDom = new DOMParser().parseFromString(adder, "text/html");
-      let adderElem = adderDom.getElementsByClassName(`miso-grid-item-adder`);
-      adderElem[0].id = `extension-lime-content-sysport-base-listpanel-adder`;
-      this.ui.saidObj(`content.sysport.base.listpanel`).append(adderElem);
-      this.ui.initRaid();
-      this.ui.saidObj(`content.sysport.base.listpanel.adder`).on(`click`, () => {
-        console.log(`add click`);
-        this.renderSlider();
-      });
-      //this.ui.saidObj(`content.sysport.base.listpanel`).append(adder);
-
-      this.showContent();
+      //this.showContent();
+      this.vue.base.ready = true;
       resolve();
     });
   }
 
   renderSlider() {
+    this.console.log(`renderSlider()`);
     return new Promise(async (resolve, reject) => {
       this.showLoading();
-      let portlist = await this.getPortList();
-      console.log(portlist);
+      this.ui.saidObj(`content.sysport.slider`).removeClass(`hide`);
 
-      this.ui.saidObj(`content.sysport.slider.form.port`).empty();
-      portlist.forEach((port) => {
-        let option = new Option(`${port.path}`, `${port.path}`);
-        this.ui.saidObj(`content.sysport.slider.form.port`).append(option);
-      });
+
+      // let portlist = await this.getPortList();
+      // console.log(portlist);
+
+      // this.ui.saidObj(`content.sysport.slider.form.port`).empty();
+      // portlist.forEach((port) => {
+      //   let option = new Option(`${port.path}`, `${port.path}`);
+      //   this.ui.saidObj(`content.sysport.slider.form.port`).append(option);
+      // });
       
       this.showContent();
       resolve();
@@ -134,21 +163,6 @@ export default class PageSysport {
     });
   }
 
-  initFunction() {
-    this.console.log(`initFunction()`);
-    this.ui.saidObj(`content.sysport.base.header.reload`).on(`click`, () => {
-      this.console.log(`reload click`);
-      //this.getPortList()
-      //.then((list) => this.initialList(list));
-      this.render();
-    });
-
-    this.ui.saidObj(`content.sysport.slider.header.back`).on(`click`, () => {
-      this.console.log(`back click`);
-      this.ui.saidObj(`content.sysport.slider`).addClass(`hide`);
-    });
-  }
-
   showLoading() {
     this.console.log(`showLoading()`);
     //  Slider
@@ -167,5 +181,45 @@ export default class PageSysport {
     //  Base
     this.ui.saidObj(`content.sysport.base.loading`).addClass(`hide`);
     this.ui.saidObj(`content.sysport.base.listpanel`).removeClass(`hide`);
+  }
+
+  isAvailable(port) {
+    return new Promise(async (resolve, reject) => {
+      let config = await this.getConfig();
+      let result = !config.list.find((elem) => port.path == elem.path);
+      console.log(`result : ${result}`);
+      return result;
+    });
+  }
+
+  generateFromSchema(schema) {
+    let result;
+    if(Array.isArray(schema.type)) {
+      result = (schema.default) ? schema.default : 
+      (schema.type[0] == `object`) ? {} :
+      (schema.type[0] == `array`) ? [] :
+      (schema.type[0] == `string`) ? `` :
+      (schema.type[0] == `number`) ? 0 :
+      (schema.type[0] == `boolean`) ? false : undefined;
+    }
+    else if(schema.type == `object`) {
+      result = {};
+      if(schema.properties)
+        for(let i in schema.properties)
+          result[i] = this.generateFromSchema(schema.properties[i]);
+    }
+    else if(schema.type == `array`) {
+      result = [];
+    }
+    else if(schema.type == `number`) {
+      result = (schema.default) ? schema.default : 0;
+    }
+    else if(schema.type == `boolean`) {
+      result = (schema.default) ? schema.default : false;
+    }
+    else if(schema.type == `string`) {
+      result = (schema.default) ? schema.default : ``;
+    }
+    return result
   }
 }

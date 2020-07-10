@@ -1,13 +1,19 @@
 (function() {
 
-  let script = {
+  let schema = {
     "extension": {
       "short": "lime",
       "full": "lime-extension",
       "html": "extension-lime",
       "title-short": "LiME",
       "title-full": "LiME Extension",
-      "debug-level": "debug"
+      "debug-level": "debug",
+      "config": {
+        "config-sync": {
+          "enable": false,
+          "period": 10000
+        }
+      }
     },
     "flow": {
       "type": "sequential",
@@ -20,6 +26,7 @@
               "load": [
                 "jquery",
                 "mustache",
+                //"crypto-js",
                 "vue",
                 "vue-multiselect",
                 "popper",
@@ -111,6 +118,12 @@
         "type": "script",
         "path": "/js/mustache.js"
       },
+      /*
+      "crypto-js": {
+        "type": "script",
+        "path": "/js/crypto-js.min.js"
+      },
+      */
       "vue": {
         "type": "script",
         "path": "/js/vue.js"
@@ -201,9 +214,9 @@
   };
 
   return new Promise(async (resolve, reject) => {
-    let Extension = (await import(`/extensions/${script.extension.full}/static/core/js/extension.js`)).default;
+    let Extension = (await import(`/extensions/${schema.extension.full}/static/core/js/extension.js`)).default;
     //console.log(Extension);
-    new Extension(script);
+    new Extension(schema);
     resolve();
   });
 

@@ -27,66 +27,6 @@ export default class ExtensionMain extends window.Extension {
         this.ui.render(this.config);
       });
     });
-
-    //  Load resource.
-
-    /*
-    let prom = Promise.all([
-      this.loadResource(`/extensions/${this.id}/static/views/main.html`),
-      this.loadResource(`/extensions/${this.id}/static/views/webhook.html`),
-      this.loadResource(`/extensions/${this.id}/static/views/setting.html`),
-      this.loadResource(`/extensions/${this.id}/static/views/account.html`),
-      this.loadResource(`/extensions/${this.id}/static/json/render.json`, `json`),
-      this.loadScript(scriptArr)
-      ])
-    .then(([
-      mainPage,
-      webhookPage,
-      settingPage,
-      accountPage,
-      renderSchema
-    ]) => {
-      return new Promise((resolve, reject) => {
-        this.contents.mainPage = new DOMParser().parseFromString(mainPage, "text/html");
-        this.contents.webhookPage = new DOMParser().parseFromString(webhookPage, "text/html");
-        this.contents.settingPage = new DOMParser().parseFromString(settingPage, "text/html");
-        this.contents.accountPage = new DOMParser().parseFromString(accountPage, "text/html");
-        this.renderSchema = renderSchema;
-        console.log(`render schema : ${JSON.stringify(this.renderSchema, null, 2)}`);
-        let idList = [];
-        for(let i in this.contents)
-          idList = [...idList, ...this.idOfText(this.contents[i])];
-        console.log(`id list : ${JSON.stringify(idList, null, 2)}`);
-
-        //  Set up html element id shortcut as said.
-        this.turnipRaid = new TurnipRaid(idList);
-        said = this.turnipRaid.stringAutoId.bind(this.turnipRaid);
-        saidObj = this.turnipRaid.stringAutoIdObject.bind(this.turnipRaid);
-
-        //  Set rest and api.
-        this.turnipApi = new TurnipApi(this);
-        this.api = this.turnipApi.api;
-        this.rest = this.turnipApi.rest;
-
-        ui = this.webUi();
-
-        let content = new DOMParser().parseFromString(mainPage, "text/html");
-        
-        content.getElementById(said(`turnip.content.webhook`)).innerHTML = this.contents.webhookPage.body.innerHTML;
-        content.getElementById(said(`turnip.content.setting`)).innerHTML = this.contents.settingPage.body.innerHTML;
-        content.getElementById(said(`turnip.content.account`)).innerHTML = this.contents.accountPage.body.innerHTML;
-
-        this.content = content.body.innerHTML;
-        //console.log(`content : ${this.content}`);
-
-        //  Initial components.
-        this.webhook = new TurnipExtensionWebhook(this, this.turnipRaid);
-        this.setting = new TurnipExtensionSetting(this, this.turnipRaid);
-        this.account = new TurnipExtensionAccount(this, this.turnipRaid);
-
-        resolve();
-      });
-    });*/
   }
 
   init() {
@@ -111,10 +51,11 @@ export default class ExtensionMain extends window.Extension {
 
   initCoreObject() {
     return new Promise(async (resolve, reject) => {
-      this.collector = new (this.loader.getCoreObject(`api`))(this);
+      this.collector = new (this.loader.getCoreObject(`collector`))(this);
       this.api = new (this.loader.getCoreObject(`api`))(this);
       this.ui = new (this.loader.getCoreObject(`ui`))(this);
 
+      await this.collector.init();
       await this.api.init();
       await this.ui.init();
 

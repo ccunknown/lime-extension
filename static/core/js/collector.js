@@ -4,65 +4,55 @@ export default class ExtensionCollector {
   constructor(extension) {
     this.extension = extension;
     this.console = this.extension.console;
+  }
 
-    this.resource = {
-      static: {},
-      dynamic: {}
+  init() {
+    return new Promise((resolve, reject) => {
+      this.resource = {};
+      resolve();
+    });
+  }
+
+  set(name, obj) {
+    this.console.trace(`set(${name}) >> `);
+    this.resource[name] = {
+      "timestamp": new Date(),
+      "object": obj
     };
   }
 
-  /*
-    set() function has multiple way to use eg:
-      - set(name, type, obj)
-      - set(name, obj)  //  type = "dynamic"
-      - set({
-        name: name,
-        type: type,     //  default : "dynamic"
-        obj: obj
-      })
-  */
-  set(name, type, obj) {
-    this.console.trace(`set() >> `);
-
-    obj = (obj) ? 
-      obj : (type) ? 
-      type : 
-      name.obj;
-    type = (obj) ?
-      type : (type) ? 
-      "dynamic" : (name.type) ? 
-      name.type : 
-      "dynamic";
-    name =  (type) ? name : name.name;
-
-    return (type == `static`) ? this.setStatic(name, obj) : this.setDynamic(name, obj);
+  get(name) {
+    this.console.trace(`get(${name}) >> `);
+    return this.resource[name];
   }
 
-  setStatic(name, obj) {
-    this.console.trace(`setStatic() >> `);
-    if(this.resource.static.hasOwnProperty(`${name}`)) {
-      this.console.warn(`Resource named "${name}" already available!!!`);
-      return false;
-    }
-    this.resource.static[name] = obj;
-    return true;
+  arrayBufferToString(arrBuff) {
+    let hashArray = Array.from(new Uint8Array(arrBuff));
+    let hashHex = hashArray.map((b) => b.toString(16).padStart(2, `0`)).join('');
+    return hashHex;
   }
 
-  setDynamic(name, obj) {
-    this.console.trace(`setDynamic() >> `);
-    this.resource.dynamic[name] = obj;
-    return true;
+  getJsonSha256(json) {
+    return new Promise(async (resolve, reject) => {
+      json = (typeof json == `string`) ? this.resource[json].object : json;
+      let result = await this.getSha256(JSON.stringify(json));
+      resolve(result);
+    });
   }
 
-  get(name, type) {
-    return (type == "dynamic") ? this.getDynamic(name) : this.getStatic(name);
-  }
-
-  getStatic(name) {
-    return (this.resource.static[name]) ? this.resource.static[name] : undefined;
-  }
-
-  getDynamic(name) {
-    return (this.resource.dynamic[name]) ? this.resource.dynamic[name] : undefined;
+  getSha256(message) {
+    return new Promise(async (resolve, reject) => {
+      if(crypto && crypto.subtle) {
+        //let buffer = new TextEncoder("utf-8").encode(data);
+        //let hash = await crypto.subtle.digest(`SHA-256`, buffer);
+        let data = (new TextEncoder()).encode(message);
+        let hash = await crypto.subtle.digest(`SHA-256`, data);
+        resolve(hash);
+      }
+      else {
+        this.console.warn(`Cannot use encrypt function cause 'crypto' or 'crypto'.subtle not found, ensure you enter site via 'https'.`);
+        resolve(null);
+      }
+    });
   }
 }

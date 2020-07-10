@@ -51,15 +51,23 @@
                 
                 <div class="miso-badge-header-group grow-1">
                   <label class="miso-label-badge badge-secondary">Name</label>
-                  <input type="text" class="miso-badge-union border-secondary" id="extension-lime-content-sysport-slider-body-form-name">
+                  <input 
+                  type="text" 
+                  v-model="sysport.slider.form.name"
+                  class="miso-badge-union border-secondary" 
+                  id="extension-lime-content-sysport-slider-body-form-name">
                 </div>
 
                 <div class="miso-badge-header-group grow-1">
                   <label class="miso-label-badge badge-secondary">Serial Port</label>
-                  <select class="miso-badge-union border-secondary" id="extension-lime-content-sysport-slider-body-form-port">
-                    <option value="">/dev/ttyUSBx</option>
-                    <option value="">/dev/ttyUSBy</option>
-                    <option value="">/dev/ttyUSBz</option>
+                  <select 
+                  class="miso-badge-union border-secondary" 
+                  id="extension-lime-content-sysport-slider-body-form-port">
+                    <template v-for="port in sysport.portList">
+                      <option v-if="sysport.function.isAvailable(port)" :value="`${port.path}`">{{port.path}}</option>
+                      <option v-else disabled="true" :value="`${port.path}`">{{port.path}}</option>
+                      <!-- <option v-for="port in sysport.portList" :value="`${port.path}`" :disabled="`${sysport.function.isAvailable(port.path)}`">{{port.path}}</option> -->
+                    </template>
                   </select>
                 </div>
 
@@ -78,7 +86,8 @@
               <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
 
                 
-                <input type="text" class="" id="extension-lime-content-sysport-slider-body-form-baudRate">
+                <!-- <input type="text" class="" id="extension-lime-content-sysport-slider-body-form-baudRate" v-model="test.testInput">
+                <input type="text" class="" id="extension-lime-content-sysport-slider-body-form-baudRate2" v-model="test2.testInput"> -->
               </div>
             </div>
           </div>
@@ -115,6 +124,7 @@
       <div class="card-body bg-dark" id="extension-lime-content-sysport-base-body">
 
         <div 
+        v-if="!sysport.base.ready"
         class=""
         id="extension-lime-content-sysport-base-loading" >
           <div class="d-flex flex-column justify-content-center">
@@ -133,55 +143,49 @@
         </div>
 
         <div 
-        class="miso-grid-item-container hide" 
-        id="extension-lime-content-sysport-base-listpanel-template-item">
+        v-if="sysport.base.ready"
+        class="miso-grid-item-container" 
+        id="extension-lime-content-sysport-base-listpanel">
+
           <div 
           class="card miso-grid-item" 
-          id="extension-lime-content-sysport-base-listpanel-item-{{{index}}}">
+          v-for="(item, index) in sysport.config.list"
+          :id="`extension-lime-content-sysport-base-listpanel-item-${index}`">
             <div class="card-header d-flex justify-content-between bg-dark text-light">
               <div 
               class="text-truncate" 
-              id="extension-lime-content-sysport-base-listpanel-item-{{{index}}}-name">
-                {{{name}}}
+              :id="`extension-lime-content-sysport-base-listpanel-item-${index}-name`">
+                {{item.name}}
               </div>
             </div>
             <div class="card-body bg-secondary">
               <span class="header-item">
                 <span class="bg-dark text-light">path</span>
-                <span 
-                  class="bg-warning text-dark"
-                  id="extension-lime-content-sysport-base-listpanel-item-{{{index}}}-path">
-                  {{{path}}}
+                <span class="bg-warning text-dark">
+                  {{item.path}}
                 </span>
               </span>
               <span class="header-item">
                 <span class="bg-dark text-light">config</span>
-                <span
-                  class="bg-warning text-dark"
-                  id="extension-lime-content-sysport-base-listpanel-item-{{{index}}}-config-baud">
-                  {{{config.baudRate}}}/{{{config.databits}}}/{{{config.parity}}}/{{{config.stopbits}}}
+                <span class="bg-warning text-dark">
+                  {{item.config.baudRate}}/{{item.config.databits}}/{{item.config.parity}}/{{item.config.stopbits}}
                 </span>
               </span>
             </div>
           </div>
-        </div>
 
-        <div 
-        class="miso-grid-item-container hide" 
-        id="extension-lime-content-sysport-base-listpanel-template-adder">
-          <div class="card miso-grid-item miso-grid-item-adder bg-secondary">
-            <div class="card-body" onclick="$('#extension-lime-content-sysport-slider').removeClass('hide')">
+          <div 
+          class="card miso-grid-item miso-grid-item-adder bg-secondary"
+          id="extension-lime-content-sysport-base-listpanel-adder"
+          @click="sysport.function.add()">
+            <div class="card-body">
               <div class="d-flex flex-column justify-content-center align-items-center w-100 h-100">
                 <i class="fas fa-plus fa-4x"></i>
                 <span>Create new port</span>
               </div>
             </div>
           </div>
-        </div>
 
-        <div 
-        class="miso-grid-item-container hide" 
-        id="extension-lime-content-sysport-base-listpanel">
         </div>
 
       </div>

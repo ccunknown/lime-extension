@@ -5,12 +5,18 @@ export default class ExtensionApi {
     this.console = this.extension.console;
     this.collector = this.extension.collector;
 
-    this.init();
+    //this.init();
   }
 
   init() {
-    this.console.trace(`init() >> `);
-    this.initRest();
+    return new Promise(async (resolve, reject) => {
+      this.console.trace(`init() >> `);
+      this.initRest();
+      await this.initConfig();
+      await this.initSchema();
+      this.initWorker();
+      resolve();
+    });
     //this.initApi();
   }
 
@@ -72,10 +78,59 @@ export default class ExtensionApi {
     };
   }
 
+  initConfig() {
+    return new Promise(async (resolve, reject) => {
+      await this.getConfig();
+      resolve();
+    });
+  }
+
+  initSchema() {
+    return new Promise(async (resolve, reject) => {
+      await this.getSchema();
+      resolve();
+    });
+  }
+
+  initWorker() {
+    let config = this.extension.schema.extension.config;
+    this.worker = {
+      configSync: {
+        "start": (period) => {
+          if(config[`config-sync`].enable && crypto && crypto.subtle)
+            setInterval(this.worker.configSync.function, (period) ? period : config[`config-sync`].period);
+          else
+            console.warn(`configSync not start!!!`);
+        },
+        "stop": () => {
+          clearInterval(this.worker.configSync.interval);
+        },
+        "function": () => {
+          return new Promise(async (resolve, reject) => {
+            let oldHash = await this.collector.getJsonSha256(`config`);
+            let newHash = await this.getConfigSha256();
+            this.console.log(`old hash : ${this.collector.arrayBufferToString(oldHash)}`);
+            this.console.log(`new hash : ${newHash.value}`);
+            resolve();
+          });
+        },
+        "interval": null
+      }
+    };
+
+    for(let i in this.worker) {
+      this.worker[i].start();
+    }
+  }
+
   /***  Resource : /config  ***/
   getConfig() {
     this.console.log(`rest.getConfig()`);
-    return this.restCall(`get`, `/api/config`);
+    return new Promise(async (resolve, reject) => {
+      let config = await this.restCall(`get`, `/api/config`);
+      this.collector.set(`config`, config);
+      resolve(config);
+    });
   }
   putConfig(config) {
     this.console.log(`rest.putConfig()`);
@@ -84,6 +139,12 @@ export default class ExtensionApi {
   deleteConfig() {
     this.console.log(`rest.deleteConfig()`);
     return this.restCall(`delete`, `/config`);
+  }
+
+  /***  Resource : /config/sha256  ***/
+  getConfigSha256() {
+    this.console.log(`rest.getConfigSha256()`);
+    return this.restCall(`get`, `/api/hash/sha256/config`);
   }
 
   /***  Resource : /schema  ***/
