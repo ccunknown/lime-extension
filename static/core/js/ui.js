@@ -140,4 +140,53 @@ export default class ExtensionUi {
     }
     return result;
   }
+
+  generateData(schema, extend = false) {
+    let result = {};
+    if(schema.type == `object`) {
+      for(let i in schema.properties) {
+        result[i] = this.generateData(schema.properties[i], extend);
+        if(schema.required.includes(i) && extend)
+          result[i].required = true;
+      }
+    }
+    else if(schema.type == `array`) {
+      result = [];
+    }
+    else {
+      let value = (schema.default) ? schema.default :
+        (schema.type == `string`) ? `` : 
+        (schema.type == `number`) ? 0 : 
+        (schema.type == `boolean`) ? false : null;
+      if(extend) {
+        result = JSON.parse(JSON.stringify(schema));
+        result.value = value;
+      }
+      else
+        result = value;
+    }
+    return result;
+  }
+
+  generateVueData(schema) {
+    return this.generateData(schema, true);
+  }
+
+  shortJsonElement(schema, elem) {
+    this.console.log(`PageSysport: shortJsonElement(${elem}) >> `);
+    if(schema[elem]) {
+      return schema[elem];
+    }
+    else if(Array.isArray(schema) || typeof schema == `object`) {
+      for(let i in schema) {
+        let res = this.shortJsonElement(schema[i], elem);
+        if(res)
+          return res;
+      }
+      return null;
+    }
+    else {
+      return null;
+    }
+  }
 }
