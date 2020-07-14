@@ -24,10 +24,6 @@ export default class PageSysport {
       let schema = await this.getSchema();
       let portlist = await this.getPortList();
 
-      //  initial `path` with `portlist`
-      //schema.properties.list.items.properties.path.enum = portlist.map((elem) => elem.path);
-      //schema.properties.list.items.properties.path.default = (portlist.length) ? portlist[0].path : ``;
-
       this.vue = {};
       let vue = new Vue({
         "el": `#${id}`,
@@ -42,6 +38,7 @@ export default class PageSysport {
             /** UI **/
             "ui": {
               "slider": {
+                "hide": true,
                 "ready": false,
                 "form": this.ui.generateData(this.ui.shortJsonElement(schema, `items`)),
                 "formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `items`))
@@ -102,9 +99,6 @@ export default class PageSysport {
         }
       };
 
-      //this.console.log(`config : ${JSON.stringify(this.vue.resource.config, null, 2)}`);
-      //this.console.log(`form : ${JSON.stringify(this.vue.ui.slider.form, null, 2)}`);
-
       resolve();
     });
   }
@@ -112,10 +106,6 @@ export default class PageSysport {
   render(base = true) {
     return new Promise(async (resolve, reject) => {
       this.console.trace(`render()`);
-      this.ui.saidObj(`content.sysport.slider`).addClass(`hide`);
-      //this.showLoading();
-      //let result = await this.renderPage();
-      //this.showContent();
       let result = (base) ? await this.renderBase() : await this.renderSlider();
       resolve(result);
     });
@@ -129,12 +119,11 @@ export default class PageSysport {
     this.console.log(`renderBase()`);
     return new Promise(async (resolve, reject) => {
       this.vue.ui.base.ready = false;
-      //this.showLoading();
+      this.vue.ui.slider.hide = true;
 
       let config = await this.getConfig();
       this.vue.resource.config = config;
 
-      //this.showContent();
       this.vue.ui.base.ready = true;
       resolve();
     });
@@ -144,7 +133,9 @@ export default class PageSysport {
     this.console.log(`renderSlider()`);
     return new Promise(async (resolve, reject) => {
       this.vue.ui.slider.ready = false;
-      this.ui.saidObj(`content.sysport.slider`).removeClass(`hide`);
+      this.vue.ui.slider.hide = false;
+      this.console.log(`ui slider : ${JSON.stringify(this.vue.ui.slider, null, 2)}`);
+      //this.ui.saidObj(`content.sysport.slider`).removeClass(`hide`);
       //(name) ? await this.renderEditForm(name) : await this.renderAddForm();
       await this.renderForm(name);
       this.vue.ui.slider.ready = true;

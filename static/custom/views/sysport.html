@@ -1,6 +1,6 @@
 <div class="miso-slide-container" id="extension-lime-content-sysport-section">
 
-  <div class="miso-slide-slide hide" id="extension-lime-content-sysport-slider">
+  <div class="miso-slide-slide" :class="{hide: sysport.ui.slider.hide}">
     <div class="card text-dark border-warning w-100">
 
       <div class="card-header bg-warning border-warning">
@@ -8,7 +8,7 @@
           <!-- Icon & Title -->
           <div class="text-truncate">
             <i class="fab fa-usb mr-2"></i>
-            <b id="extension-lime-content-sysport-slider-header-title">System Port</b>
+            <b>System Port</b>
           </div>
           <!-- Header Button -->
           <div class="">
@@ -21,23 +21,12 @@
               <b>Back</b>
             </button>
           </div>
-          <!-- <div class="text-light">
-            <button 
-            class="btn btn-danger border-secondary mr-1" 
-            id="extension-lime-content-sysport-slider-header-back">
-              <i class="fas fa-sync-alt mr-2"></i>
-              <b>Back</b>
-            </button>
-          </div> -->
         </div>
       </div>
 
-      <div class="card-body bg-dark" id="extension-lime-content-sysport-slider-body">
+      <div class="card-body bg-dark">
 
-        <div 
-        v-if="!sysport.ui.slider.ready"
-        class=""
-        id="extension-lime-content-sysport-slider-loading" >
+        <div v-if="!sysport.ui.slider.ready">
           <div class="d-flex flex-column justify-content-center">
             <br>
             <div class="text-light">
@@ -55,8 +44,7 @@
 
         <div 
         v-if="sysport.ui.slider.ready"
-        class="miso-form-container align-items-center col-sm-12 col-md-10 col-lg-8 w-100" 
-        id="extension-lime-content-sysport-slider-body-form">
+        class="miso-form-container align-items-center col-sm-12 col-md-10 col-lg-8 w-100">
 
           <div class="miso-badge-header-group align-items-end w-100">
             <label class="miso-label-badge badge-info font-size-inherit">Port</label>
@@ -67,16 +55,14 @@
                 <input 
                 type="text" 
                 v-model="sysport.ui.slider.form.name"
-                class="miso-badge-union border-secondary" 
-                id="extension-lime-content-sysport-slider-body-form-name">
+                class="miso-badge-union border-secondary">
               </div>
 
               <div class="miso-badge-header-group grow-1">
                 <label class="miso-label-badge badge-secondary">Serial Port</label>
                 <select 
                 v-model="sysport.ui.slider.form.path"
-                class="miso-badge-union border-secondary" 
-                id="extension-lime-content-sysport-slider-body-form-port">
+                class="miso-badge-union border-secondary">
                   <template v-for="port in sysport.ui.slider.formTemplate.path.enum">
                     <option v-if="port.disabled" disabled :value="`${port.value}`">{{port.title}}</option>
                     <option v-else :value="`${port.value}`">{{port.title}}</option>
@@ -87,7 +73,7 @@
 
               <div class="miso-badge-header-group grow-1">
                 <label class="miso-label-badge badge-secondary">Description</label>
-                <textarea class="miso-badge-union border-secondary no-resize" rows="4" type="text" id="extension-lime-content-sysport-slider-body-form-description"></textarea>
+                <textarea class="miso-badge-union border-secondary no-resize" rows="4" type="text"></textarea>
               </div>
 
             </div>
@@ -142,20 +128,6 @@
                 <div class="text-truncate text-light pl-2">Auto open port!</div>
               </div>
 
-              <!-- <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Baudrate</label>
-                <select 
-                class="miso-badge-union border-secondary" 
-                id="extension-lime-content-sysport-slider-body-form-config-baudrate">
-                  <template v-for="baud in sysport.function.shortSchemaCall('baudRate').enum">
-                    <option v-if="sysport.function.shortSchemaCall('baudRate').default == baud" selected :value="`${baud}`">{{baud}}</option>
-                    <option v-else :value="`${baud}`">{{baud}}</option>
-                  </template>
-                </select>
-              </div> -->
-
-              <!-- <input type="text" class="" id="extension-lime-content-sysport-slider-body-form-baudRate" v-model="test.testInput">
-              <input type="text" class="" id="extension-lime-content-sysport-slider-body-form-baudRate2" v-model="test2.testInput"> -->
             </div>
           </div>
 
@@ -166,7 +138,7 @@
     </div>
   </div>
   
-  <div class="miso-slide-base" id="extension-lime-content-sysport-base">
+  <div class="miso-slide-base">
     <div class="card text-dark border-warning w-100">
 
       <div class="card-header bg-warning border-warning">
@@ -174,26 +146,14 @@
           <!-- Icon & Title -->
           <div class="text-truncate">
             <i class="fab fa-usb mr-2"></i>
-            <b id="extension-lime-content-sysport-base-header-title">System Port</b>
+            <b>System Port</b>
           </div>
-          <!-- Header Button -->
-          <!-- <div class="text-light">
-            <button 
-            class="btn btn-info border-secondary mr-1" 
-            id="extension-lime-content-sysport-base-header-reload">
-              <i class="fas fa-sync-alt mr-2"></i>
-              <b>Reload</b>
-            </button>
-          </div> -->
         </div>
       </div>
 
-      <div class="card-body bg-dark" id="extension-lime-content-sysport-base-body">
+      <div class="card-body bg-dark">
 
-        <div 
-        v-if="!sysport.ui.base.ready"
-        class=""
-        id="extension-lime-content-sysport-base-loading" >
+        <div v-if="!sysport.ui.base.ready">
           <div class="d-flex flex-column justify-content-center">
             <br>
             <div class="text-light">
@@ -211,21 +171,12 @@
 
         <div 
         v-if="sysport.ui.base.ready"
-        class="miso-grid-item-container" 
-        id="extension-lime-content-sysport-base-listpanel">
+        class="miso-grid-item-container">
 
           <div 
           class="card miso-grid-item" 
-          v-for="(item, index) in sysport.resource.config.list"
-          :id="`extension-lime-content-sysport-base-listpanel-item-${index}`">
+          v-for="(item, index) in sysport.resource.config.list">
 
-            <!-- div class="card-header d-flex justify-content-between bg-dark text-light">
-              <div 
-              class="text-truncate" 
-              :id="`extension-lime-content-sysport-base-listpanel-item-${index}-name`">
-                {{item.name}}
-              </div>
-            </div> -->
             <div class="card-header d-flex justify-content-between bg-dark text-light">
               <!-- Icon & Title -->
               <div class="text-truncate">
@@ -260,7 +211,6 @@
 
           <div 
           class="card miso-grid-item miso-grid-item-adder bg-secondary"
-          id="extension-lime-content-sysport-base-listpanel-adder"
           @click="sysport.function.add()">
             <div class="card-body">
               <div class="d-flex flex-column justify-content-center align-items-center w-100 h-100">

@@ -1,5 +1,6 @@
 'use strict'
 
+const fs = require(`fs`);
 const Path = require(`path`);
 const SerialPort = require(`serialport`);
 
@@ -30,25 +31,10 @@ class EnginesService extends Service {
   initEngineTemplate(config) {
     console.log(`EnginesService: initEngineTemplate() >> `);
     return new Promise(async (resolve, reject) => {
-      config = (config) ? config : this.config;
-      //let list = config[`engines-service`].template;
-
+      this.config = (config) ? config : this.config;
       let serviceSchema = this.getSchema();
-      //let list = await this.getDirectory(Path.join(__dirname, serviceSchema.config.directory));
-      let list = await this.getDirectory(Path.join(__dirname, serviceSchema.directory));
-      console.log(`engine list : ${list}`);
-      this.engineTemplateList = {};
-      for(let i in list) {
-        console.log(`engine : ${list[i]}`);
-        //let path = Path.join(__dirname, serviceSchema.config.directory, list[i], `index.js`);
-        let path = Path.join(__dirname, serviceSchema.directory, list[i], `index.js`);
-        console.log(`engine path : ${path}`);
-        let template = {
-          "schema": list[i],
-          "object": require(`${path}`)
-        };
-        this.engineTemplateList[list[i]] = template;
-      }
+      this.engineTemplateList = (await this.getDirectorySchema(serviceSchema.directory, {"deep": true})).children;
+      console.log(`engineTemplateList: ${JSON.stringify(this.engineTemplateList, null, 2)}`);
       resolve();
     });
   }
@@ -72,13 +58,20 @@ class EnginesService extends Service {
   add(schema) {
     console.log(`EnginesService: add("${schema.name}")`);
     return new Promise(async (resolve, reject) => {
-      let engine = {
-        "schema": schema,
-        "object": new (this.engineTemplateList[schema.engine].object)()
-      };
-      this.engineList[schema.name] = engine;
-      await this.startEngine(schema.name);
-      resolve();
+      let template = this.engineTemplateList.find((elem) => schema.engine == elem.name);
+      if(template) {
+        //let object = require(template.children.find((elem) => elem.name == `index.js`).path.replace(/\/index\.js$/, ``));
+        let path = template.children.find((elem) => elem.name == `index.js`).path.replace(/^\//,``);
+        let object = require(`./${path}`);
+        let engine = {
+          "schema": schema,
+          "object": new (object)()
+        };
+        this.engineList[schema.name] = engine;
+        await this.startEngine(schema.name);
+        resolve();
+      }
+      reject(new Error(`Engine '${schema.name}' not found!!!`));
     });
   }
 
@@ -131,8 +124,27 @@ class EnginesService extends Service {
     return null;
   }
 
-  getTemplate(key) {
-    return this.engineTemplateList[key];
+  getTemplate(key, options) {
+    console.log(`EnginesService: get(${(key) ? key : ``})`);
+    //console.log(this.scriptList);
+    return new Promise(async (resolve, reject) => {
+      if(key) {
+        if(!this.engineTemplateList[key])
+          resolve(undefined);
+        else {
+          let engine = JSON.parse(JSON.stringify(this.engineTemplateList.find((elem) => elem.name == key)));
+          if(options && options.object)
+            engine.object = require(`${filepath}`);
+          if(options && options.base64)
+            engine.base64 = this.base64Encode(await this.readFile(filepath));
+          resolve(engine);
+        }
+      }
+      else {
+        resolve(this.engineTemplateList);
+      }
+    });
+    //return this.engineTemplateList[key];
   }
 
   getDirectory(path) {

@@ -172,6 +172,34 @@ class RoutesManager extends APIHandler{
         }
       },
 
+      /***  Resource : /service/engines  ***/
+      {
+        "resource": /\/service\/engines/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`engines-service`).obj.get()
+              .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/engineTemplate  ***/
+      {
+        "resource": /\/service\/engineTemplate/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`engines-service`).obj.getTemplate()
+              .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
       /***  Resource : /service  ***/
       {
         "resource": /\/service/,
