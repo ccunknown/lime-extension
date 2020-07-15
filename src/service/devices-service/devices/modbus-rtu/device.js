@@ -51,7 +51,7 @@ class ModbusDevice extends Device {
   initEngine(engineName) {
     return new Promise((resolve, reject) => {
       let enginesService = this.exConf[`devices-service`].enginesService;
-      let engine = enginesService.get(this.exConf.schema.config.engine).object;
+      let engine = enginesService.get(this.exConf.schema.config.engine, {"object": true}).object;
 
       engine.event.on(`running`, () => this.getScript() ? this.enableProperties() : null);
       engine.event.on(`error`, () => {

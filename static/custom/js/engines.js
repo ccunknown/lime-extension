@@ -24,7 +24,7 @@ export default class PageEngines {
       let vue = new Vue({
         "el": `#${id}`,
         "data": {
-          "sysport": {
+          "engines": {
             /** Resource **/
             "resource": {
               "config": config,

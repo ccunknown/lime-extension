@@ -61,7 +61,8 @@ class Service extends EventEmitter {
   /*
     options: {
       base64: boolean,
-      deep: boolean
+      deep: boolean,
+      object: boolean
     }
   */
   getDirectorySchema(path, options) {
@@ -89,6 +90,9 @@ class Service extends EventEmitter {
         if(options && options.base64) {
           let str = await this.readFile(path);
           info.base64 = this.base64Encode(str);
+        }
+        if(options && options.object) {
+          info.object = require(`./${fpath.replace(/^\//, ``)}`);
         }
       }
       resolve(info);

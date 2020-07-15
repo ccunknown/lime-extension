@@ -7,6 +7,19 @@ export default class PageScripts {
   init(config) {
     this.console.trace(`init()`);
     return new Promise((resolve, reject) => {
+      let vue1 = new Vue({
+        "el": `#script-test-01`,
+        "data": {
+          "message": "test-01"
+        }
+      });
+
+      let vue2 = new Vue({
+        "el": `#script-test-02`,
+        "data": {
+          "message": "test-02"
+        }
+      });
       resolve();
     });
   }
@@ -15,7 +28,7 @@ export default class PageScripts {
     this.console.trace(`renderNav()`);
   }
 
-  renderPage(config) {
+  render(config) {
     this.console.trace(`renderPage()`);
   }
 }

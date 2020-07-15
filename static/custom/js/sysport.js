@@ -24,46 +24,43 @@ export default class PageSysport {
       let schema = await this.getSchema();
       let portlist = await this.getPortList();
 
-      this.vue = {};
-      let vue = new Vue({
+      this.vue = new Vue({
         "el": `#${id}`,
         "data": {
-          "sysport": {
-            /** Resource **/
-            "resource": {
-              "config": config,
-              "schema": schema,
-              "portList": portlist,
+          /** Resource **/
+          "resource": {
+            "config": config,
+            "schema": schema,
+            "portList": portlist,
+          },
+          /** UI **/
+          "ui": {
+            "slider": {
+              "hide": true,
+              "ready": false,
+              "form": this.ui.generateData(this.ui.shortJsonElement(schema, `items`)),
+              "formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `items`))
             },
-            /** UI **/
-            "ui": {
-              "slider": {
-                "hide": true,
-                "ready": false,
-                "form": this.ui.generateData(this.ui.shortJsonElement(schema, `items`)),
-                "formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `items`))
-              },
-              "base": {
-                "ready": false
-              }
-            },
-            /** Function **/
-            "function": {
-              "add": () => {},
-              "edit": () => {},
-              "remove": () => {},
-              "updatePortList": () => {},
-              "isAvailable": () => {},
-              "shortSchemaCall": () => {}
+            "base": {
+              "ready": false
             }
+          },
+          /** Function **/
+          "fn": {
+            "add": () => {},
+            "edit": () => {},
+            "remove": () => {},
+            "save": () => {},
+            "updatePortList": () => {},
+            "isAvailable": () => {},
+            "shortSchemaCall": () => {}
           }
         },
         "methods": {}
       });
-      this.vue = vue.sysport;
 
       //  Setup vue function.
-      this.vue.function = {
+      this.vue.fn = {
         "add": async () => {
           this.renderSlider();
         },
