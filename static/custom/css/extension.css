@@ -558,6 +558,15 @@
   font-size: inherit;
 }
 
+/* Vue-Tags-Input Override*/
+#extension-lime-contents .vue-tags-input {
+  max-width: none;
+}
+
+#extension-lime-contents ul.ti-tags {
+  margin-bottom: 0;
+}
+
 /* Responsive Customization */
 @media (min-width: 0px) {
   #extension-lime-contents .miso-grid-item {

@@ -173,7 +173,7 @@ export default class ExtensionUi {
   }
 
   shortJsonElement(schema, elem) {
-    this.console.log(`PageSysport: shortJsonElement(${elem}) >> `);
+    //this.console.log(`PageSysport: shortJsonElement(${elem}) >> `);
     if(schema[elem]) {
       return schema[elem];
     }

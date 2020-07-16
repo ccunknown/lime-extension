@@ -29,6 +29,7 @@
                 //"crypto-js",
                 "vue",
                 "vue-multiselect",
+                "vue-tags-input",
                 "popper",
                 "bootstrap",
                 
@@ -131,6 +132,10 @@
       "vue-multiselect": {
         "type": "script",
         "path": "/js/vue-multiselect.min.js"
+      },
+      "vue-tags-input": {
+        "type": "script",
+        "path": "/js/vue-tags-input.js"
       },
       "popper": {
         "type": "script",

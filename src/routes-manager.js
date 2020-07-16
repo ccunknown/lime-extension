@@ -99,7 +99,7 @@ class RoutesManager extends APIHandler{
         "method": {
           "GET": (req) => {
             return new Promise((resolve, reject) => {
-              this.laborsManager.getService(`scripts-service`).obj.get()
+              this.laborsManager.getService(`scripts-service`).obj.get(null, {"deep": true})
               //this.laborsManager.getService(`scripts-service`)
               //.then((scriptService) => scriptService.obj.get())
               .then((json) => {
@@ -111,7 +111,7 @@ class RoutesManager extends APIHandler{
           },
           "PUT": (req) => {
             return new Promise(async (resolve, reject) => {
-              this.laborsManager.getService(`scripts-service`).obj.create(req.body)
+              this.laborsManager.getService(`scripts-service`).obj.create(req.body, `scripts`)
               .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -142,7 +142,7 @@ class RoutesManager extends APIHandler{
         "method": {
           "GET": (req) => {
             return new Promise((resolve, reject) => {
-              this.laborsManager.getService(`scripts-service`).obj.get(req.path.split(`/`).pop(), {"base64": true})
+              this.laborsManager.getService(`scripts-service`).obj.get(req.path.split(`/`).pop(), {"base64": true, "deep":true})
               //this.laborsManager.getService(`scripts-service`)
               //.then((scriptService) => scriptService.obj.get(req.path.split(`/`).pop(), {"base64": true}))
               .then((json) => {

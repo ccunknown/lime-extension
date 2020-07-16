@@ -66,9 +66,11 @@ class Service extends EventEmitter {
     }
   */
   getDirectorySchema(path, options) {
+    console.log(`getDirectorySchema(${path}, ${JSON.stringify(options, null, 2)})`);
     return new Promise(async (resolve, reject) => {
       path = Path.join(``, path);
       let fpath = Path.join(__dirname, this.id, path);
+      console.log(`fpath: ${fpath}`);
       let stats = fs.lstatSync(fpath);
       let info = {
         path: Path.join(``, path),
@@ -92,7 +94,9 @@ class Service extends EventEmitter {
           info.base64 = this.base64Encode(str);
         }
         if(options && options.object) {
-          info.object = require(`./${fpath.replace(/^\//, ``)}`);
+          let p = `/${fpath.replace(/^\//, ``)}`;
+          console.log(`require: ${p}`);
+          info.object = require(p);
         }
       }
       resolve(info);
@@ -109,10 +113,33 @@ class Service extends EventEmitter {
     });
   }
 
+  writeFile(path, data, encoding) {
+    return new Promise((resolve, reject) => {
+      const fs = require(`fs`);
+      encoding = (encoding) ? encoding : `utf8`;
+      path = Path.join(__dirname, this.id, path);
+      let dir = path.replace(/[^/]+$/g, ``);
+      console.log(`dir : ${dir}`);
+      if (!fs.existsSync(dir)){
+        fs.mkdirSync(dir);
+      }
+      fs.writeFile(path, data, encoding, (err) => {
+        (err) ? reject(err) : resolve();
+      });
+    });
+  }
+
   base64Encode(data) {
     let buff = Buffer.from(data);
     let base64 = buff.toString(`base64`);
     return base64;
+  }
+
+  base64Decode(data, encoding) {
+    //let buff = new Buffer(data, `base64`);
+    let buff = Buffer.from(data, `base64`);
+    let result = buff.toString((encoding) ? encoding : `utf8`);
+    return result;
   }
 }
 

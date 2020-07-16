@@ -76,8 +76,12 @@ class ModbusDevice extends Device {
     return new Promise(async (resolve, reject) => {
       let ex = this.exConf;
       let scriptsService = ex[`devices-service`].scriptsService;
-      let script = await scriptsService.get(ex.schema.config.script, {"object": true});
-      this.exConf.script = this.rebuildReadMap(script.list.readmap.object, script.list.calcmap.object);
+      let script = await scriptsService.get(ex.schema.config.script, {"object": true, "deep": true});
+      console.log(`script: ${JSON.stringify(script, null, 2)}`);
+      this.exConf.script = this.rebuildReadMap(
+        script.children.find((elem) => elem.name == `readMap.js`).object, 
+        script.children.find((elem) => elem.name == `calcMap.js`).object
+      );
       resolve();
     });
   }

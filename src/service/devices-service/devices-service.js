@@ -37,24 +37,25 @@ class DevicesService extends Service {
     return new Promise(async (resolve, reject) => {
       this.config = (config) ? config : this.config;
       this.adapter = new vAdapter(this.addonManager, this.manifest.name);
-      this.initDeviceTemplate();
+      //this.initDeviceTemplate();
       resolve();
     });
   }
 
-  initDeviceTemplate() {
-    console.log(`DevicesService: initDeviceTemplate() >> `);
-    return new Promise(async (resolve, reject) => {
-      this.deviceTemplate = {};
-      let serviceSchema = this.getSchema();
-      //let dirs = await this.getDirectory(Path.join(__dirname, `/devices`));
-      let dirs = await this.getDirectory(Path.join(__dirname, serviceSchema.directory));
-      dirs.forEach((elem) => {
-        this.deviceTemplate[elem] = require(`./devices/${elem}/device`);
-      });
-      resolve();
-    });
-  }
+  // initDeviceTemplate() {
+  //   console.log(`DevicesService: initDeviceTemplate() >> `);
+  //   return new Promise(async (resolve, reject) => {
+  //     this.deviceTemplate = {};
+  //     let serviceSchema = this.getSchema();
+  //     //let dirs = await this.getDirectory(Path.join(__dirname, `/devices`));
+  //     //let dirs = await this.getDirectory(Path.join(__dirname, serviceSchema.directory));
+  //     let dirs = (await getDirectorySchema(serviceSchema.directory)).children;
+  //     dirs.forEach((elem) => {
+  //       this.deviceTemplate[elem] = require(`./devices/${elem}/device`);
+  //     });
+  //     resolve();
+  //   });
+  // }
 
   initDevices() {
     console.log(`DevicesService: initDevices() >> `);
@@ -96,10 +97,27 @@ class DevicesService extends Service {
         console.warn(`Device id "${schema.id}" already exist. Remove old and add new!!!`);
         await this.remove(schema.id);
       }
-      device = new (this.deviceTemplate[schema.config.device])(this, this.adapter, schema);
-      await device.init();
-      this.adapter.handleDeviceAdded(device);
-      resolve();
+      let serviceSchema = this.getSchema();
+      let templates = (await this.getDirectorySchema(serviceSchema.directory, {"deep": true})).children;
+      console.log(`templates: ${JSON.stringify(templates, null, 2)}`);
+      let template = templates.find((elem) => {
+        console.log(`schema.config.device: ${schema.config.device}`);
+        console.log(`elem.name: ${elem.name}`);
+        return schema.config.device == elem.name;
+      });
+      if(template) {
+        console.log(`template: ${JSON.stringify(template, null, 2)}`);
+        let path = Path.join(__dirname, `${template.path}`, `device`);
+        console.log(`path: ${path}`);
+        let Obj = require(path);
+        device = new Obj(this, this.adapter, schema);
+        await device.init();
+        this.adapter.handleDeviceAdded(device);
+        resolve();
+      }
+      else {
+        reject(new Error(`Device template '${schema.config.device}' not found!!!`));
+      }
     });
   }
 

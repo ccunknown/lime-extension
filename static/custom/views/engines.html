@@ -1,22 +1,22 @@
 <div class="miso-slide-container" id="extension-lime-content-engines-section">
   
-  <div class="miso-slide-slide" :class="{hide: engine.ui.slider.hide}">
+  <div class="miso-slide-slide" :class="{hide: ui.slider.hide}">
     <div class="card text-dark border-warning w-100">
 
       <div class="card-header bg-warning border-warning">
         <div class="d-flex justify-content-between">
           <!-- Icon & Title -->
           <div class="text-truncate">
-            <i class="fab fa-usb mr-2"></i>
-            <b>System Port</b>
+            <i class="fas fa-cogs mr-2"></i>
+            <b>Engine System</b>
           </div>
           <!-- Header Button -->
           <div class="">
-            <button class="btn btn-success" @click="engine.function.save()">
+            <button class="btn btn-success" @click="fn.save()">
               <i class="fas fa-save fa-lg"></i>
               <b>Save</b>
             </button>
-            <button class="btn btn-danger" @click="engine.function.renderBase()">
+            <button class="btn btn-danger" @click="fn.renderBase()">
               <i class="fas fa-undo fa-lg"></i>
               <b>Back</b>
             </button>
@@ -27,7 +27,7 @@
       <div class="card-body bg-dark">
 
         <div 
-        v-if="!engine.ui.slider.ready"
+        v-if="!ui.slider.ready"
         class="">
           <div class="d-flex flex-column justify-content-center">
             <br>
@@ -45,31 +45,19 @@
         </div>
 
         <div 
-        v-if="engine.ui.slider.ready"
+        v-if="ui.slider.ready"
         class="miso-form-container align-items-center col-sm-12 col-md-10 col-lg-8 w-100">
 
           <div class="miso-badge-header-group align-items-end w-100">
-            <label class="miso-label-badge badge-info font-size-inherit">Port</label>
+            <label class="miso-label-badge badge-info font-size-inherit">General</label>
             <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
               
               <div class="miso-badge-header-group grow-1">
                 <label class="miso-label-badge badge-secondary">Name</label>
                 <input 
                 type="text" 
-                v-model="engine.ui.slider.form.name"
+                v-model="ui.slider.form.name"
                 class="miso-badge-union border-secondary">
-              </div>
-
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Serial Port</label>
-                <select 
-                v-model="engine.ui.slider.form.path"
-                class="miso-badge-union border-secondary">
-                  <template v-for="port in engine.ui.slider.formTemplate.path.enum">
-                    <option v-if="port.disabled" disabled :value="`${port.value}`">{{port.title}}</option>
-                    <option v-else :value="`${port.value}`">{{port.title}}</option>
-                  </template>
-                </select>
               </div>
 
               <div class="miso-badge-header-group grow-1">
@@ -85,48 +73,21 @@
             <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
 
               <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Baudrate</label>
-                <select v-model="engine.ui.slider.form.config.baudRate" class="miso-badge-union border-secondary">
-                  <template v-for="option in engine.ui.slider.formTemplate.config.baudRate.enum">
-                    <option :value="`${option}`">{{option}}</option>
+                <label class="miso-label-badge badge-secondary">Engine Template</label>
+                <select v-model="ui.slider.form.engine" class="miso-badge-union border-secondary">
+                  <template v-for="option in ui.slider.formTemplate.engine.enum">
+                    <option :value="`${option.name}`">{{option.name}}</option>
                   </template>
                 </select>
               </div>
 
-              <div class="miso-form-row">
-
-                <div class="miso-badge-header-group grow-1 mr-2">
-                  <label class="miso-label-badge badge-secondary">Databits</label>
-                  <select v-model="engine.ui.slider.form.config.databits" class="miso-badge-union border-secondary">
-                    <template v-for="option in engine.ui.slider.formTemplate.config.databits.enum">
-                      <option :value="`${option}`">{{option}}</option>
-                    </template>
-                  </select>
-                </div>
-
-                <div class="miso-badge-header-group grow-1 mr-2">
-                  <label class="miso-label-badge badge-secondary">Parity</label>
-                  <select v-model="engine.ui.slider.form.config.parity" class="miso-badge-union border-secondary">
-                    <template v-for="option in engine.ui.slider.formTemplate.config.parity.enum">
-                      <option :value="`${option}`">{{option}}</option>
-                    </template>
-                  </select>
-                </div>
-
-                <div class="miso-badge-header-group grow-1">
-                  <label class="miso-label-badge badge-secondary">Stopbits</label>
-                  <select v-model="engine.ui.slider.form.config.stopbits" class="miso-badge-union border-secondary">
-                    <template v-for="option in engine.ui.slider.formTemplate.config.stopbits.enum">
-                      <option :value="`${option}`">{{option}}</option>
-                    </template>
-                  </select>
-                </div>
-
-              </div>
-
-              <div class="d-flex flex-row align-items-center text-truncate">
-                <input v-model="engine.ui.slider.form.config.autoOpen" type="checkbox">
-                <div class="text-truncate text-light pl-2">Auto open port!</div>
+              <div class="miso-badge-header-group grow-1">
+                <label class="miso-label-badge badge-secondary">Port</label>
+                <select v-model="ui.slider.form.port" class="miso-badge-union border-secondary">
+                  <template v-for="option in ui.slider.formTemplate.port.enum">
+                    <option :value="`${option.name}`">{{option.name}}</option>
+                  </template>
+                </select>
               </div>
 
             </div>
@@ -146,7 +107,7 @@
         <div class="d-flex justify-content-between">
           <!-- Icon & Title -->
           <div class="text-truncate">
-            <i class="fab fa-usb mr-2"></i>
+            <i class="fas fa-cogs mr-2"></i>
             <b>Engine System</b>
           </div>
         </div>
@@ -155,7 +116,7 @@
       <div class="card-body bg-dark">
         <!-- Base Body Loader -->
         <div 
-        v-if="!engine.ui.base.ready"
+        v-if="!ui.base.ready"
         class="">
           <div class="d-flex flex-column justify-content-center">
             <br>
@@ -173,24 +134,24 @@
         </div>
         <!-- Base Body Item Container -->
         <div 
-        v-if="engine.ui.base.ready"
+        v-if="ui.base.ready"
         class="miso-grid-item-container">
           <!-- Items -->
           <div 
           class="card miso-grid-item" 
-          v-for="(item, index) in engine.resource.config.list">
+          v-for="(item, index) in resource.engines">
             <!-- Item Header -->
             <div class="card-header d-flex justify-content-between bg-dark text-light">
               <!-- Icon & Title -->
               <div class="text-truncate">
-                {{item.name}}
+                {{item.schema.name}}
               </div>
               <!-- Header Button -->
               <div class="miso-card-header-btn-box">
-                <button class="btn btn-warning" @click="engine.function.edit(item.name)">
+                <button class="btn btn-warning" @click="fn.edit(item.schema.name)">
                   <i class="fas fa-edit fa-lg"></i>
                 </button>
-                <button class="btn btn-danger" @click="engine.function.remove(item.name)">
+                <button class="btn btn-danger" @click="fn.remove(item.schema.name)">
                   <i class="fas fa-trash fa-lg"></i>
                 </button>
               </div>
@@ -198,15 +159,21 @@
             <!-- Item Body -->
             <div class="card-body bg-secondary">
               <span class="header-item">
-                <span class="bg-dark text-light">path</span>
+                <span class="bg-dark text-light">engine</span>
                 <span class="bg-warning text-dark">
-                  {{item.path}}
+                  {{item.schema.engine}}
                 </span>
               </span>
               <span class="header-item">
-                <span class="bg-dark text-light">config</span>
+                <span class="bg-dark text-light">port</span>
                 <span class="bg-warning text-dark">
-                  {{item.config.baudRate}}/{{item.config.databits}}/{{item.config.parity}}/{{item.config.stopbits}}
+                  {{item.schema.port}}
+                </span>
+              </span>
+              <span class="header-item">
+                <span class="bg-dark text-light">status</span>
+                <span class="bg-warning text-dark">
+                  {{item.state}}
                 </span>
               </span>
             </div>
@@ -214,7 +181,7 @@
           <!-- Adder -->
           <div 
           class="card miso-grid-item miso-grid-item-adder bg-secondary"
-          @click="engine.function.add()">
+          @click="fn.add()">
             <div class="card-body">
               <div class="d-flex flex-column justify-content-center align-items-center w-100 h-100">
                 <i class="fas fa-plus fa-4x"></i>

@@ -1,5 +1,203 @@
-<div class="" id="extension-lime-content-scripts-section">
-  scripts
-  <div id="script-test-01">{{message}}</div>
-  <div id="script-test-02">{{message}}</div>
+<div class="miso-slide-container" id="extension-lime-content-scripts-section">
+
+  <div class="miso-slide-slide" :class="{hide: ui.slider.hide}">
+    <div class="card text-dark border-warning w-100">
+
+      <div class="card-header bg-warning border-warning">
+        <div class="d-flex justify-content-between">
+          <!-- Icon & Title -->
+          <div class="text-truncate">
+            <i class="fas fa-file-code mr-2"></i>
+            <b>Scripts</b>
+          </div>
+          <!-- Header Button -->
+          <div class="">
+            <button class="btn btn-success" @click="fn.save()">
+              <i class="fas fa-save fa-lg"></i>
+              <b>Save</b>
+            </button>
+            <button class="btn btn-danger" @click="fn.renderBase()">
+              <i class="fas fa-undo fa-lg"></i>
+              <b>Back</b>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body bg-dark">
+
+        <div 
+        v-if="!ui.slider.ready"
+        class="">
+          <div class="d-flex flex-column justify-content-center">
+            <br>
+            <div class="text-light">
+              <center>
+                Please wait, this process will take a while.
+              </center>
+            </div>
+            <br>
+            <div class="progress">
+              <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div 
+        v-if="ui.slider.ready"
+        class="miso-form-container align-items-center col-sm-12 col-md-10 col-lg-8 w-100">
+
+          <div class="miso-badge-header-group align-items-end w-100">
+            <label class="miso-label-badge badge-info font-size-inherit">General</label>
+            <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
+              
+              <div class="miso-badge-header-group grow-1">
+                <label class="miso-label-badge badge-secondary">Name</label>
+                <input 
+                type="text" 
+                v-model="ui.slider.form.name"
+                class="miso-badge-union border-secondary">
+              </div>
+
+              <div class="miso-badge-header-group grow-1">
+                <label class="miso-label-badge badge-secondary">Title</label>
+                <input 
+                type="text" 
+                v-model="ui.slider.form.meta.title"
+                class="miso-badge-union border-secondary">
+              </div>
+
+              <div class="miso-badge-header-group grow-1">
+                <label class="miso-label-badge badge-secondary">Description</label>
+                <textarea
+                v-model="ui.slider.form.meta.description"
+                class="miso-badge-union border-secondary no-resize"
+                rows="4"
+                type="text">
+                </textarea>
+              </div>
+
+              <div class="miso-badge-header-group grow-1">
+                <label class="miso-label-badge badge-secondary">Tags</label>
+                <template>
+                  <vue-tags-input
+                    v-model="ui.tag"
+                    class="miso-badge-union border-secondary"
+                    :tags="ui.slider.form.meta.tags"
+                    :add-on-key="[32]"
+                    @tags-changed="(newTags) => ui.slider.form.meta.tags = newTags"
+                  />
+                </template>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="miso-badge-header-group align-items-end w-100">
+            <label class="miso-label-badge badge-info font-size-inherit">Files</label>
+            <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
+
+
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+  
+  <div class="miso-slide-base">
+    <div class="card text-dark border-warning w-100">
+      <!-- Base Card Header -->
+      <div class="card-header bg-warning border-warning">
+        <div class="d-flex justify-content-between">
+          <!-- Icon & Title -->
+          <div class="text-truncate">
+            <i class="fas fa-file-code mr-2"></i>
+            <b>Scripts</b>
+          </div>
+        </div>
+      </div>
+      <!-- Base Card Body -->
+      <div class="card-body bg-dark">
+        <!-- Base Body Loader -->
+        <div 
+        v-if="!ui.base.ready"
+        class="">
+          <div class="d-flex flex-column justify-content-center">
+            <br>
+            <div class="text-light">
+              <center>
+                Please wait, this process will take a while.
+              </center>
+            </div>
+            <br>
+            <div class="progress">
+              <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100">
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Base Body Item Container -->
+        <div 
+        v-if="ui.base.ready"
+        class="miso-grid-item-container">
+          <!-- Items -->
+          <div 
+          class="card miso-grid-item" 
+          v-for="(item, index) in resource.scripts">
+            <!-- Item Header -->
+            <div class="card-header d-flex justify-content-between bg-dark text-light">
+              <!-- Icon & Title -->
+              <div class="text-truncate">
+                {{item.meta.title}} [{{item.name}}]
+              </div>
+              <!-- Header Button -->
+              <div class="miso-card-header-btn-box">
+                <button class="btn btn-danger" @click="fn.remove(item.schema.name)">
+                  <i class="fas fa-trash fa-lg"></i>
+                </button>
+              </div>
+            </div>
+            <!-- Item Body -->
+            <div class="card-body bg-secondary">
+              <p class="card-text text-light">
+                {{item.meta.description}}
+              </p>
+              <div class="text-truncate mt-2">
+                <template v-for="tag in item.meta.tags">
+                  <span class="badge badge-info mr-2">{{tag}}</span>
+                </template>
+              </div>
+            </div>
+          </div>
+          <!-- Adder -->
+          <div 
+          class="card miso-grid-item miso-grid-item-adder bg-secondary"
+          @click="fn.add()">
+            <div class="card-body">
+              <div class="d-flex flex-column justify-content-center align-items-center w-100 h-100">
+                <i class="fas fa-plus fa-4x"></i>
+                <span>Create new engine</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <pre>
+    <code class="text-light">
+      {{ui}}
+    </code>
+  </pre>
+
 </div>

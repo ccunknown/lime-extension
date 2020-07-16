@@ -160,6 +160,7 @@ export default class ExtensionApi {
   }
 
   restCall(method, path, body) {
+    this.console.log(`restCall(${method}, ${path})`);
     return new Promise((resolve, reject) => {
       let func;
       switch(method.toLowerCase()) {

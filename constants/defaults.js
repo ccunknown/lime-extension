@@ -67,7 +67,8 @@ var Defaults = {
       },
       //  Script Service
       "scripts-service": {
-        "directory": "/scripts"
+        "directory": "/scripts",
+        "list": []
       },
       //  Device Service
       "devices-service": {
@@ -286,6 +287,54 @@ var Defaults = {
             "properties": {
               "directory": {
                 "type": "string"
+              },
+              "list": {
+                "type": "array",
+                "default": [],
+                "items": {
+                  "$id": "#fileStructurObject",
+                  "type": "object",
+                  "required": ["name", "type", "meta", "children"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string",
+                      "default": "file",
+                      "enum": ["directory", "file"]
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [],
+                      "additionalProperties": false,
+                      "properties": {
+                        "title": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "tags": {
+                          "type": "array",
+                          "default": [],
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "children": {
+                      "type": "array",
+                      "default": [],
+                      "items": {
+                        "${ref}": "#fileStructurObject",
+                        "required": ["name", "type"]
+                      }
+                    }
+                  }
+                }
               }
             }
           },

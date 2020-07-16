@@ -19,19 +19,16 @@ export default class PageSysport {
     this.console.trace(`initVue()`);
     return new Promise(async (resolve, reject) => {
       let id = this.ui.said(`content.sysport.section`);
-      this.console.log(`id : ${id}`);
-      let config = await this.getConfig();
       let schema = await this.getSchema();
-      let portlist = await this.getPortList();
 
       this.vue = new Vue({
         "el": `#${id}`,
         "data": {
           /** Resource **/
           "resource": {
-            "config": config,
+            "config": {"list": []},
             "schema": schema,
-            "portList": portlist,
+            "portList": [],
           },
           /** UI **/
           "ui": {
@@ -101,6 +98,7 @@ export default class PageSysport {
   }
 
   render(base = true) {
+    this.console.log(`render()`);
     return new Promise(async (resolve, reject) => {
       this.console.trace(`render()`);
       let result = (base) ? await this.renderBase() : await this.renderSlider();
@@ -148,24 +146,24 @@ export default class PageSysport {
         this.getPortList()
       ])
       .then((promArr) => {
-        let config = promArr[0];
-        let portlist = promArr[1];
+        this.vue.resource.config = promArr[0];
+        this.vue.resource.portlist = promArr[1];
 
         //this.console.log(`add before short : ${JSON.stringify(schema, null, 2)}`);
 
         let schema = this.ui.shortJsonElement(this.vue.resource.schema, `items`);
 
         if(name)
-          this.vue.ui.slider.form = config.list.find((elem) => elem.name == name);
+          this.vue.ui.slider.form = this.vue.resource.config.list.find((elem) => elem.name == name);
         else
           this.vue.ui.slider.form = this.ui.generateData(schema);
 
         this.vue.ui.slider.formTemplate = this.ui.generateVueData(schema);
-        this.vue.ui.slider.formTemplate.path.enum = portlist.map((elem) => {
+        this.vue.ui.slider.formTemplate.path.enum = this.vue.resource.portlist.map((elem) => {
           return {
             "title": elem.path,
             "value": elem.path,
-            "disabled": config.list.find((conf) => conf.path == elem.path && conf.name != name) != undefined
+            "disabled": this.vue.resource.config.list.find((conf) => conf.path == elem.path && conf.name != name) != undefined
           }
         });
 
@@ -178,6 +176,7 @@ export default class PageSysport {
   }
 
   getConfig() {
+    this.console.log(`getConfig()`);
     return new Promise((resolve, reject) => {
       this.api.getConfig()
       .then((config) => resolve(config[`service-config`][`sysport-service`]));
@@ -185,6 +184,7 @@ export default class PageSysport {
   }
 
   getSchema() {
+    this.console.log(`getSchema()`);
     return new Promise((resolve, reject) => {
       this.api.getSchema()
       .then((schema) => resolve(schema.properties[`service-config`].properties[`sysport-service`]));
@@ -192,6 +192,7 @@ export default class PageSysport {
   }
 
   getPortList() {
+    this.console.log(`getPortList()`);
     return new Promise(async (resolve, reject) => {
       let list = await this.api.restCall(`get`, `/api/system/portlist`);
       let data = [];
