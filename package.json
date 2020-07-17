@@ -46,6 +46,7 @@
     "async-lock": "^1.2.4",
     "jsonschema": "^1.2.6",
     "modbus-serial": "^7.8.1",
+    "rimraf": "^3.0.2",
     "serialport": "^8.0.7"
   }
 }

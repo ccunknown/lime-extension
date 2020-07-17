@@ -559,12 +559,22 @@
 }
 
 /* Vue-Tags-Input Override*/
-#extension-lime-contents .vue-tags-input {
+#extension-lime-contents .miso-badge-header-group .vue-tags-input {
   max-width: none;
+  background: none;
 }
 
-#extension-lime-contents ul.ti-tags {
+#extension-lime-contents .miso-badge-header-group .vue-tags-input .ti-input {
+  border: none;
+}
+
+#extension-lime-contents .miso-badge-header-group .vue-tags-input .ti-input ul.ti-tags {
   margin-bottom: 0;
+}
+
+/* Original component override */
+#extension-lime-contents textarea[disabled] {
+  background: white;
 }
 
 /* Responsive Customization */

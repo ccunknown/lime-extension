@@ -38,8 +38,9 @@ export default class PageScripts {
             "slider": {
               "hide": true,
               "ready": false,
+              "edit": true,
               "form": this.ui.generateData(this.ui.shortJsonElement(schema, `items`)),
-              "formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `items`))
+              //"formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `items`))
             },
             "base": {
               "ready": false
@@ -49,11 +50,17 @@ export default class PageScripts {
           /** Function **/
           "fn": {
             "add": () => {},
-            "edit": () => {},
+            "view": () => {},
             "remove": () => {},
             "save": () => {},
             "renderBase": () => {},
-            "renderSlider": () => {}
+            "renderSlider": () => {},
+            "onSelectFile": () => {},
+            "previewFile": () => {},
+            "removeFile": () => {},
+            "addTag": () => {},
+            "getTag": () => {},
+            "clearTag": () => {}
           }
         },
         "methods": {}
@@ -64,8 +71,8 @@ export default class PageScripts {
         "add": async () => {
           this.renderSlider();
         },
-        "edit": (name) => {
-          this.console.log(`edit(${name})`);
+        "view": (name) => {
+          this.console.log(`view(${name})`);
           this.renderSlider(name);
         },
         "remove": (name) => {
@@ -73,19 +80,83 @@ export default class PageScripts {
         },
         "save": () => {
           this.console.log(`save()`);
-          this.console.log(`save data: ${JSON.stringify(this.vue.ui.slider.form, null, 2)}`);
+          return new Promise(async (resolve, reject) => {
+            this.vue.ui.slider.ready = false;
+            let tags = this.vue.fn.getTag();
+            let result = JSON.parse(JSON.stringify(this.vue.ui.slider.form));
+            result.meta.tags = tags;
+            this.console.log(`save data: ${JSON.stringify(result, null, 2)}`);
+            await this.upload(result);
+            this.render();
+          });
         },
         "renderBase": () => {
           this.render();
         },
         "renderSlider": () => {
           this.render(false);
+        },
+        "onSelectFile": (event) => {
+          return new Promise((resolve, reject) => {
+            let files = event.target.files;
+            files.forEach((file) => {
+              this.console.log(file);
+              this.vue.ui.slider.form.children.push({
+                "name": file.name,
+                "type": "file"
+              });
+              this.readFile(file)
+              .then((res) => {
+                let result = btoa(res);
+                this.vue.ui.slider.form.children = this.vue.ui.slider.form.children.filter((elem) => elem.name != file.name);
+                this.vue.ui.slider.form.children.push({
+                  "name": file.name,
+                  "type": `file`,
+                  "base64": result
+                });
+              });
+            });
+            resolve();
+          });
+        },
+        "previewFile": (name) => {
+          this.console.log(`previewFile(${name})`);
+        },
+        "removeFile": (name) => {
+          this.console.log(`removeFile(${name})`);
+          this.vue.ui.slider.form.children = this.vue.ui.slider.form.children.filter((elem) => elem.name != name);
+        },
+        "addTag": (name) => {
+          if(!this.vue.ui.slider.form.meta.tags.find((elem) => name == elem.text))
+            this.vue.ui.slider.form.meta.tags.push({
+              "text": name,
+              "tiClasses": [
+                "ti-valid"
+              ]
+            });
+        },
+        "getTag": () => {
+          return this.vue.ui.slider.form.meta.tags.map((elem) => elem.text);
+        },
+        "clearTag": () => {
+          this.vue.ui.slider.form.meta.tags = [];
         }
       };
 
       this.console.log(this.vue);
 
       resolve();
+    });
+  }
+
+  readFile(file) {
+    return new Promise((resolve, reject) => {
+      let reader = new FileReader();
+      reader.onload = (event) => {
+        //this.console.log(event.target.result);
+        resolve(event.target.result);
+      };
+      reader.readAsText(file);
     });
   }
 
@@ -135,30 +206,32 @@ export default class PageScripts {
   renderForm(name) {
     this.console.log(`PageEngines: renderVueAddForm() >> `);
     return new Promise((resolve, reject) => {
-      Promise.all([
-        this.getConfig(),
-        this.getScript()
-      ])
-      .then((promArr) => {
-        this.vue.resource.config = promArr[0];
-        this.vue.resource.scripts = promArr[1];
+      if(name) {
+        this.vue.ui.slider.edit = false;
+        Promise.all([
+          this.getConfig(),
+          this.getScript(name)
+        ])
+        .then((promArr) => {
+          this.vue.resource.config = promArr[0];
+          let script = promArr[1];
+          let tags = (script.meta && script.meta.tags) ? script.meta.tags : [];
+          //script.tag = [];
 
-        //this.console.log(`add before short : ${JSON.stringify(schema, null, 2)}`);
+          this.vue.ui.slider.form = script;
+          this.vue.fn.clearTag();
+          tags.forEach((tag) => this.vue.fn.addTag(tag));
 
+          resolve();
+        });
+      }
+      else {
+        this.vue.ui.slider.edit = true;
         let schema = this.ui.shortJsonElement(this.vue.resource.schema, `items`);
-
-        if(name)
-          this.vue.ui.slider.form = this.vue.resource.config.list.find((elem) => elem.name == name);
-        else
-          this.vue.ui.slider.form = this.ui.generateData(schema);
-
-        this.vue.ui.slider.formTemplate = this.ui.generateVueData(schema);
-
-        this.console.log(`form : ${JSON.stringify(this.vue.ui.slider.form, null, 2)}`);
-        this.console.log(`form template : ${JSON.stringify(this.vue.ui.slider.formTemplate, null, 2)}`);
-
+        this.vue.ui.slider.form = this.ui.generateData(schema);
+        this.vue.ui.slider.form.children = [];
         resolve();
-      });
+      }
     });
   }
 
@@ -183,6 +256,14 @@ export default class PageScripts {
     return new Promise((resolve, reject) => {
       let scripts = this.api.restCall(`get`, `/api/service/scripts${(name) ? `/${name}` : ``}`);
       resolve(scripts);
+    });
+  }
+
+  upload(schema) {
+    this.console.log(`upload(${schema.name})`);
+    return new Promise(async (resolve, reject) => {
+      await this.api.restCall(`put`, `/api/service/scripts`, schema);
+      resolve();
     });
   }
 }

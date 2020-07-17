@@ -302,7 +302,7 @@ var Defaults = {
                     },
                     "type": {
                       "type": "string",
-                      "default": "file",
+                      "default": "directory",
                       "enum": ["directory", "file"]
                     },
                     "meta": {

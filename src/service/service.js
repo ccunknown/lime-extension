@@ -1,6 +1,7 @@
 'use strict'
 
 const fs = require(`fs`);
+const rimraf = require(`rimraf`);
 const Path = require(`path`);
 const EventEmitter = require(`events`).EventEmitter;
 
@@ -126,6 +127,14 @@ class Service extends EventEmitter {
       fs.writeFile(path, data, encoding, (err) => {
         (err) ? reject(err) : resolve();
       });
+    });
+  }
+
+  deleteDirectory(path) {
+    return new Promise((resolve, reject) => {
+      path = (path.startsWith(`/`)) ? Path.join(__dirname, this.id, path) : path;
+      console.log(`deleteDirectory(${path})`);
+      resolve({});
     });
   }
 

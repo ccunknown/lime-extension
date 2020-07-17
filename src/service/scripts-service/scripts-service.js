@@ -16,7 +16,6 @@ class ScriptsService extends Service {
     console.log(`ScriptsService: init() >> `);
     return new Promise(async (resolve, reject) => {
       this.config = (config) ? config : this.config;
-      this.scriptList = {};
       resolve();
     });
   }
@@ -24,75 +23,10 @@ class ScriptsService extends Service {
   start() {
     console.log(`ScriptsService: start() >> `);
     return new Promise(async (resolve, reject) => {
-      await this.initScript();
+      //await this.initScript();
       resolve();
     });
   }
-
-  initScript(config) {
-    console.log(`ScriptsService: initScript() >> `);
-    return new Promise(async (resolve, reject) => {
-      // this.config = (config) ? config : this.config;
-      // let serviceSchema = this.getSchema();
-      // //let list = await this.getDirectory(Path.join(__dirname, serviceSchema.config.directory));
-      // let list = await this.getDirectory(Path.join(__dirname, serviceSchema.directory));
-      // console.log(`script list : ${list}`);
-      // this.scriptList = {};
-      // for(let i in list) {
-      //   console.log(`script : ${list[i]}`);
-      //   //let path = Path.join(__dirname, serviceSchema.config.directory, list[i]);
-      //   let path = Path.join(__dirname, serviceSchema.directory, list[i]);
-      //   await this.add(list[i], path);
-      // }
-      // console.log(`scriptList : ${JSON.stringify(this.scriptList, null, 2)}`);
-      resolve();
-    });
-  }
-
-  import(schema) {
-    console.log(`ScriptsService: import() >> `);
-    return new Promise((resolve, reject) => {
-      resolve();
-    });
-  }
-
-  remove(name) {
-    console.log(`ScriptsService: remove("${name}") >> `);
-    return new Promise((resolve, reject) => {
-      resolve();
-    });
-  }
-
-  // add(name, path) {
-  //   console.log(`ScriptsService: add("${name}", "${path}") >> `);
-  //   return new Promise(async (resolve, reject) => {
-  //     let fs = require(`fs`);
-  //     let files = await this.getDirectory(path);
-  //     let script = {
-  //       "name": name,
-  //       "path": path,
-  //       "meta": {},
-  //       "list": {}
-  //     };
-  //     let regex = /\..+$/gi;
-  //     for(let i in files) {
-  //       let index = files[i].replace(regex, ``).toLowerCase();
-  //       //let s = require(`${path}/${files[i]}`);
-  //       //script.list[index] = s;
-  //       if(files[i] == `metadata.js`) {
-  //         let meta = require(`${script.path}/${files[i]}`);
-  //         script.meta = JSON.parse(JSON.stringify(meta));
-  //       }
-  //       else {
-  //         script.list[index] = {
-  //           "path": files[i]
-  //         };
-  //       }
-  //     }
-  //     this.scriptList[name] = script;
-  //     resolve(this.scriptList[name]);
-  //   });
-  // }
 
   create(schema, parentPath) {
     /*
@@ -152,23 +86,27 @@ class ScriptsService extends Service {
     });
   }
 
-  initialMeta(schema) {
-    const str = `
-      const meta = ${JSON.stringify(schema)};
-      module.exports = meta;
-    `;
-    return str;
+  delete(name) {
+    console.log(`ScriptsService: delete(${name}) >> `);
+    return new Promise(async (resolve, reject) => {
+      let script = await this.get(name, {"deep": true});
+      console.log(`delete: ${JSON.stringify(script, null, 2)}`);
+      //this.delete();
+    });
   }
 
   get(name, options) {
     console.log(`ScriptsService: get(${(name) ? `${name}` : ``})`);
     return new Promise(async (resolve, reject) => {
       let serviceSchema = this.getSchema();
-      let scriptList = (await this.getDirectorySchema(serviceSchema.directory, options)).children;
+      let opttmp = JSON.parse(JSON.stringify(options));
+      opttmp.object = false;
+      let scriptList = (await this.getDirectorySchema(serviceSchema.directory, opttmp)).children;
       console.log(`directory: ${serviceSchema.directory}`);
       console.log(`scriptList: ${JSON.stringify(scriptList, null, 2)}`);
       if(name) {
         let script = scriptList.find((elem) => elem.name == name);
+        script = await this.getDirectorySchema(script.path, options);
         if(!script)
           resolve(undefined);
         else {
@@ -191,24 +129,13 @@ class ScriptsService extends Service {
     });
   }
 
-  getDirectory(path) {
-    return new Promise((resolve, reject) => {
-      const fs = require(`fs`);
-      fs.readdir(path, (err, files) => {
-        (err) ? reject(err) : resolve(files);
-      });
-    });
+  initialMeta(schema) {
+    const str = `
+      const meta = ${JSON.stringify(schema)};
+      module.exports = meta;
+    `;
+    return str;
   }
-
-  // readFile(path, encoding) {
-  //   return new Promise((resolve, reject) => {
-  //     const fs = require(`fs`);
-  //     encoding = (encoding) ? encoding : `utf8`;
-  //     fs.readFile(path, encoding, (err, data) => {
-  //       (err) ? reject(err) : resolve(data);
-  //     });
-  //   });
-  // }
 }
 
 module.exports = ScriptsService;

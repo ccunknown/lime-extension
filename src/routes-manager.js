@@ -154,8 +154,8 @@ class RoutesManager extends APIHandler{
           },
           "DELETE": (req) => {
             return new Promise(async (resolve, reject) => {
-              this.configManager.saveConfig({})
-              .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
+              this.laborsManager.getService(`scripts-service`).obj.delete(req.path.split(`/`).pop())
+              .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           }
