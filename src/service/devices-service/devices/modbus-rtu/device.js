@@ -36,6 +36,92 @@ class ModbusDevice extends Device {
     //this.init();
   }
 
+  getConfigSchema(params) {
+    console.log(`ModbusDevice: getConfigSchema() >> `);
+    console.log(`params: ${JSON.stringify(params, null, 2)}`);
+    return new Promise(async (resolve, reject) => {
+      let devicesService = this.exConf[`devices-service`];
+      let devices = await devicesService.getTemplate(null, {"deep": true});
+      let schema = await devicesService.getTemplate(__dirname.split(`/`).pop(), {"deep": true});
+      let props = schema.children.find((elem) => elem.name == `property`).children;
+      let compatScript = await devicesService.getCompatibleScript([`modbus-rtu`]);
+      let compatEngine = await devicesService.getCompatibleEngine([`modbus-rtu`]);
+      //console.log(`schema : ${JSON.stringify(schema, null ,2)}`);
+      let config = {
+        "config": {
+          "type": "object",
+          "required": [],
+          "additionalProperties": false,
+          "properties": {
+            "script": {
+              "type": "string",
+              "enum": compatScript
+            },
+            "engine": {
+              "type": "string",
+              "enum": compatEngine
+            },
+            "device": {
+              "type": "string",
+              "default": "modbus-rtu",
+              "enum": devices.map((elem) => elem.name)
+            },
+            "address": {
+              "type": "number",
+              "default": 1,
+              "min": 0
+            }
+          }
+        },
+        "properties": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [],
+            "additionalProperties": false,
+            "properties": {
+              "property": {
+                "type": "string",
+                "enum": props.map((elem) => elem.name.split(`.js`)[0])
+              },
+              "table": {
+                "type": "string",
+                "default": "inputRegisters",
+                "enum": [`coils`, `contacts`, `inputRegisters`, `holdingRegisters`]
+              },
+              "address": {
+                "type": "number",
+                "pre-require": ["config.script", "properties.table"]
+              },
+              "periode": {
+                "type": "number",
+                "default": 1000,
+                "min": 1000
+              }
+            }
+          }
+        }
+      };
+      if( params && 
+        params.config && 
+        params.config.script && 
+        params.properties && 
+        params.properties.table) {
+
+        await this.initScript(params.config.script);
+        let addrList = this.exConf.script.map[params.properties.table];
+        config.properties.items.properties.address.enum = [];
+        for(let i in addrList) {
+          config.properties.items.properties.address.enum.push({
+            "title": `${addrList[i].name} [Addr:${Number(i).toString(16)}]`,
+            "value": i
+          });
+        }
+      }
+      resolve(config);
+    });
+  }
+
   init(schema) {
     console.log(`ModbusDevice: init() >> `);
     return new Promise(async (resolve, reject) => {
@@ -75,8 +161,9 @@ class ModbusDevice extends Device {
   initScript(scriptName) {
     return new Promise(async (resolve, reject) => {
       let ex = this.exConf;
+      scriptName = (scriptName) ? scriptName : ex.schema.config.script;
       let scriptsService = ex[`devices-service`].scriptsService;
-      let script = await scriptsService.get(ex.schema.config.script, {"object": true, "deep": true});
+      let script = await scriptsService.get(scriptName, {"object": true, "deep": true});
       console.log(`script: ${JSON.stringify(script, null, 2)}`);
       this.exConf.script = this.rebuildReadMap(
         script.children.find((elem) => elem.name == `readMap.js`).object, 

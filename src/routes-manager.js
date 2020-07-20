@@ -93,6 +93,98 @@ class RoutesManager extends APIHandler{
         }
       },
 
+      /***  Resource : /service  ***/
+      {
+        "resource": /\/service/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService().map((service) => {
+              //this.laborsManager.getService()
+              //.then((serviceList) => serviceList.map((service) => {
+                return {
+                  id: service.id,
+                  enable: service.enable,
+                  status: service.status,
+                  description: (service.description) ? service.description : ``
+                };
+              //}))
+              })
+              .then((servList) => resolve(this.makeJsonRespond(JSON.stringify(servList))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/devices  ***/
+      {
+        "resource": /\/service\/devices/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`devices-service`).obj.get(null, {"deep":true})
+              .then((json) => {
+                //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
+                resolve(this.makeJsonRespond(JSON.stringify(json)));
+              })
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/devices/{name}  ***/
+      {
+        "resource": /\/service\/devices\/[^/]+/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`devices-service`).obj.get(req.path.split(`/`).pop(), {"base64": true, "deep":true})
+              .then((json) => {
+                //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
+                resolve(this.makeJsonRespond(JSON.stringify(json)));
+              })
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/devicesTemplate  ***/
+      {
+        "resource": /\/service\/deviceTemplate/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`devices-service`).obj.getTemplate(null, {"deep": true})
+              .then((json) => {
+                //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
+                resolve(this.makeJsonRespond(JSON.stringify(json)));
+              })
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/devicesSconfigSchema/name  ***/
+      {
+        "resource": /\/service\/deviceConfigSchema\/[^/]+/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`devices-service`).obj.getConfigSchema(req.path.split(`/`).pop(), this.getParameters(req))
+              .then((json) => {
+                //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
+                resolve(this.makeJsonRespond(JSON.stringify(json)));
+              })
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
       /***  Resource : /service/scripts  ***/
       {
         "resource": /\/service\/scripts/,
@@ -103,7 +195,7 @@ class RoutesManager extends APIHandler{
               //this.laborsManager.getService(`scripts-service`)
               //.then((scriptService) => scriptService.obj.get())
               .then((json) => {
-                console.log(`script list : ${JSON.stringify(json, null, 2)}`);
+                //console.log(`script list : ${JSON.stringify(json, null, 2)}`);
                 resolve(this.makeJsonRespond(JSON.stringify(json)));
               })
               .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -146,7 +238,7 @@ class RoutesManager extends APIHandler{
               //this.laborsManager.getService(`scripts-service`)
               //.then((scriptService) => scriptService.obj.get(req.path.split(`/`).pop(), {"base64": true}))
               .then((json) => {
-                console.log(`script list : ${JSON.stringify(json, null, 2)}`);
+                //console.log(`script list : ${JSON.stringify(json, null, 2)}`);
                 resolve(this.makeJsonRespond(JSON.stringify(json)));
               })
               .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -169,30 +261,6 @@ class RoutesManager extends APIHandler{
             });
           }
           */
-        }
-      },
-
-      /***  Resource : /service  ***/
-      {
-        "resource": /\/service/,
-        "method": {
-          "GET": (req) => {
-            return new Promise((resolve, reject) => {
-              this.laborsManager.getService().map((service) => {
-              //this.laborsManager.getService()
-              //.then((serviceList) => serviceList.map((service) => {
-                return {
-                  id: service.id,
-                  enable: service.enable,
-                  status: service.status,
-                  description: (service.description) ? service.description : ``
-                };
-              //}))
-              })
-              .then((servList) => resolve(this.makeJsonRespond(JSON.stringify(servList))))
-              .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          }
         }
       },
 
@@ -314,6 +382,23 @@ class RoutesManager extends APIHandler{
 
   reqVerify(req, method, path) {
     return (req.method === method && req.path === path);
+  }
+
+  getParameters(req) {
+    console.log(`RoutesManager: getParameters() >> `);
+    let params = {};
+    for(let i in req.query) {
+      let preKey = i.split(`.`);
+      let paramsTmp = params;
+      while(preKey.length > 1) {
+        let key = preKey.shift();
+        if(!paramsTmp[key])
+          paramsTmp[key] = {};
+        paramsTmp = paramsTmp[key];
+      }
+      paramsTmp[preKey.shift()] = req.query[i];
+    }
+    return JSON.parse(JSON.stringify(params));
   }
 
   makeJsonRespond(data) {

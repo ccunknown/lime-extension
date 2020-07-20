@@ -204,7 +204,7 @@ export default class PageScripts {
   }
 
   renderForm(name) {
-    this.console.log(`PageEngines: renderVueAddForm() >> `);
+    this.console.log(`PageScripts: renderVueAddForm() >> `);
     return new Promise((resolve, reject) => {
       if(name) {
         this.vue.ui.slider.edit = false;
@@ -253,8 +253,8 @@ export default class PageScripts {
 
   getScript(name) {
     this.console.log(`getScript(${(name) ? name : ``})`);
-    return new Promise((resolve, reject) => {
-      let scripts = this.api.restCall(`get`, `/api/service/scripts${(name) ? `/${name}` : ``}`);
+    return new Promise(async (resolve, reject) => {
+      let scripts = await this.api.restCall(`get`, `/api/service/scripts${(name) ? `/${name}` : ``}`);
       resolve(scripts);
     });
   }

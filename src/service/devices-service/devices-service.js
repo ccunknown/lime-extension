@@ -42,21 +42,6 @@ class DevicesService extends Service {
     });
   }
 
-  // initDeviceTemplate() {
-  //   console.log(`DevicesService: initDeviceTemplate() >> `);
-  //   return new Promise(async (resolve, reject) => {
-  //     this.deviceTemplate = {};
-  //     let serviceSchema = this.getSchema();
-  //     //let dirs = await this.getDirectory(Path.join(__dirname, `/devices`));
-  //     //let dirs = await this.getDirectory(Path.join(__dirname, serviceSchema.directory));
-  //     let dirs = (await getDirectorySchema(serviceSchema.directory)).children;
-  //     dirs.forEach((elem) => {
-  //       this.deviceTemplate[elem] = require(`./devices/${elem}/device`);
-  //     });
-  //     resolve();
-  //   });
-  // }
-
   initDevices() {
     console.log(`DevicesService: initDevices() >> `);
     return new Promise(async (resolve, reject) => {
@@ -133,12 +118,71 @@ class DevicesService extends Service {
     });
   }
 
-  getDirectory(path) {
-    return new Promise((resolve, reject) => {
-      const fs = require(`fs`);
-      fs.readdir(path, (err, files) => {
-        (err) ? reject(err) : resolve(files);
+  getTemplate(name, options) {
+    console.log(`DevicesService: getTemplate(${(name) ? name : ``})`);
+    return new Promise(async (resolve, reject) => {
+      let serviceSchema = this.getSchema();
+      if(name) {
+        let result = null;
+        let opttmp = (options) ? JSON.parse(JSON.stringify(options)) : {};
+        opttmp.object = false;
+        let deviceList = (await this.getDirectorySchema(serviceSchema.directory, opttmp)).children;
+        //console.log(`deviceList: ${JSON.stringify(deviceList, null, 2)}`);
+        let device = deviceList.find((elem) => elem.name == name);
+        if(device)
+          result = await this.getDirectorySchema(device.path, options);
+        resolve(result);
+      }
+      else {
+        let deviceList = (await this.getDirectorySchema(serviceSchema.directory, options)).children;
+        //console.log(`deviceList: ${JSON.stringify(deviceList)}`);
+        resolve(deviceList);
+      }
+    });
+  }
+
+  /*
+    options = {
+      "script": "string",
+      "engine": "string"
+    }
+  */
+  getConfigSchema(name, params) {
+    console.log(`DevicesService: getDeviceConfigSchema(${name})`);
+    return new Promise(async (resolve, reject) => {
+      let template = await this.getTemplate(name, {"deep": true});
+      if(template) {
+        let templateObj = require(`./${template.path.replace(/^\//, ``).replace(/^\/$/, ``)}/device`);
+        let device = new templateObj(this, this.adapter, {"id": "test"});
+        let schema = await device.getConfigSchema(params);
+        resolve(schema);
+      }
+      resolve({});
+    });
+  }
+
+  getCompatibleScript(tagArr) {
+    console.log(`ModbusDevice: getCompatibleScript() >> `);
+    return new Promise(async (resolve, reject) => {
+      let scripts = await this.scriptsService.get(null, {"deep": true});
+      //console.log(`ModbusDevice: getCompatibleScript(): ${JSON.stringify(scripts, null, 2)}`);
+      let result = scripts.filter((elem) => {
+        //console.log(`tags: ${elem.meta.tags}`);
+        return !!elem.meta.tags.find((elem) => tagArr.includes(elem));
       });
+      result = result.map((elem) => elem.name);
+      resolve(result);
+    });
+  }
+
+  getCompatibleEngine(templateName) {
+    console.log(`ModbusDevice: getCompatibleEngine(${templateName}) >> `);
+    return new Promise(async (resolve, reject) => {
+      let engines = this.enginesService.getSchema().list;
+      console.log(`ModbusDevice: getCompatibleEngine(): ${JSON.stringify(engines, null, 2)}`);
+      let result = engines.filter((elem) => elem.engine == templateName);
+      result = result.map((elem) => elem.name);
+      resolve(result);
     });
   }
 }

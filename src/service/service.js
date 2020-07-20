@@ -67,11 +67,12 @@ class Service extends EventEmitter {
     }
   */
   getDirectorySchema(path, options) {
-    console.log(`getDirectorySchema(${path}, ${JSON.stringify(options, null, 2)})`);
+    //console.log(`getDirectorySchema(${path}, ${JSON.stringify(options, null, 2)})`);
+    console.log(`getDirectorySchema(${path})`);
     return new Promise(async (resolve, reject) => {
       path = Path.join(``, path);
       let fpath = Path.join(__dirname, this.id, path);
-      console.log(`fpath: ${fpath}`);
+      //console.log(`fpath: ${fpath}`);
       let stats = fs.lstatSync(fpath);
       let info = {
         path: Path.join(``, path),
@@ -96,7 +97,7 @@ class Service extends EventEmitter {
         }
         if(options && options.object) {
           let p = `/${fpath.replace(/^\//, ``)}`;
-          console.log(`require: ${p}`);
+          //console.log(`require: ${p}`);
           info.object = require(p);
         }
       }

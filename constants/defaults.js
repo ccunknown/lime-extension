@@ -77,7 +77,8 @@ var Defaults = {
           {
             "id": "device-002",
             "name": "SDM120CT Power Meter",
-            "type": "modbus-device",
+            "type": ["modbus-device"],
+            "description": "Power meter install at room 519 on Pakawat's table on DIN rail together with another devices including Raspberry Pi which is install Mozilla-iot Gateway.",
             "@context": `https://iot.mozilla.org/schemas`,
             "@type": [`EnergyMonitor`],
             "config": {
@@ -361,6 +362,13 @@ var Defaults = {
                       "type": "string"
                     },
                     "type": {
+                      "type": "array",
+                      "default": [],
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "description": {
                       "type": "string"
                     },
                     "@context": {
@@ -377,10 +385,7 @@ var Defaults = {
                       "required": ["engine", "script"],
                       "additionalProperties": true,
                       "properties": {
-                        "engine": {
-                          "type": "string"
-                        },
-                        "script": {
+                        "device": {
                           "type": "string"
                         }
                       }

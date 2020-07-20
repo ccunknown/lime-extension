@@ -99,11 +99,11 @@ class ScriptsService extends Service {
     console.log(`ScriptsService: get(${(name) ? `${name}` : ``})`);
     return new Promise(async (resolve, reject) => {
       let serviceSchema = this.getSchema();
-      let opttmp = JSON.parse(JSON.stringify(options));
+      let opttmp = (options) ? JSON.parse(JSON.stringify(options)) : {};
       opttmp.object = false;
       let scriptList = (await this.getDirectorySchema(serviceSchema.directory, opttmp)).children;
       console.log(`directory: ${serviceSchema.directory}`);
-      console.log(`scriptList: ${JSON.stringify(scriptList, null, 2)}`);
+      //console.log(`scriptList: ${JSON.stringify(scriptList, null, 2)}`);
       if(name) {
         let script = scriptList.find((elem) => elem.name == name);
         script = await this.getDirectorySchema(script.path, options);
