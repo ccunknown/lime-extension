@@ -1,4 +1,5 @@
 <div class="miso-slide-container" id="extension-lime-content-devices-section">
+
   <div class="miso-slide-slide" :class="{hide: ui.slider.hide}">
     <div class="card text-dark border-warning w-100">
 
@@ -67,6 +68,29 @@
                 class="miso-badge-union border-secondary">
               </div>
 
+              <div class="miso-badge-header-group grow-1">
+                <label class="miso-label-badge badge-secondary">Description</label>
+                <textarea
+                v-model="ui.slider.form.description"
+                class="miso-badge-union border-secondary no-resize"
+                rows="4"
+                type="text">
+                </textarea>
+              </div>
+
+              <div class="miso-badge-header-group grow-1">
+                <label class="miso-label-badge badge-secondary">Type</label>
+                <template>
+                  <vue-tags-input
+                    v-model="ui.type"
+                    class="miso-badge-union border-secondary"
+                    :tags="ui.slider.form.type"
+                    :add-on-key="[13, 32]"
+                    @tags-changed="(newTags) => ui.slider.form.type = newTags"
+                  />
+                </template>
+              </div>
+
               <div 
               class="miso-badge-header-group align-items-end w-100">
                 <label class="miso-label-badge badge-info font-size-inherit">Config</label>
@@ -113,29 +137,6 @@
                 </div>
               </div>
 
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Description</label>
-                <textarea
-                v-model="ui.slider.form.description"
-                class="miso-badge-union border-secondary no-resize"
-                rows="4"
-                type="text">
-                </textarea>
-              </div>
-
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Type</label>
-                <template>
-                  <vue-tags-input
-                    v-model="ui.type"
-                    class="miso-badge-union border-secondary"
-                    :tags="ui.slider.form.type"
-                    :add-on-key="[13, 32]"
-                    @tags-changed="(newTags) => ui.slider.form.type = newTags"
-                  />
-                </template>
-              </div>
-
             </div>
           </div>
 
@@ -143,7 +144,57 @@
             <label class="miso-label-badge badge-info font-size-inherit">Properties</label>
             <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
 
-              
+              <template 
+              v-if="!!ui.slider.formTemplate.properties"
+              v-for="(config, index) in ui.slider.formTemplate.properties.config">
+
+                <div 
+                v-if="config.enum" 
+                class="miso-badge-header-group grow-1">
+                  <label class="miso-label-badge badge-secondary">{{index}}</label>
+                  <select
+                  v-model="ui.slider.form.properties[index]" 
+                  @change="fn.onDeviceConfigChange"
+                  class="miso-badge-union border-secondary">
+                    <template v-for="option in config.enum">
+                      <option v-if="typeof option == 'object'" :value="`${option.value}`">{{option.title}}</option>
+                      <option v-else :value="`${option}`">{{option}}</option>
+                    </template>
+                  </select>
+                </div>
+
+                <div 
+                v-else-if="config.type == 'string'"
+                class="miso-badge-header-group grow-1">
+                  <label class="miso-label-badge badge-secondary">{{index}}</label>
+                  <input 
+                  type="text" 
+                  v-model="ui.slider.form.properties[index]"
+                  class="miso-badge-union border-secondary">
+                </div>
+
+                <div 
+                v-else-if="config.type == 'number'"
+                class="miso-badge-header-group grow-1">
+                  <label class="miso-label-badge badge-secondary">{{index}}</label>
+                  <input 
+                  type="number" 
+                  v-model="ui.slider.form.properties[index]"
+                  class="miso-badge-union border-secondary">
+                </div>
+
+              </template>
+
+              <button 
+              type="button" 
+              class="btn btn-primary" 
+              data-toggle="modal" 
+              data-target="#extension-lime-content-devices-add-property-modal">
+                <span>
+                  <i class="fas fa-plus fa-lg"></i>
+                </span>
+                <span>Add Property</span>
+              </button>
 
             </div>
           </div>

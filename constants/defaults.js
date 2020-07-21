@@ -82,9 +82,9 @@ var Defaults = {
             "@context": `https://iot.mozilla.org/schemas`,
             "@type": [`EnergyMonitor`],
             "config": {
+              "device": "modbus-rtu",
               "script": "sdm120ct",
               "engine": "modbus-engine-001",
-              "device": "modbus-rtu",
               "address": 11
             },
             "properties": {

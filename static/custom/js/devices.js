@@ -29,10 +29,7 @@ export default class PageDevices {
             "config": {"directory": null, "list": []},
             "schema": schema,
             "deviceTemplate": [],
-            "deviceConfigSchema": {},
-            "flags": {
-              "deviceConfig": false
-            }
+            "deviceConfigSchema": {}
           },
           /** UI **/
           "ui": {
@@ -101,13 +98,17 @@ export default class PageDevices {
             if(i != `devices`)
               this.vue.ui.slider.form.config[i] = config[i];
           }
-          this.vue.resource.flags.deviceConfig = true;
         },
         "onDeviceConfigChange": async (event) => {
           console.log(event);
-          let params = this.vue.ui.slider.form.config;
+          //let params = this.vue.ui.slider.form.config;
+          let params = {
+            config: this.vue.ui.slider.form.config,
+            properties: this.vue.ui.slider.form.properties
+          };
           this.vue.resource.deviceConfigSchema = await this.getDeviceConfigSchema(params);
           this.vue.ui.slider.formTemplate.config = this.ui.generateVueData(this.vue.resource.deviceConfigSchema.config);
+          this.vue.ui.slider.formTemplate.properties.config = this.ui.generateVueData(this.vue.resource.deviceConfigSchema.properties.items);
           // this.vue.ui.slider.formTemplate.properties = this.ui.generateVueData(this.ui.shortJsonElement(schema, `^.+$`));
           // this.vue.ui.slider.formTemplate.config.device.enum = this.vue.resource.deviceTemplate.map((elem) => elem.name);
         }
@@ -184,15 +185,26 @@ export default class PageDevices {
         });
       }
       else {
-        // Setup Flags.
-        this.vue.resource.flags.deviceConfig = false;
-        //
         let schema = this.ui.shortJsonElement(this.vue.resource.schema, `items`);
         this.vue.ui.slider.form = this.ui.generateData(schema);
         this.vue.ui.slider.formTemplate = this.ui.generateVueData(schema);
         this.vue.ui.slider.formTemplate.properties = this.ui.generateVueData(this.ui.shortJsonElement(schema, `^.+$`));
+        this.vue.ui.slider.formTemplate.properties.config = {};
         this.vue.ui.slider.formTemplate.config.device.enum = this.vue.resource.deviceTemplate.map((elem) => elem.name);
         resolve();
+      }
+
+      //  Render Device ID.
+      let index = 1;
+      let id = ``;
+      this.console.log(`ui ext: ${JSON.stringify(this.ui.ext, null, 2)}`);
+      while(true) {
+        id = `${this.ui.ext.short}-device-${index}`;
+        let device = this.vue.resource.config.list.find((elem) => elem.id == id);
+        if(!device) {
+          this.vue.ui.slider.form.id = id;
+          break;
+        }
       }
     });
   }
@@ -224,11 +236,35 @@ export default class PageDevices {
   getDeviceConfigSchema(params) {
     this.console.log(`getDeviceConfigSchema()`);
     return new Promise(async (resolve, reject) => {
-      let paramStr = ``;
-      for(let i in params)
-        paramStr = `${paramStr}${(paramStr != ``) ? `&` : ``}${i}=${params[i]}`;
-      let template = await this.api.restCall(`get`, `/api/service/deviceConfigSchema${(params.device) ? `/${params.device}` : ``}?${paramStr}`);
+      // let paramStr = ``;
+      // for(let i in params)
+      //   paramStr = `${paramStr}${(paramStr != ``) ? `&` : ``}${i}=${params[i]}`;
+      let paramStr = this.generateParameters(params);
+      this.console.log(`params: ${params}`);
+      let template = await this.api.restCall(`get`, `/api/service/deviceConfigSchema${(params.config && params.config.device) ? `/${params.config.device}` : ``}?${paramStr}`);
       resolve(template);
     });
+  }
+
+  generateParameters(params) {
+    console.log(`params: ${JSON.stringify(params, null, 2)}`);
+    let result = ``;
+    for(let i in params) {
+      console.log(`paramsType[${i}]: ${typeof params[i]}`);
+      if(typeof params[i] == `object`) {
+        if(JSON.stringify(params[i]) != `{}`) {
+          let tmp = this.generateParameters(params[i]);
+          tmp = tmp.split(`&`).map((elem) => `${i}.${elem}`).join(`&`);
+          tmp = tmp.replace(/^&/, ``);
+          result = `${result}&${tmp}`;
+        }
+      }
+      else {
+        result = `${result}&${i}=${params[i]}`;
+      }
+    }
+    result = result.replace(/^&/, ``);
+    console.log(`result: ${result}`);
+    return result;
   }
 }

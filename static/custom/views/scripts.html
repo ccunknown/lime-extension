@@ -116,7 +116,7 @@
                           </div>
                         </div>
                         <span>
-                          <button v-if="!ui.slider.edit" class="btn btn-success" @click="fn.previewFile(file.name)">
+                          <button v-if="!ui.slider.edit" class="btn btn-success" @click="fn.download(file.name)">
                             <i class="fas fa-download fa-lg"></i>
                           </button>
                           <button v-if="ui.slider.edit" class="btn btn-info" @click="fn.previewFile(file.name)">
@@ -133,6 +133,7 @@
                   type="file" 
                   @change="fn.onSelectFile"
                   onclick="this.value=null" 
+                  :disabled="!ui.slider.edit"
                   multiple
                   class="w-100">
                 </div>

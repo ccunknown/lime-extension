@@ -135,7 +135,9 @@ class Service extends EventEmitter {
     return new Promise((resolve, reject) => {
       path = (path.startsWith(`/`)) ? Path.join(__dirname, this.id, path) : path;
       console.log(`deleteDirectory(${path})`);
-      resolve({});
+      rimraf(path, (err) => {
+        (err) ? reject(err) : resolve({});
+      });
     });
   }
 

@@ -7,7 +7,7 @@
       "html": "extension-lime",
       "title-short": "LiME",
       "title-full": "LiME Extension",
-      "debug-level": "debug",
+      "debug": true,
       "config": {
         "config-sync": {
           "enable": false,

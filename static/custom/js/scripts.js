@@ -53,6 +53,7 @@ export default class PageScripts {
             "view": () => {},
             "remove": () => {},
             "save": () => {},
+            "download": () => {},
             "renderBase": () => {},
             "renderSlider": () => {},
             "onSelectFile": () => {},
@@ -77,6 +78,19 @@ export default class PageScripts {
         },
         "remove": (name) => {
           this.console.log(`delete(${name})`);
+          return new Promise(async (resolve, reject) => {
+            let conf = confirm(`Confirm to delete script "${name}"!`);
+            if(conf) {
+              this.vue.ui.base.ready = false;
+              let res = await this.deleteScript(name);
+              await this.render();
+              this.vue.ui.base.ready = true;
+              resolve();
+            }
+            else {
+              resolve();
+            }
+          });
         },
         "save": () => {
           this.console.log(`save()`);
@@ -88,6 +102,13 @@ export default class PageScripts {
             this.console.log(`save data: ${JSON.stringify(result, null, 2)}`);
             await this.upload(result);
             this.render();
+          });
+        },
+        "download": (name) => {
+          return new Promise((resolve, reject) => {
+            let file = this.vue.ui.slider.form.children.find((elem) => elem.name == name);
+            if(file)
+              this.download(file.name, atob(file.base64));
           });
         },
         "renderBase": () => {
@@ -259,11 +280,32 @@ export default class PageScripts {
     });
   }
 
+  deleteScript(name) {
+    this.console.log(`deleteScript(${name})`);
+    return new Promise(async (resolve, reject) => {
+      let res = await this.api.restCall(`delete`, `/api/service/scripts/${name}`);
+      resolve(res);
+    });
+  }
+
   upload(schema) {
     this.console.log(`upload(${schema.name})`);
     return new Promise(async (resolve, reject) => {
       await this.api.restCall(`put`, `/api/service/scripts`, schema);
       resolve();
     });
+  }
+
+  download(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
   }
 }

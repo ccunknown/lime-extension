@@ -53,6 +53,11 @@ class ModbusDevice extends Device {
           "required": [],
           "additionalProperties": false,
           "properties": {
+            "device": {
+              "type": "string",
+              "default": "modbus-rtu",
+              "enum": devices.map((elem) => elem.name)
+            },
             "script": {
               "type": "string",
               "enum": compatScript
@@ -60,11 +65,6 @@ class ModbusDevice extends Device {
             "engine": {
               "type": "string",
               "enum": compatEngine
-            },
-            "device": {
-              "type": "string",
-              "default": "modbus-rtu",
-              "enum": devices.map((elem) => elem.name)
             },
             "address": {
               "type": "number",

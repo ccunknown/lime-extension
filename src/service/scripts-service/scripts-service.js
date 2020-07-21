@@ -90,7 +90,14 @@ class ScriptsService extends Service {
     console.log(`ScriptsService: delete(${name}) >> `);
     return new Promise(async (resolve, reject) => {
       let script = await this.get(name, {"deep": true});
-      console.log(`delete: ${JSON.stringify(script, null, 2)}`);
+      //console.log(`delete: ${JSON.stringify(script, null, 2)}`);
+      if(script) {
+        await this.deleteDirectory(script.path);
+        resolve({});
+      }
+      else {
+        reject(`Directory not found!!!`)
+      }
       //this.delete();
     });
   }

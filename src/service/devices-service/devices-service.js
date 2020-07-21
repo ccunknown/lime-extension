@@ -57,12 +57,8 @@ class DevicesService extends Service {
   start() {
     console.log(`DevicesService: start() >> `);    
     return new Promise(async (resolve, reject) => {
-      //this.scriptsService = (await this.laborsManager.getService(`scripts-service`)).obj;
-      //this.enginesService = (await this.laborsManager.getService(`engines-service`)).obj;
       this.scriptsService = this.laborsManager.getService(`scripts-service`).obj;
       this.enginesService = this.laborsManager.getService(`engines-service`).obj;
-      //console.log(`engine service : `);
-      //console.log(this.enginesService);
       await this.initDevices();
       resolve();
     });
