@@ -27,6 +27,8 @@ export default class PageScripts {
         //   vueTagsInput
         // },
         "data": {
+          /** Loader **/
+          "loader": this.extension.schema,
           /** Resource **/
           "resource": {
             "config": {"directory": null, "list": []},

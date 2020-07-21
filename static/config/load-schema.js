@@ -7,7 +7,7 @@
       "html": "extension-lime",
       "title-short": "LiME",
       "title-full": "LiME Extension",
-      "debug": true,
+      "debug": false,
       "config": {
         "config-sync": {
           "enable": false,
@@ -43,7 +43,7 @@
             {
               "type": "parallel",
               "load": [
-                "page-vthings",
+                //"page-vthings",
                 "page-devices",
                 "page-scripts",
                 "page-engines",
@@ -57,7 +57,7 @@
           "load": [
             "extension-view-main",
             "extension-view-resource",
-            "script-vthings",
+            //"script-vthings",
             "script-devices",
             "script-scripts",
             "script-engines",
@@ -147,18 +147,18 @@
       },
 
 
-      "page-vthings": {
-        "name": "vthings",
-        "type": "custom-view",
-        "path": "/custom/views/vthings.html",
-        "icon": "fas fa-paper-plane",
-        "link-script": "script-vthings"
-      },
-      "script-vthings": {
-        "type": "custom-script",
-        "path": "/custom/js/vthings.js",
-        "object-name": "LimeExtensionPageVthings"
-      },
+      // "page-vthings": {
+      //   "name": "vthings",
+      //   "type": "custom-view",
+      //   "path": "/custom/views/vthings.html",
+      //   "icon": "fas fa-paper-plane",
+      //   "link-script": "script-vthings"
+      // },
+      // "script-vthings": {
+      //   "type": "custom-script",
+      //   "path": "/custom/js/vthings.js",
+      //   "object-name": "LimeExtensionPageVthings"
+      // },
 
 
       "page-devices": {

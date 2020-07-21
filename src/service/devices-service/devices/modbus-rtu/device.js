@@ -93,7 +93,7 @@ class ModbusDevice extends Device {
                 "type": "number",
                 "pre-require": ["config.script", "properties.table"]
               },
-              "periode": {
+              "period": {
                 "type": "number",
                 "default": 1000,
                 "min": 1000

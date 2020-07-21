@@ -27,6 +27,8 @@ export default class PageEngines {
       this.vue = new Vue({
         "el": `#${id}`,
         "data": {
+          /** Loader **/
+          "loader": this.extension.schema,
           /** Resource **/
           "resource": {
             "config": {"directory": null, "list": []},

@@ -172,7 +172,9 @@
               </span>
               <span class="header-item">
                 <span class="bg-dark text-light">status</span>
-                <span class="bg-warning text-dark">
+                <span 
+                class="text-dark" 
+                :class="{'bg-warning': item.state == 'running', 'bg-danger': item.state != 'running'}">
                   {{item.state}}
                 </span>
               </span>
@@ -197,7 +199,7 @@
     </div>
   </div>
 
-  <pre>
+  <pre v-if="loader.extension.debug">
     <code class="text-light">
       {{ui}}
     </code>
