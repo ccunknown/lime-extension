@@ -51,6 +51,134 @@
           <div class="miso-badge-header-group align-items-end w-100">
             <label class="miso-label-badge badge-info font-size-inherit">Device</label>
             <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
+
+              <template v-for="(param, index) in resource.deviceConfigSchema.properties.device.properties">
+
+                <div 
+                class="miso-badge-header-group grow-1">
+                  <label class="miso-label-badge badge-secondary">{{(param.title) ? param.title : index}}</label>
+                  
+                  <select
+                  v-if="fn.typeIdentify(param) == 'select'" 
+                  v-model="ui.slider.form.device[index]" 
+                  :disabled="fn.isDisabled(param)"
+                  @change="fn.onDeviceConfigChange($event, param.position)"
+                  class="miso-badge-union border-secondary">
+                    <template v-for="option in param.enum">
+                      <option :value="`${option}`">{{option}}</option>
+                    </template>
+                  </select>
+
+                  <textarea
+                  v-else-if="fn.typeIdentify(param) == 'textarea'" 
+                  v-model="ui.slider.form.device[index]"
+                  :disabled="fn.isDisabled(param)"
+                  @change="fn.onDeviceConfigChange($event, param.position)"
+                  class="miso-badge-union border-secondary no-resize"
+                  rows="4"
+                  type="text">
+                  </textarea>
+
+                  <input 
+                  v-else
+                  :type="fn.typeIdentify(param)" 
+                  v-model="ui.slider.form.device[index]"
+                  :disabled="fn.isDisabled(param)"
+                  @change="fn.onDeviceConfigChange($event, param.position)"
+                  class="miso-badge-union border-secondary">
+
+                </div>
+
+              </template>
+
+            </div>
+          </div>
+
+          <div 
+          v-if="!!resource.deviceConfigSchema.properties.properties"
+          class="miso-badge-header-group align-items-end w-100">
+            <label class="miso-label-badge badge-info font-size-inherit">Property</label>
+            <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
+
+              <template v-for="(param, index) in resource.deviceConfigSchema.properties.properties.items.properties">
+
+                <div 
+                :disabled="fn.isDisabled(param)"
+                class="miso-badge-header-group grow-1">
+                  <label class="miso-label-badge badge-secondary">{{(param.title) ? param.title : index}}</label>
+                  
+                  <select
+                  v-if="fn.typeIdentify(param) == 'select'" 
+                  v-model="ui.slider.form.properties[index]" 
+                  @change="fn.onDeviceConfigChange($event, param.position)"
+                  class="miso-badge-union border-secondary">
+                    <template v-for="option in param.enum">
+                      <option :value="`${option}`">{{option}}</option>
+                    </template>
+                  </select>
+
+                  <textarea
+                  v-else-if="fn.typeIdentify(param) == 'textarea'" 
+                  v-model="ui.slider.form.properties[index]"
+                  @change="fn.onDeviceConfigChange($event, param.position)"
+                  class="miso-badge-union border-secondary no-resize"
+                  rows="4"
+                  type="text">
+                  </textarea>
+
+                  <input 
+                  v-else
+                  :type="fn.typeIdentify(param)" 
+                  v-model="ui.slider.form.properties[index]"
+                  @change="fn.onDeviceConfigChange($event, param.position)"
+                  class="miso-badge-union border-secondary">
+
+                </div>
+
+              </template>
+
+              <button 
+              type="button" 
+              class="btn btn-primary" 
+              data-toggle="modal" 
+              @click="fn.addProperty()">
+                <span>
+                  <i class="fas fa-plus fa-lg"></i>
+                </span>
+                <span>Add Property</span>
+              </button>
+
+              <div 
+              v-if="ui.slider.final.properties.length > 0"
+              class="miso-badge-header-group align-items-end w-100">
+                <label class="miso-label-badge badge-info font-size-inherit">Added Property</label>
+                <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
+
+                  <div class="list-group w-100">
+                    <template
+                    v-for="(prop, index) in ui.slider.final.properties">
+                      <div class="list-group-item list-group-item-action bg-transparent text-light d-flex justify-content-between">
+                        <div class="grow-1 d-flex flex-column">
+                          <span>{{fn.objectToText(prop)}}</span>
+                        </div>
+                        <span>
+                          <button class="btn btn-danger" @click="fn.removeProperty(prop)">
+                            <i class="fas fa-trash fa-lg"></i>
+                          </button>
+                        </span>
+                      </div>
+                    </template>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- <div class="miso-badge-header-group align-items-end w-100">
+            <label class="miso-label-badge badge-info font-size-inherit">Device</label>
+            <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
               
               <div class="miso-badge-header-group grow-1">
                 <label class="miso-label-badge badge-secondary">ID</label>
@@ -197,7 +325,7 @@
               </button>
 
             </div>
-          </div>
+          </div> -->
 
         </div>
 
@@ -281,7 +409,7 @@
             <div class="card-body">
               <div class="d-flex flex-column justify-content-center align-items-center w-100 h-100">
                 <i class="fas fa-plus fa-4x"></i>
-                <span>Create new engine</span>
+                <span>Create new device</span>
               </div>
             </div>
           </div>
@@ -295,10 +423,10 @@
 
   <pre v-if="loader.extension.debug">
     <code class="text-light">
-      {{ui}}
+      {{resource}}
     </code>
     <code class="text-light">
-      {{resource}}
+      {{ui}}
     </code>
   </pre>
 </div>

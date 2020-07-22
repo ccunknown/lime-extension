@@ -33,7 +33,7 @@ export default class ExtensionMain extends window.Extension {
     return new Promise(async (resolve, reject) => {
       await this.initLoader();
       await this.initCoreObject();
-
+      await this.initWindowObject();
       resolve();
     });
   }
@@ -59,6 +59,19 @@ export default class ExtensionMain extends window.Extension {
       await this.api.init();
       await this.ui.init();
 
+      resolve();
+    });
+  }
+
+  initWindowObject() {
+    return new Promise(async (resolve, reject) => {
+      let name = this.schema.extension.code;
+      if(!window[name]) {
+        window[name] = this;
+      }
+      else {
+        this.console.warn(`window.${name} already exist!`);
+      }
       resolve();
     });
   }

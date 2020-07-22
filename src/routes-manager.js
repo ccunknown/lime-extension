@@ -130,6 +130,13 @@ class RoutesManager extends APIHandler{
               })
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
+          },
+          "PUT": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`devices-service`).obj.addWithConfigSchema(req.body)
+              .then((json) => resolve(this.makeJsonRespond(JSON.stringify(json))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
           }
         }
       },
@@ -170,11 +177,31 @@ class RoutesManager extends APIHandler{
 
       /***  Resource : /service/devicesSconfigSchema/name  ***/
       {
+        "resource": /\/service\/deviceConfigSchema/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`devices-service`).obj.getConfigSchema(this.getParameters(req))
+              .then((json) => {
+                //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
+                resolve(this.makeJsonRespond(JSON.stringify(json)));
+              })
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/devicesSconfigSchema/name  ***/
+      {
         "resource": /\/service\/deviceConfigSchema\/[^/]+/,
         "method": {
           "GET": (req) => {
             return new Promise((resolve, reject) => {
-              this.laborsManager.getService(`devices-service`).obj.getConfigSchema(req.path.split(`/`).pop(), this.getParameters(req))
+              let params = this.getParameters(req);
+              params.device = (params.device) ? params.device : {};
+              params.device.device = req.path.split(`/`).pop();
+              this.laborsManager.getService(`devices-service`).obj.getConfigSchema(params)
               .then((json) => {
                 //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
                 resolve(this.makeJsonRespond(JSON.stringify(json)));

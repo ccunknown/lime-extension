@@ -85,6 +85,19 @@ export default class ExtensionUi {
     this.enable = (id) => this.saidObj(id).removeClass(`disabled`);
     this.disable = (id) => this.saidObj(id).addClass(`disabled`);
     this.click = (id) => this.saidObj(id).click();
+
+    this.vueDebug = () => {
+      let arr = {};
+      for(let i in this.page)
+        if(this.page[i].object.vue && 
+          this.page[i].object.vue.loader &&
+          this.page[i].object.vue.loader.extension) {
+          this.page[i].object.vue.loader.extension.debug = !this.page[i].object.vue.loader.extension.debug;
+          console.log(`Debug ${i}: ${this.page[i].object.vue.loader.extension.debug}`);
+          arr[i] = this.page[i].object.vue.loader.extension.debug;
+        }
+      return arr;
+    };
   }
 
   initScript() {
@@ -154,10 +167,17 @@ export default class ExtensionUi {
       result = [];
     }
     else {
-      let value = (schema.default) ? schema.default :
-        (schema.type == `string`) ? `` : 
-        (schema.type == `number`) ? 0 : 
-        (schema.type == `boolean`) ? false : null;
+      // let value = (schema.default) ? schema.default :
+      //   (schema.type == `string`) ? `` : 
+      //   (schema.type == `number`) ? 0 : 
+      //   (schema.type == `boolean`) ? false : null;
+      let param = schema;
+      let value = (param.const) ? param.const :
+        (param.default) ? param.default :
+        (param.enum && param.enum.length > 0) ? param.enum[0] :
+        (param.type == `string`) ? `` :
+        (param.type == `number`) ? (param.min) ? param.min : 0 :
+        (param.type == `boolean`) ? false : undefined;
       if(extend) {
         result = JSON.parse(JSON.stringify(schema));
         result.value = value;

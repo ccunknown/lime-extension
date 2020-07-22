@@ -3,6 +3,9 @@
 const Path = require(`path`);
 const {Device} = require(`gateway-addon`);
 
+const compatibleScriptList = [`modbus-rtu`];
+const compatibleEngineList = [`modbus-rtu`];
+
 class ModbusDevice extends Device {
   constructor(devicesService, adapter, schema) {
     super(adapter, schema.id);
@@ -44,81 +47,136 @@ class ModbusDevice extends Device {
       let devices = await devicesService.getTemplate(null, {"deep": true});
       let schema = await devicesService.getTemplate(__dirname.split(`/`).pop(), {"deep": true});
       let props = schema.children.find((elem) => elem.name == `property`).children;
-      let compatScript = await devicesService.getCompatibleScript([`modbus-rtu`]);
-      let compatEngine = await devicesService.getCompatibleEngine([`modbus-rtu`]);
+      let compatScript = await devicesService.getCompatibleScript(compatibleScriptList);
+      let compatEngine = await devicesService.getCompatibleEngine(compatibleEngineList);
       //console.log(`schema : ${JSON.stringify(schema, null ,2)}`);
+
       let config = {
-        "config": {
-          "type": "object",
-          "required": [],
-          "additionalProperties": false,
-          "properties": {
-            "device": {
-              "type": "string",
-              "default": "modbus-rtu",
-              "enum": devices.map((elem) => elem.name)
-            },
-            "script": {
-              "type": "string",
-              "enum": compatScript
-            },
-            "engine": {
-              "type": "string",
-              "enum": compatEngine
-            },
-            "address": {
-              "type": "number",
-              "default": 1,
-              "min": 0
-            }
-          }
-        },
+        "type": "object",
+        "required": [`device`, `properties`],
+        "additionalProperties": false,
         "properties": {
-          "type": "array",
-          "items": {
+          "device": {
             "type": "object",
-            "required": [],
+            "required": [`script`, `engine`, `address`],
             "additionalProperties": false,
             "properties": {
-              "property": {
+              "script": {
                 "type": "string",
-                "enum": props.map((elem) => elem.name.split(`.js`)[0])
+                "title": "Script",
+                "enum": compatScript,
               },
-              "table": {
+              "engine": {
                 "type": "string",
-                "default": "inputRegisters",
-                "enum": [`coils`, `contacts`, `inputRegisters`, `holdingRegisters`]
+                "title": "Engine",
+                "enum": compatEngine
               },
               "address": {
                 "type": "number",
-                "pre-require": ["config.script", "properties.table"]
-              },
-              "period": {
-                "type": "number",
-                "default": 1000,
-                "min": 1000
+                "title": "Modbus Address",
+                "default": 1,
+                "min": 0,
+                "attr": {
+                  "placeholder": "Modbus address"
+                }
+              }
+            }
+          },
+          "properties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["property", "table", "address", "period"],
+              "additionalProperties": false,
+              "properties": {
+                "property": {
+                  "type": "string",
+                  "title": "Property Type",
+                  "enum": props.map((elem) => elem.name.split(`.js`)[0])
+                },
+                "table": {
+                  "type": "string",
+                  "title": "Register Table",
+                  "default": "inputRegisters",
+                  "enum": [`coils`, `contacts`, `inputRegisters`, `holdingRegisters`]
+                },
+                "address": {
+                  "type": "number",
+                  "title": "Register Address",
+                  "prerequire": ["device.script", "properties.table"],
+                },
+                "period": {
+                  "type": "number",
+                  "title": "Period (ms)",
+                  "default": 1000,
+                  "min": 1000
+                }
               }
             }
           }
         }
       };
-      if( params && 
-        params.config && 
-        params.config.script && 
+      if(params && 
+        params.device && 
+        params.device.script && 
+        params.device.script != `` && 
         params.properties && 
-        params.properties.table) {
+        params.properties.table &&
+        params.properties.table != ``) {
 
-        await this.initScript(params.config.script);
+        await this.initScript(params.device.script);
         let addrList = this.exConf.script.map[params.properties.table];
-        config.properties.items.properties.address.enum = [];
+        config.properties.properties.items.properties.address.enum = [];
         for(let i in addrList) {
-          config.properties.items.properties.address.enum.push({
-            "title": `${addrList[i].name} [Addr:${Number(i).toString(16)}]`,
-            "value": i
-          });
+          config.properties.properties.items.properties.address.enum.push(`${addrList[i].name} [Addr:${Number(i).toString(16)}]`);
         }
       }
       resolve(config);
+    });
+  }
+
+  translateConfigSchema(schema) {
+    return new Promise(async (resolve, reject) => {
+      let result = {
+        "id": schema.device.id,
+        "name": schema.device.name,
+        "type": [
+          "modbus-device"
+        ],
+        "description": schema.device.description,
+        "@context": "https://iot.mozilla.org/schemas",
+        "@type": [],
+        "config": {
+          "device": schema.device.device,
+          "script": schema.device.script,
+          "engine": schema.device.engine,
+          "address": schema.device.address
+        },
+        "properties": {}
+      };
+      await this.initScript(schema.device.script);
+      schema.properties.forEach((prop) => {
+        let id = prop.address.match(/(?:\[)(\w+:\d+)/i)[1];
+        let address = Number(prop.address.match(/(?:\[\w+:)(\d+)/i)[1]);
+        let script = this.exConf.script.map[prop.table][address];
+
+        result.properties[id] = {
+          "name": id,
+          "label": script.name,
+          "title": script.name,
+          "type": script.type,
+          "value": (script.type == `string`) ? `` : (script.type == `number`) ? 0 : (script.type == `boolean`) ? false : undefined,
+          "unit": script.unit,
+          "readOnly": true,
+          "config": {
+            "property": prop.property,
+            "address": address,
+            "table": prop.table,
+            "period": Number(prop.period)
+          }
+        };
+      });
+      resolve(result);
     });
   }
 
