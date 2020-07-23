@@ -42,6 +42,12 @@ class DevicesService extends Service {
     });
   }
 
+  initAdapter() {
+    console.log(`DevicesService: initAdapter() >> `);
+    this.adapter = new vAdapter(this.addonManager, this.manifest.name);
+    this.adapter.handleDeviceRemoved
+  }
+
   initDevices() {
     console.log(`DevicesService: initDevices() >> `);
     return new Promise(async (resolve, reject) => {
@@ -103,41 +109,6 @@ class DevicesService extends Service {
     });
   }
 
-  remove(id) {
-    console.log(`DevicesService: removeDevice() >> `);
-    return new Promise((resolve, reject) => {
-      let device = this.adapter.getDevice(id);
-      if(device)
-        this.adapter.handleDeviceRemoved(device);
-      else
-        console.warn(`Device "${id}" not found in list!!!`);
-      resolve();
-    });
-  }
-
-  getTemplate(name, options) {
-    console.log(`DevicesService: getTemplate(${(name) ? name : ``})`);
-    return new Promise(async (resolve, reject) => {
-      let serviceSchema = this.getSchema();
-      if(name) {
-        let result = null;
-        let opttmp = (options) ? JSON.parse(JSON.stringify(options)) : {};
-        opttmp.object = false;
-        let deviceList = (await this.getDirectorySchema(serviceSchema.directory, opttmp)).children;
-        //console.log(`deviceList: ${JSON.stringify(deviceList, null, 2)}`);
-        let device = deviceList.find((elem) => elem.name == name);
-        if(device)
-          result = await this.getDirectorySchema(device.path, options);
-        resolve(result);
-      }
-      else {
-        let deviceList = (await this.getDirectorySchema(serviceSchema.directory, options)).children;
-        //console.log(`deviceList: ${JSON.stringify(deviceList)}`);
-        resolve(deviceList);
-      }
-    });
-  }
-
   addWithConfigSchema(schema) {
     return new Promise(async (resolve, reject) => {
       //console.log(`schema: ${JSON.stringify(schema, null, 2)}`);
@@ -146,7 +117,7 @@ class DevicesService extends Service {
         let templateObj = require(`./${template.path.replace(/^\//, ``).replace(/^\/$/, ``)}/device`);
         let device = new templateObj(this, this.adapter, {"id": "test"});
         let thingSchema = await device.translateConfigSchema(schema);
-        console.log(`thingSchema: ${JSON.stringify(thingSchema, null, 2)}`);
+        //console.log(`thingSchema: ${JSON.stringify(thingSchema, null, 2)}`);
         // let schema = await device.getConfigSchema(params);
         // for(let i in schema.properties.device.properties)
         //   baseSchema.properties.device.properties[i] = schema.properties.device.properties[i];
@@ -235,6 +206,41 @@ class DevicesService extends Service {
     });
   }
 
+  remove(id) {
+    console.log(`DevicesService: removeDevice() >> `);
+    return new Promise((resolve, reject) => {
+      let device = this.adapter.getDevice(id);
+      if(device)
+        this.adapter.handleDeviceRemoved(device);
+      else
+        console.warn(`Device "${id}" not found in list!!!`);
+      resolve();
+    });
+  }
+
+  getTemplate(name, options) {
+    console.log(`DevicesService: getTemplate(${(name) ? name : ``})`);
+    return new Promise(async (resolve, reject) => {
+      let serviceSchema = this.getSchema();
+      if(name) {
+        let result = null;
+        let opttmp = (options) ? JSON.parse(JSON.stringify(options)) : {};
+        opttmp.object = false;
+        let deviceList = (await this.getDirectorySchema(serviceSchema.directory, opttmp)).children;
+        //console.log(`deviceList: ${JSON.stringify(deviceList, null, 2)}`);
+        let device = deviceList.find((elem) => elem.name == name);
+        if(device)
+          result = await this.getDirectorySchema(device.path, options);
+        resolve(result);
+      }
+      else {
+        let deviceList = (await this.getDirectorySchema(serviceSchema.directory, options)).children;
+        //console.log(`deviceList: ${JSON.stringify(deviceList)}`);
+        resolve(deviceList);
+      }
+    });
+  }
+
   getCompatibleScript(tagArr) {
     console.log(`ModbusDevice: getCompatibleScript() >> `);
     return new Promise(async (resolve, reject) => {
@@ -278,6 +284,8 @@ class vAdapter extends Adapter {
   constructor(addonManager, packageName) {
     super(addonManager, 'LimeAdapter', packageName);
     addonManager.addAdapter(this);
+    const events = require(`events`);
+    this.extEventEmitter = new events.EventEmitter();
   }
 
   removeDevice(deviceId) {
@@ -302,6 +310,8 @@ class vAdapter extends Adapter {
 
   removeThing(device) {
     console.log('ExampleAdapter:', this.name, 'id', this.id, 'removeThing(', device.id, ') started');
+
+    this.extEventEmitter.emit(`remove`, device);
 
     this.removeDevice(device.id)
     .then(() => console.log('ExampleAdapter: device:', device.id, 'was unpaired.'))

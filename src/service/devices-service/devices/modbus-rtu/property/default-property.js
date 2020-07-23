@@ -23,7 +23,8 @@ class DefaultProperty extends Property{
           "key": `period`,
           "locker": new AsyncLock()
         }
-      }
+      },
+      "timeout": 5000
     };
 
     this.setCachedValue(this.exConf.schema.value);
@@ -83,6 +84,9 @@ class DefaultProperty extends Property{
       let table = ex.schema.config.table;
       //console.log(`script : ${JSON.stringify(this.script, null, 2)}`);
       let ntr = script.map[table][address].registerSpec.number;
+
+      //  Prevent infinite await by using setTimeout to call resolve().
+      //setTimeout(resolve, this.exConf.timeout);
 
       try {
         if(script && engine && engine.getState() == "running") {

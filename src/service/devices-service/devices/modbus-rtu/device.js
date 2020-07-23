@@ -145,19 +145,22 @@ class ModbusDevice extends Device {
         ],
         "description": schema.device.description,
         "@context": "https://iot.mozilla.org/schemas",
-        "@type": [],
+        "@type": [`EnergyMonitor`],
         "config": {
           "device": schema.device.device,
           "script": schema.device.script,
           "engine": schema.device.engine,
-          "address": schema.device.address
+          "address": Number(schema.device.address)
         },
         "properties": {}
       };
       await this.initScript(schema.device.script);
       schema.properties.forEach((prop) => {
-        let id = prop.address.match(/(?:\[)(\w+:\d+)/i)[1];
-        let address = Number(prop.address.match(/(?:\[\w+:)(\d+)/i)[1]);
+        let id = `${prop.address.match(/(?:\[)([^\]]+)/i)[1].replace(`:`, ``).toLowerCase()}`;
+        console.log(`prop id: ${id}`);
+        let addrstr = prop.address.match(/(?:\[\w+:)([^\]]+)/i)[1];
+        let address = parseInt(`0x${addrstr}`);
+        console.log(`address: ${addrstr}/${address}`);
         let script = this.exConf.script.map[prop.table][address];
 
         result.properties[id] = {
@@ -331,6 +334,9 @@ class ModbusDevice extends Device {
 
         if(!elem.translator)
           elem.translator = define.translator.default;
+
+        if(!elem.type)
+          elem.type = define.type.default;
 
         elem.translator = this.getTranslator(calcMapConfig, elem.translator);
         result.map[tname][j] = elem;

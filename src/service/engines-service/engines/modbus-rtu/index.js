@@ -141,8 +141,11 @@ class ModbusRtu {
 
   _act(cmd) {
     //console.log(`ModbusRtu: _act() >> `);
-    //console.log(`cmd : ${JSON.stringify(cmd)}`);
+    console.log(`cmd : ${JSON.stringify(cmd)}`);
     return new Promise(async (resolve, reject) => {
+      setTimeout(() => {
+        reject(new Error(`Engine command timeout.`));
+      }, 3000);
       if(this.state != `running`) {
         reject(new Error(`Port currently "${this.state}".`));
       }

@@ -134,68 +134,110 @@ var Defaults = {
                 }
               }
             }
-          },
-          {
-            "id": "device-003",
-            "name": "SDM120CT Power Meter",
-            "type": ["modbus-device"],
-            "description": "Power meter install at room 519 on Pakawat's table on DIN rail together with another devices including Raspberry Pi which is install Mozilla-iot Gateway.",
-            "@context": `https://iot.mozilla.org/schemas`,
-            "@type": [`EnergyMonitor`],
-            "config": {
-              "device": "modbus-rtu",
-              "script": "sdm120ct",
-              "engine": "modbus-engine-001",
-              "address": 12
-            },
-            "properties": {
-              "voltage": {
-                "name": "voltage",
-                "label": "Voltage",
-                "title": "Voltage",
-                "type": "number",
-                "value": 0,
-                "unit": "V",
-                "readOnly": true,
-                "config": {
-                  "property": "default-property",
-                  "address": 0x0000,
-                  "table": "inputRegisters",
-                  "period": 5000
-                }
-              },
-              "current": {
-                "name": "current",
-                "label": "Current",
-                "title": "Current",
-                "type": "number",
-                "value": 0,
-                "unit": "A",
-                "readOnly": true,
-                "config": {
-                  "property": "default-property",
-                  "address": 0x0006,
-                  "table": "inputRegisters",
-                  "period": 5000
-                }
-              },
-              "iae": {
-                "name": "iae",
-                "label": "Import Active Energy",
-                "title": "Import Active Energy",
-                "type": "number",
-                "value": 0,
-                "unit": "kWh",
-                "readOnly": true,
-                "config": {
-                  "property": "default-property",
-                  "address": 0x0048,
-                  "table": "inputRegisters",
-                  "period": 10000
-                }
-              }
-            }
-          }
+          }//,
+          // {
+          //   "id": "lime-device-1",
+          //   "name": "Test-Device",
+          //   "type": ["modbus-device"],
+          //   "description": "This is a test device using test schema.",
+          //   "@context": "https://iot.mozilla.org/schemas",
+          //   "@type": [],
+          //   "config": {
+          //     "device": "modbus-rtu",
+          //     "script": "sdm120ct",
+          //     "engine": "modbus-engine-001",
+          //     "address": "12"
+          //   },
+          //   "properties": {
+          //     "addr12": {
+          //       "name": "addr12",
+          //       "label": "Active Power",
+          //       "title": "Active Power",
+          //       "unit": "W",
+          //       "readOnly": true,
+          //       "config": {
+          //         "property": "default-property",
+          //         "address": 12,
+          //         "table": "inputRegisters",
+          //         "period": 10000
+          //       }
+          //     },
+          //     "addr6": {
+          //       "name": "addr6",
+          //       "label": "Current",
+          //       "title": "Current",
+          //       "unit": "A",
+          //       "readOnly": true,
+          //       "config": {
+          //         "property": "default-property",
+          //         "address": 6,
+          //         "table": "inputRegisters",
+          //         "period": 10000
+          //       }
+          //     }
+          //   }
+          // }
+          // {
+          //   "id": "device-003",
+          //   "name": "SDM120CT Power Meter",
+          //   "type": ["modbus-device"],
+          //   "description": "Power meter install at room 519 on Pakawat's table on DIN rail together with another devices including Raspberry Pi which is install Mozilla-iot Gateway.",
+          //   "@context": `https://iot.mozilla.org/schemas`,
+          //   "@type": [`EnergyMonitor`],
+          //   "config": {
+          //     "device": "modbus-rtu",
+          //     "script": "sdm120ct",
+          //     "engine": "modbus-engine-001",
+          //     "address": 12
+          //   },
+          //   "properties": {
+          //     "voltage": {
+          //       "name": "voltage",
+          //       "label": "Voltage",
+          //       "title": "Voltage",
+          //       "type": "number",
+          //       "value": 0,
+          //       "unit": "V",
+          //       "readOnly": true,
+          //       "config": {
+          //         "property": "default-property",
+          //         "address": 0x0000,
+          //         "table": "inputRegisters",
+          //         "period": 5000
+          //       }
+          //     },
+          //     "current": {
+          //       "name": "current",
+          //       "label": "Current",
+          //       "title": "Current",
+          //       "type": "number",
+          //       "value": 0,
+          //       "unit": "A",
+          //       "readOnly": true,
+          //       "config": {
+          //         "property": "default-property",
+          //         "address": 0x0006,
+          //         "table": "inputRegisters",
+          //         "period": 5000
+          //       }
+          //     },
+          //     "iae": {
+          //       "name": "iae",
+          //       "label": "Import Active Energy",
+          //       "title": "Import Active Energy",
+          //       "type": "number",
+          //       "value": 0,
+          //       "unit": "kWh",
+          //       "readOnly": true,
+          //       "config": {
+          //         "property": "default-property",
+          //         "address": 0x0048,
+          //         "table": "inputRegisters",
+          //         "period": 10000
+          //       }
+          //     }
+          //   }
+          // }
         ]
       }
     }
