@@ -51,8 +51,10 @@ class DefaultProperty extends Property{
     let key = this.exConf.lock.period.key;
     return new Promise((resolve, reject) => {
       locker.acquire(key, async () => {
-        await this.periodWork();
-        this.period = setTimeout(() => this.setPeriodWork(), this.exConf.schema.config.period);
+        if(this.device) {
+          await this.periodWork();
+          this.period = setTimeout(() => this.setPeriodWork(), this.exConf.schema.config.period);
+        }
         return ;
       })
       .then(() => resolve());

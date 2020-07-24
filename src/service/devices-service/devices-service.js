@@ -36,7 +36,8 @@ class DevicesService extends Service {
     console.log(`DevicesService: init() >> `);
     return new Promise(async (resolve, reject) => {
       this.config = (config) ? config : this.config;
-      this.adapter = new vAdapter(this.addonManager, this.manifest.name);
+      //this.adapter = new vAdapter(this.addonManager, this.manifest.name);
+      await this.initAdapter();
       //this.initDeviceTemplate();
       resolve();
     });
@@ -45,7 +46,14 @@ class DevicesService extends Service {
   initAdapter() {
     console.log(`DevicesService: initAdapter() >> `);
     this.adapter = new vAdapter(this.addonManager, this.manifest.name);
-    this.adapter.handleDeviceRemoved
+    this.adapter.extEventEmitter.on(`remove`, (device) => this.onAdapterDeviceRemove(device));
+  }
+
+  onAdapterDeviceRemove(id) {
+    console.log(`DevicesService: onAdapterDeviceRemove() >> `);
+    let device = this.adapter.getDevice(id);
+    device.disableProperties();
+    return ;
   }
 
   initDevices() {
@@ -129,6 +137,18 @@ class DevicesService extends Service {
       }
       else {
         reject();
+      }
+    });
+  }
+
+  get(id, options) {
+    console.log(`DevicesService: get(${id})`);
+    return new Promise((resolve, reject) => {
+      if(id) {
+        let device = this.adapter.getDevice(id);
+      }
+      else {
+        let deviceList = this.adapter.getDevices();
       }
     });
   }
@@ -311,7 +331,7 @@ class vAdapter extends Adapter {
   removeThing(device) {
     console.log('ExampleAdapter:', this.name, 'id', this.id, 'removeThing(', device.id, ') started');
 
-    this.extEventEmitter.emit(`remove`, device);
+    this.extEventEmitter.emit(`remove`, device.id);
 
     this.removeDevice(device.id)
     .then(() => console.log('ExampleAdapter: device:', device.id, 'was unpaired.'))
