@@ -105,6 +105,12 @@ class SysportService extends Service {
     });
   }
 
+  addSerialPort(schema) {
+    //  Add to database.
+
+    //  Add to this service.
+  }
+
 }
 
 module.exports = SysportService;

@@ -18,8 +18,19 @@ class Service extends EventEmitter {
 
     this.config = JSON.parse(JSON.stringify(config));
     this.id = id;
+    this.initUtil();
     this.setupConfigHandler();
     //console.log(`Service constructor : ${this.id}`);
+  }
+
+  initUtil() {
+    this.util = {
+      "path": {
+        "trim": (path) => {
+          return path.replace(/^\//, ``).replace(/^\/$/, ``);
+        }
+      }
+    };
   }
 
   getSchema(options) {
@@ -32,6 +43,13 @@ class Service extends EventEmitter {
       return this.config[`service-config`][this.id];
     }
   }
+
+  // saveSchema(schema) {
+  //   return new Promise(async (resolve, reject) => {
+
+  //     resolve();
+  //   });
+  // }
 
   getConfig(options) {
     if(options && options.renew)
@@ -152,6 +170,25 @@ class Service extends EventEmitter {
     let buff = Buffer.from(data, `base64`);
     let result = buff.toString((encoding) ? encoding : `utf8`);
     return result;
+  }
+
+  jsonToArray(json, keyOfId) {
+    let arr = [];
+    for(let i in json) {
+      let elem = JSON.parse(JSON.stringify(json[i]));
+      if(keyOfId)
+        elem[keyOfId] = i;
+      arr.push(elem);
+    }
+    return arr;
+  }
+
+  arrayToJson(array, keyAttr) {
+    let json = {};
+    array.forEach((elem) => {
+      json[elem[keyAttr]] = elem;
+    });
+    return JSON.parse(JSON.stringify(json));
   }
 }
 

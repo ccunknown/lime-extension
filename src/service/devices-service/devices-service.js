@@ -88,19 +88,16 @@ class DevicesService extends Service {
   add(schema) {
     return new Promise(async (resolve, reject) => {
       console.log(`add: ${JSON.stringify(schema, null, 2)}`);
+
+      //  Check duplicate.
       let device = this.adapter.getDevice(schema.id);
       if(device) {
         console.warn(`Device id "${schema.id}" already exist. Remove old and add new!!!`);
         await this.remove(schema.id);
       }
-      let serviceSchema = this.getSchema();
-      let templates = (await this.getDirectorySchema(serviceSchema.directory, {"deep": true})).children;
-      console.log(`templates: ${JSON.stringify(templates, null, 2)}`);
-      let template = templates.find((elem) => {
-        console.log(`schema.config.device: ${schema.config.device}`);
-        console.log(`elem.name: ${elem.name}`);
-        return schema.config.device == elem.name;
-      });
+
+      //  Initial and Add device to adapter.
+      let template = await this.getTemplate(schema.config.device, {"deep": true});
       if(template) {
         console.log(`template: ${JSON.stringify(template, null, 2)}`);
         let path = Path.join(__dirname, `${template.path}`, `device`);
@@ -109,11 +106,18 @@ class DevicesService extends Service {
         device = new Obj(this, this.adapter, schema);
         await device.init();
         this.adapter.handleDeviceAdded(device);
-        resolve();
+        resolve(device.asThing());
       }
       else {
         reject(new Error(`Device template '${schema.config.device}' not found!!!`));
       }
+    });
+  }
+
+  addToDeviceList() {
+    return new Promise(async (resolve, reject) => {
+
+      resolve();
     });
   }
 
@@ -122,21 +126,15 @@ class DevicesService extends Service {
       //console.log(`schema: ${JSON.stringify(schema, null, 2)}`);
       let template = await this.getTemplate(schema.device.device, {"deep": true});
       if(template) {
-        let templateObj = require(`./${template.path.replace(/^\//, ``).replace(/^\/$/, ``)}/device`);
+        this.addToDeviceList(schema);
+        let templateObj = require(`./${this.util.path.trim(template.path)}/device`);
         let device = new templateObj(this, this.adapter, {"id": "test"});
         let thingSchema = await device.translateConfigSchema(schema);
-        //console.log(`thingSchema: ${JSON.stringify(thingSchema, null, 2)}`);
-        // let schema = await device.getConfigSchema(params);
-        // for(let i in schema.properties.device.properties)
-        //   baseSchema.properties.device.properties[i] = schema.properties.device.properties[i];
-        // baseSchema.properties.device.required = [...baseSchema.properties.device.required, ...schema.properties.device.required]
-        // schema.properties.device = baseSchema.properties.device;
-        // resolve(schema);
-        await this.add(thingSchema);
-        resolve(thingSchema);
+        let resultSchema = await this.add(thingSchema);
+        resolve(resultSchema);
       }
       else {
-        reject();
+        reject(new Error(`Template '${schema.device.device}' not found!!!`));
       }
     });
   }
@@ -146,9 +144,15 @@ class DevicesService extends Service {
     return new Promise((resolve, reject) => {
       if(id) {
         let device = this.adapter.getDevice(id);
+        let json = device.asThing();
+        resolve(JSON.parse(JSON.stringify(json)));
       }
       else {
         let deviceList = this.adapter.getDevices();
+        let json = [];
+        for(let i in deviceList)
+          json.push(deviceList[i].asThing());
+        resolve(JSON.parse(JSON.stringify(json)));
       }
     });
   }
@@ -210,7 +214,7 @@ class DevicesService extends Service {
       if(name) {
         let template = await this.getTemplate(name, {"deep": true});
         if(template) {
-          let templateObj = require(`./${template.path.replace(/^\//, ``).replace(/^\/$/, ``)}/device`);
+          let templateObj = require(`./${this.util.path.trim(template.path)}/device`);
           let device = new templateObj(this, this.adapter, {"id": "test"});
           let schema = await device.getConfigSchema(params);
           for(let i in schema.properties.device.properties)
@@ -280,7 +284,7 @@ class DevicesService extends Service {
     return new Promise(async (resolve, reject) => {
       let engines = this.enginesService.getSchema().list;
       console.log(`DevicesService: getCompatibleEngine(): ${JSON.stringify(engines, null, 2)}`);
-      let result = engines.filter((elem) => elem.engine == templateName);
+      let result = this.jsonToArray(engines, `id`).filter((elem) => elem.engine == templateName);
       result = result.map((elem) => elem.name);
       resolve(result);
     });
@@ -293,7 +297,7 @@ class DevicesService extends Service {
     let maxIndex = 10000;
     for(let i = 1;i < maxIndex;i++) {
       id = `lime-device-${i}`;
-      if(!deviceList.find((elem) => elem.id == id))
+      if(!deviceList.hasOwnProperty(id))
         break;
     }
     return id;

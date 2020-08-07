@@ -140,12 +140,26 @@ class ModbusRtu {
   }
 
   _act(cmd) {
-    //console.log(`ModbusRtu: _act() >> `);
-    console.log(`cmd : ${JSON.stringify(cmd)}`);
     return new Promise(async (resolve, reject) => {
       setTimeout(() => {
-        reject(new Error(`Engine command timeout.`));
-      }, 3000);
+        this.__act(cmd)
+        .then((res) => resolve(res))
+        .catch((err) => reject(err));
+      }, 20);
+    });
+  }
+
+  __act(cmd) {
+    //console.log(`ModbusRtu: _act() >> `);
+    let timestamp = (new Date()).toISOString();
+    console.log(`>>>>>> time: ${timestamp}`);
+    console.log(`cmd : ${JSON.stringify(cmd)}`);
+    return new Promise(async (resolve, reject) => {
+      let timeout = setTimeout(() => {
+        let timeerr = (new Date()).toISOString();
+        console.log(`>>>>>> error time: ${timestamp}/${timeerr}`);
+        reject(`Engine command timeout.`);
+      }, 500);
       if(this.state != `running`) {
         reject(new Error(`Port currently "${this.state}".`));
       }
@@ -161,6 +175,7 @@ class ModbusRtu {
         if(func) {
           try {
             val = await func(cmd.address, cmd.numtoread);
+            clearTimeout(timeout);
             resolve(val);
           }
           catch(err) {
@@ -180,3 +195,4 @@ class ModbusRtu {
 }
 
 module.exports = ModbusRtu
+

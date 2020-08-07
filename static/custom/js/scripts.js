@@ -41,8 +41,8 @@ export default class PageScripts {
               "hide": true,
               "ready": false,
               "edit": true,
-              "form": this.ui.generateData(this.ui.shortJsonElement(schema, `items`)),
-              //"formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `items`))
+              "form": this.ui.generateData(this.ui.shortJsonElement(schema, `.+`)),
+              //"formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `.+`))
             },
             "base": {
               "ready": false
@@ -250,7 +250,7 @@ export default class PageScripts {
       }
       else {
         this.vue.ui.slider.edit = true;
-        let schema = this.ui.shortJsonElement(this.vue.resource.schema, `items`);
+        let schema = this.ui.shortJsonElement(this.vue.resource.schema, `.+`);
         this.vue.ui.slider.form = this.ui.generateData(schema);
         this.vue.ui.slider.form.children = [];
         resolve();

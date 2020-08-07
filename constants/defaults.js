@@ -39,8 +39,8 @@ var Defaults = {
     "service-config": {
       //  Port Service
       "sysport-service": {
-        "list": [
-          {
+        "list": {
+          "modbus-01": {
             "name": "modbus-01",
             "path": "/dev/ttyUSB0",
             "config": {
@@ -52,29 +52,29 @@ var Defaults = {
               "autoOpen": false
             }
           }
-        ]
+        }
       },
       //  Engine Service
       "engines-service": {
         "directory": "/engines",
-        "list": [
-          {
+        "list": {
+          "modbus-engine-001": {
             "name": "modbus-engine-001",
             "engine": "modbus-rtu",
             "port": "modbus-01"
           }
-        ]
+        }
       },
       //  Script Service
       "scripts-service": {
         "directory": "/scripts",
-        "list": []
+        "list": {}
       },
       //  Device Service
       "devices-service": {
         "directory": "/devices",
-        "list": [
-          {
+        "list": {
+          "device-002": {
             "id": "device-002",
             "name": "SDM120CT Power Meter",
             "type": ["modbus-device"],
@@ -134,111 +134,8 @@ var Defaults = {
                 }
               }
             }
-          }//,
-          // {
-          //   "id": "lime-device-1",
-          //   "name": "Test-Device",
-          //   "type": ["modbus-device"],
-          //   "description": "This is a test device using test schema.",
-          //   "@context": "https://iot.mozilla.org/schemas",
-          //   "@type": [],
-          //   "config": {
-          //     "device": "modbus-rtu",
-          //     "script": "sdm120ct",
-          //     "engine": "modbus-engine-001",
-          //     "address": "12"
-          //   },
-          //   "properties": {
-          //     "addr12": {
-          //       "name": "addr12",
-          //       "label": "Active Power",
-          //       "title": "Active Power",
-          //       "unit": "W",
-          //       "readOnly": true,
-          //       "config": {
-          //         "property": "default-property",
-          //         "address": 12,
-          //         "table": "inputRegisters",
-          //         "period": 10000
-          //       }
-          //     },
-          //     "addr6": {
-          //       "name": "addr6",
-          //       "label": "Current",
-          //       "title": "Current",
-          //       "unit": "A",
-          //       "readOnly": true,
-          //       "config": {
-          //         "property": "default-property",
-          //         "address": 6,
-          //         "table": "inputRegisters",
-          //         "period": 10000
-          //       }
-          //     }
-          //   }
-          // }
-          // {
-          //   "id": "device-003",
-          //   "name": "SDM120CT Power Meter",
-          //   "type": ["modbus-device"],
-          //   "description": "Power meter install at room 519 on Pakawat's table on DIN rail together with another devices including Raspberry Pi which is install Mozilla-iot Gateway.",
-          //   "@context": `https://iot.mozilla.org/schemas`,
-          //   "@type": [`EnergyMonitor`],
-          //   "config": {
-          //     "device": "modbus-rtu",
-          //     "script": "sdm120ct",
-          //     "engine": "modbus-engine-001",
-          //     "address": 12
-          //   },
-          //   "properties": {
-          //     "voltage": {
-          //       "name": "voltage",
-          //       "label": "Voltage",
-          //       "title": "Voltage",
-          //       "type": "number",
-          //       "value": 0,
-          //       "unit": "V",
-          //       "readOnly": true,
-          //       "config": {
-          //         "property": "default-property",
-          //         "address": 0x0000,
-          //         "table": "inputRegisters",
-          //         "period": 5000
-          //       }
-          //     },
-          //     "current": {
-          //       "name": "current",
-          //       "label": "Current",
-          //       "title": "Current",
-          //       "type": "number",
-          //       "value": 0,
-          //       "unit": "A",
-          //       "readOnly": true,
-          //       "config": {
-          //         "property": "default-property",
-          //         "address": 0x0006,
-          //         "table": "inputRegisters",
-          //         "period": 5000
-          //       }
-          //     },
-          //     "iae": {
-          //       "name": "iae",
-          //       "label": "Import Active Energy",
-          //       "title": "Import Active Energy",
-          //       "type": "number",
-          //       "value": 0,
-          //       "unit": "kWh",
-          //       "readOnly": true,
-          //       "config": {
-          //         "property": "default-property",
-          //         "address": 0x0048,
-          //         "table": "inputRegisters",
-          //         "period": 10000
-          //       }
-          //     }
-          //   }
-          // }
-        ]
+          }
+        }
       }
     }
   },
@@ -289,62 +186,66 @@ var Defaults = {
             "additionalProperties": false,
             "properties": {
               "list": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "required": ["name", "path", "config"],
-                  "additionalProperties": false,
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                    },
-                    "path": {
-                      "type": "string",
-                    },
-                    "config": {
-                      "type": "object",
-                      "required": [],
-                      "additionalProperties": false,
-                      "properties": {
-                        "baudRate": {
-                          "type": "number",
-                          "default": 9600,
-                          "enum": [
-                            1200,
-                            2400,
-                            4800,
-                            9600,
-                            19200,
-                            38400,
-                            57600,
-                            115200,
-                            230400,
-                            460800,
-                            921600
-                          ]
-                        },
-                        "databits": {
-                          "type": "number",
-                          "default": 8,
-                          "enum": [8, 7]
-                        },
-                        "parity": {
-                          "type": "string",
-                          "default": "none",
-                          "enum": ["none", "even", "odd", "mark", "space"]
-                        },
-                        "stopbits": {
-                          "type": "number",
-                          "default": 1,
-                          "enum": [1, 2]
-                        },
-                        "flowControl": {
-                          "type": "boolean",
-                          "default": false
-                        },
-                        "autoOpen": {
-                          "type": "boolean",
-                          "default": false
+                "type": "object",
+                "default": {},
+                "additionalProperties": false,
+                "patternProperties": {
+                  ".+": {
+                    "type": "object",
+                    "required": ["name", "path", "config"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                      },
+                      "path": {
+                        "type": "string",
+                      },
+                      "config": {
+                        "type": "object",
+                        "required": [],
+                        "additionalProperties": false,
+                        "properties": {
+                          "baudRate": {
+                            "type": "number",
+                            "default": 9600,
+                            "enum": [
+                              1200,
+                              2400,
+                              4800,
+                              9600,
+                              19200,
+                              38400,
+                              57600,
+                              115200,
+                              230400,
+                              460800,
+                              921600
+                            ]
+                          },
+                          "databits": {
+                            "type": "number",
+                            "default": 8,
+                            "enum": [8, 7]
+                          },
+                          "parity": {
+                            "type": "string",
+                            "default": "none",
+                            "enum": ["none", "even", "odd", "mark", "space"]
+                          },
+                          "stopbits": {
+                            "type": "number",
+                            "default": 1,
+                            "enum": [1, 2]
+                          },
+                          "flowControl": {
+                            "type": "boolean",
+                            "default": false
+                          },
+                          "autoOpen": {
+                            "type": "boolean",
+                            "default": false
+                          }
                         }
                       }
                     }
@@ -363,20 +264,24 @@ var Defaults = {
                 "type": "string"
               },
               "list": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "required": ["name", "engine", "port"],
-                  "additionalProperties": false,
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "engine": {
-                      "type": "string"
-                    },
-                    "port": {
-                      "type": "string"
+                "type": "object",
+                "default": {},
+                "additionalProperties": false,
+                "patternProperties": {
+                  ".+": {
+                    "type": "object",
+                    "required": ["name", "engine", "port"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "engine": {
+                        "type": "string"
+                      },
+                      "port": {
+                        "type": "string"
+                      }
                     }
                   }
                 }
@@ -393,48 +298,51 @@ var Defaults = {
                 "type": "string"
               },
               "list": {
-                "type": "array",
-                "default": [],
-                "items": {
-                  "$id": "#fileStructurObject",
-                  "type": "object",
-                  "required": ["name", "type", "meta", "children"],
-                  "additionalProperties": false,
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "type": {
-                      "type": "string",
-                      "default": "directory",
-                      "enum": ["directory", "file"]
-                    },
-                    "meta": {
-                      "type": "object",
-                      "required": [],
-                      "additionalProperties": false,
-                      "properties": {
-                        "title": {
-                          "type": "string"
-                        },
-                        "description": {
-                          "type": "string"
-                        },
-                        "tags": {
-                          "type": "array",
-                          "default": [],
-                          "items": {
+                "type": "object",
+                "default": {},
+                "additionalProperties": false,
+                "patternProperties": {
+                  ".+": {
+                    "$id": "#fileStructurObject",
+                    "type": "object",
+                    "required": ["name", "type", "meta", "children"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "default": "directory",
+                        "enum": ["directory", "file"]
+                      },
+                      "meta": {
+                        "type": "object",
+                        "required": [],
+                        "additionalProperties": false,
+                        "properties": {
+                          "title": {
                             "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "tags": {
+                            "type": "array",
+                            "default": [],
+                            "items": {
+                              "type": "string"
+                            }
                           }
                         }
-                      }
-                    },
-                    "children": {
-                      "type": "array",
-                      "default": [],
-                      "items": {
-                        "${ref}": "#fileStructurObject",
-                        "required": ["name", "type"]
+                      },
+                      "children": {
+                        "type": "array",
+                        "default": [],
+                        "items": {
+                          "${ref}": "#fileStructurObject",
+                          "required": ["name", "type"]
+                        }
                       }
                     }
                   }
@@ -452,79 +360,83 @@ var Defaults = {
                 "type": "string"
               },
               "list": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "required": ["id", "name", "type", "@context", "@type", "config", "properties"],
-                  "additionalProperties": false,
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "type": {
-                      "type": "array",
-                      "default": [],
-                      "items": {
+                "type": "object",
+                "default": {},
+                "additionalProperties": false,
+                "patternProperties": {
+                  ".+": {
+                    "type": "object",
+                    "required": ["id", "name", "type", "@context", "@type", "config", "properties"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
                         "type": "string"
-                      }
-                    },
-                    "description": {
-                      "type": "string"
-                    },
-                    "@context": {
-                      "type": "string"
-                    },
-                    "@type": {
-                      "type": "array",
-                      "items": {
+                      },
+                      "name": {
                         "type": "string"
-                      }
-                    },
-                    "config": {
-                      "type": "object",
-                      "required": ["engine", "script"],
-                      "additionalProperties": true,
-                      "properties": {
-                        "device": {
+                      },
+                      "type": {
+                        "type": "array",
+                        "default": [],
+                        "items": {
                           "type": "string"
                         }
-                      }
-                    },
-                    "properties": {
-                      "type": "object",
-                      "patternProperties": {
-                        "^.+$": {
-                          "type": "object",
-                          "required": ["name", "type", "value", "readOnly", "config"],
-                          "additionalProperties": false,
-                          "properties": {
-                            "name": {
-                              "type": "string"
-                            },
-                            "label": {
-                              "type": "string"
-                            },
-                            "title": {
-                              "type": "string"
-                            },
-                            "type": {
-                              "type": "string",
-                              "enum": ["string", "number", "boolean"]
-                            },
-                            "value": {
-                              "type": ["string", null, "number", "boolean"]
-                            },
-                            "unit": {
-                              "type": "string"
-                            },
-                            "readOnly": {
-                              "type": "boolean"
-                            },
-                            "config": {
-                              "type": "object"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "@context": {
+                        "type": "string"
+                      },
+                      "@type": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "config": {
+                        "type": "object",
+                        "required": ["engine", "script"],
+                        "additionalProperties": true,
+                        "properties": {
+                          "device": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "properties": {
+                        "type": "object",
+                        "patternProperties": {
+                          "^.+$": {
+                            "type": "object",
+                            "required": ["name", "type", "value", "readOnly", "config"],
+                            "additionalProperties": false,
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string",
+                                "enum": ["string", "number", "boolean"]
+                              },
+                              "value": {
+                                "type": ["string", null, "number", "boolean"]
+                              },
+                              "unit": {
+                                "type": "string"
+                              },
+                              "readOnly": {
+                                "type": "boolean"
+                              },
+                              "config": {
+                                "type": "object"
+                              }
                             }
                           }
                         }

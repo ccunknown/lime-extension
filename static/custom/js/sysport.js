@@ -35,8 +35,8 @@ export default class PageSysport {
             "slider": {
               "hide": true,
               "ready": false,
-              "form": this.ui.generateData(this.ui.shortJsonElement(schema, `items`)),
-              "formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `items`))
+              "form": this.ui.generateData(this.ui.shortJsonElement(schema, `.+`)),
+              "formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `.+`))
             },
             "base": {
               "ready": false
@@ -49,7 +49,6 @@ export default class PageSysport {
             "remove": () => {},
             "save": () => {},
             "updatePortList": () => {},
-            "isAvailable": () => {},
             "shortSchemaCall": () => {}
           }
         },
@@ -81,10 +80,6 @@ export default class PageSysport {
         "updatePortList": async () => {
           console.log(`sysport.updatePortList()`);
           this.vue.resource.portList = await this.getPortList();
-        },
-        "isAvailable": (port) => {
-          console.log(`sysport.isAvailable()`);
-          return !this.vue.resource.config.list.find((elem) => elem.path == port.path);
         },
         "shortSchemaCall": (key) => {
           let res = this.ui.shortJsonElement(this.vue.resource.schema, key);
@@ -129,7 +124,7 @@ export default class PageSysport {
     return new Promise(async (resolve, reject) => {
       this.vue.ui.slider.ready = false;
       this.vue.ui.slider.hide = false;
-      this.console.log(`ui slider : ${JSON.stringify(this.vue.ui.slider, null, 2)}`);
+      //this.console.log(`ui slider : ${JSON.stringify(this.vue.ui.slider, null, 2)}`);
       //this.ui.saidObj(`content.sysport.slider`).removeClass(`hide`);
       //(name) ? await this.renderEditForm(name) : await this.renderAddForm();
       await this.renderForm(name);
@@ -151,24 +146,28 @@ export default class PageSysport {
 
         //this.console.log(`add before short : ${JSON.stringify(schema, null, 2)}`);
 
-        let schema = this.ui.shortJsonElement(this.vue.resource.schema, `items`);
+        let schema = this.ui.shortJsonElement(this.vue.resource.schema, `.+`);
 
         if(name)
-          this.vue.ui.slider.form = this.vue.resource.config.list.find((elem) => elem.name == name);
+          this.vue.ui.slider.form = this.vue.resource.config.list[name];
         else
           this.vue.ui.slider.form = this.ui.generateData(schema);
 
         this.vue.ui.slider.formTemplate = this.ui.generateVueData(schema);
         this.vue.ui.slider.formTemplate.path.enum = this.vue.resource.portlist.map((elem) => {
+          let disabled = false;
+          for(let i in this.vue.resource.config.list)
+            if(this.vue.resource.config.list[i].path == elem.path && this.vue.resource.config.list[i] != name)
+              disabled = true;
           return {
             "title": elem.path,
             "value": elem.path,
-            "disabled": this.vue.resource.config.list.find((conf) => conf.path == elem.path && conf.name != name) != undefined
+            "disabled": disabled
           }
         });
 
-        this.console.log(`form : ${JSON.stringify(this.vue.ui.slider.form, null, 2)}`);
-        this.console.log(`form template : ${JSON.stringify(this.vue.ui.slider.formTemplate, null, 2)}`);
+        //this.console.log(`form : ${JSON.stringify(this.vue.ui.slider.form, null, 2)}`);
+        //this.console.log(`form template : ${JSON.stringify(this.vue.ui.slider.formTemplate, null, 2)}`);
 
         resolve();
       });
@@ -205,15 +204,6 @@ export default class PageSysport {
         });
       }
       resolve(data);
-    });
-  }
-
-  isAvailable(port) {
-    return new Promise(async (resolve, reject) => {
-      let config = await this.getConfig();
-      let result = !config.list.find((elem) => port.path == elem.path);
-      console.log(`result : ${result}`);
-      return result;
     });
   }
 }

@@ -38,6 +38,14 @@ class RoutesManager extends APIHandler{
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
+          "POST": (req) => {
+            return new Promise(async (resolve, reject) => {
+              let params = this.getParameters(req);
+              this.configManager.addToConfig(req.body, params.path)
+              .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
           "PUT": (req) => {
             return new Promise(async (resolve, reject) => {
               this.configManager.saveConfig(req.body)
@@ -45,11 +53,27 @@ class RoutesManager extends APIHandler{
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
+          "PATCH": (req) => {
+            return new Promise(async (resolve, reject) => {
+              let params = this.getParameters(req);
+              this.configManager.updateConfig(req.body, params.path)
+              .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
           "DELETE": (req) => {
             return new Promise(async (resolve, reject) => {
-              this.configManager.saveConfig({})
-              .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
-              .catch((err) => resolve(this.catchErrorRespond(err)));
+              let params = this.getParameters(req);
+              if(this.configManager.isEmptyObject(params)) {
+                this.configManager.saveConfig({})
+                .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+              }
+              else {
+                this.configManager.deleteConfig(params.path)
+                .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+              }
             });
           }
         }
@@ -175,7 +199,7 @@ class RoutesManager extends APIHandler{
         }
       },
 
-      /***  Resource : /service/devicesSconfigSchema/name  ***/
+      /***  Resource : /service/devicesSconfigSchema  ***/
       {
         "resource": /\/service\/deviceConfigSchema/,
         "method": {
@@ -362,6 +386,13 @@ class RoutesManager extends APIHandler{
               //this.laborsManager.getService(`sysport-service`)
               //.then((service) => service.obj.getSerialPortList())
               .then((serialPortList) => resolve(this.makeJsonRespond(JSON.stringify(serialPortList))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          "POST": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`sysport-service`).obj.addSerialPort()
+              .then((serialPort) => resolve(this.makeJsonRespond(JSON.stringify(serialPort))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           }

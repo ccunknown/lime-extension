@@ -42,8 +42,8 @@ export default class PageEngines {
             "slider": {
               "hide": true,
               "ready": false,
-              "form": this.ui.generateData(this.ui.shortJsonElement(schema, `items`)),
-              "formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `items`))
+              "form": this.ui.generateData(this.ui.shortJsonElement(schema, `.+`)),
+              "formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `.+`))
             },
             "base": {
               "ready": false
@@ -150,10 +150,10 @@ export default class PageEngines {
 
         //this.console.log(`add before short : ${JSON.stringify(schema, null, 2)}`);
 
-        let schema = this.ui.shortJsonElement(this.vue.resource.schema, `items`);
+        let schema = this.ui.shortJsonElement(this.vue.resource.schema, `.+`);
 
         if(name)
-          this.vue.ui.slider.form = this.vue.resource.config.list.find((elem) => elem.name == name);
+          this.vue.ui.slider.form = this.vue.resource.config.list[name];
         else
           this.vue.ui.slider.form = this.ui.generateData(schema);
 
