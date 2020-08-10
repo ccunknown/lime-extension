@@ -4,8 +4,8 @@ const AsyncLock = require('async-lock');
 const {Property} = require('gateway-addon');
 
 class DefaultProperty extends Property{
-  constructor(device, schema) {
-    super(device, schema.name, schema);
+  constructor(device, name, schema) {
+    super(device, name, schema);
     /*
     constructor(device, name, propertyDescr) {
       this.device = device;

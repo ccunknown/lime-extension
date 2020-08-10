@@ -62,7 +62,7 @@ class DevicesService extends Service {
       let serviceSchema = this.getSchema();
       let list = serviceSchema.list;
       for(let i in list) {
-        await this.add(list[i]);
+        await this.addToService(i, list[i]);
       }
       resolve();
     });
@@ -85,7 +85,7 @@ class DevicesService extends Service {
     });
   }
 
-  add(schema) {
+  addToService(id, schema) {
     return new Promise(async (resolve, reject) => {
       console.log(`add: ${JSON.stringify(schema, null, 2)}`);
 
@@ -97,13 +97,14 @@ class DevicesService extends Service {
       }
 
       //  Initial and Add device to adapter.
-      let template = await this.getTemplate(schema.config.device, {"deep": true});
+      let template = await this.getTemplate(schema.template, {"deep": true});
       if(template) {
         console.log(`template: ${JSON.stringify(template, null, 2)}`);
         let path = Path.join(__dirname, `${template.path}`, `device`);
         console.log(`path: ${path}`);
         let Obj = require(path);
-        device = new Obj(this, this.adapter, schema);
+        device = new Obj(this, this.adapter, id, schema);
+        //await device.init();
         await device.init();
         this.adapter.handleDeviceAdded(device);
         resolve(device.asThing());
@@ -114,27 +115,28 @@ class DevicesService extends Service {
     });
   }
 
-  addToDeviceList() {
+  addToConfig(id, schema) {
     return new Promise(async (resolve, reject) => {
-
-      resolve();
+      this.configManager.addToConfig(schema, `service-config.devices-service.list.${id}`)
+      .then((res) => resolve(res))
+      .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
     });
   }
 
-  addWithConfigSchema(schema) {
+  add(schema) {
     return new Promise(async (resolve, reject) => {
       //console.log(`schema: ${JSON.stringify(schema, null, 2)}`);
-      let template = await this.getTemplate(schema.device.device, {"deep": true});
+      let template = await this.getTemplate(schema.template, {"deep": true});
       if(template) {
-        this.addToDeviceList(schema);
-        let templateObj = require(`./${this.util.path.trim(template.path)}/device`);
-        let device = new templateObj(this, this.adapter, {"id": "test"});
-        let thingSchema = await device.translateConfigSchema(schema);
-        let resultSchema = await this.add(thingSchema);
-        resolve(resultSchema);
+        let id = this.generateId();
+        this.addToConfig(id, schema)
+        .then((res) => this.addToService(id, schema))
+        .then((res) => this.reloadConfig())
+        .then((res) => resolve(res))
+        .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
       }
       else {
-        reject(new Error(`Template '${schema.device.device}' not found!!!`));
+        reject(new Error(`Template '${schema.device.template}' not found!!!`));
       }
     });
   }
@@ -161,67 +163,51 @@ class DevicesService extends Service {
     console.log(`DevicesService: getDeviceConfigSchema()`);
     return new Promise(async (resolve, reject) => {
       let deviceTemplateList = await this.getTemplate(null, {"deep": true});
-      if(!params || !params.device || !params.device.device) {
-        if(deviceTemplateList.length > 0) {
-          if(!params)
-            params = {};
-          else if(!params.device)
-            params.device = {};
-          params.device.device = deviceTemplateList[0].name;
-        }
-      }
-          
-      let name = (params && params.device) ? params.device.device : undefined;
       let baseSchema = {
         "type": "object",
-        "required": [`device`, `properties`],
+        "required": [`name`, `description`, `template`],
         "additionalProperties": false,
         "properties": {
-          "device": {
-            "type": "object",
-            "required": [`id`, `name`, `device`],
-            "additionalProperties": false,
-            "properties": {
-              "id": {
-                "type": "string",
-                "title": "ID",
-                "const": this.generateId()
-              },
-              "name": {
-                "type": "string",
-                "title": "Name",
-                "attrs": {
-                  "placeholder": "Device's display name"
-                }
-              },
-              "description": {
-                "type": "string",
-                "title": "Description",
-                "attrs": {
-                  "type": "textarea",
-                  "placeholder": "Device's description"
-                }
-              },
-              "device": {
-                "type": "string",
-                "title": "Device",
-                "enum": deviceTemplateList.map((elem) => elem.name)
-              }
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "attrs": {
+              "placeholder": "Device's display name"
             }
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "attrs": {
+              "type": "textarea",
+              "placeholder": "Device's description"
+            }
+          },
+          "template": {
+            "type": "string",
+            "title": "Template",
+            "enum": deviceTemplateList.map((elem) => elem.name),
+            "alternate": true
           }
         }
       };
-      if(name) {
-        let template = await this.getTemplate(name, {"deep": true});
+
+      let templateName = (params) ? params.template : undefined;
+      if(templateName) {
+        let template = await this.getTemplate(templateName, {"deep": true});
         if(template) {
           let templateObj = require(`./${this.util.path.trim(template.path)}/device`);
           let device = new templateObj(this, this.adapter, {"id": "test"});
-          let schema = await device.getConfigSchema(params);
-          for(let i in schema.properties.device.properties)
-            baseSchema.properties.device.properties[i] = schema.properties.device.properties[i];
-          baseSchema.properties.device.required = [...baseSchema.properties.device.required, ...schema.properties.device.required]
-          schema.properties.device = baseSchema.properties.device;
+          //let schema = await device.getConfigSchema(params);
+          let schema = await device.configTranslator.getConfig(params);
+          for(let i in schema.properties)
+            baseSchema.properties[i] = schema.properties[i];
+          baseSchema.required = [...baseSchema.required, ...schema.required]
+          schema = baseSchema;
           resolve(schema);
+        }
+        else {
+          reject(new Errors.QueryParameterNotFound([`template`, templateName]));
         }
       }
       else {

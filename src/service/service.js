@@ -64,7 +64,7 @@ class Service extends EventEmitter {
   }
 
   reloadConfig() {
-    console.log(`laborsManager: reloadConfig() >> `);
+    console.log(`Service: reloadConfig() >> `);
     return new Promise(async (resolve, reject) => {
       this.config = JSON.parse(JSON.stringify(await this.configManager.getConfig()));
       resolve(this.config);

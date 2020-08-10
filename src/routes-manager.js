@@ -65,8 +65,8 @@ class RoutesManager extends APIHandler{
             return new Promise(async (resolve, reject) => {
               let params = this.getParameters(req);
               if(this.configManager.isEmptyObject(params)) {
-                this.configManager.saveConfig({})
-                .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
+                this.configManager.deleteConfig()
+                .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
               else {
@@ -157,7 +157,7 @@ class RoutesManager extends APIHandler{
           },
           "PUT": (req) => {
             return new Promise((resolve, reject) => {
-              this.laborsManager.getService(`devices-service`).obj.addWithConfigSchema(req.body)
+              this.laborsManager.getService(`devices-service`).obj.add(req.body)
               .then((json) => resolve(this.makeJsonRespond(JSON.stringify(json))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });

@@ -112,15 +112,12 @@ export default class PageDevices {
           console.log(position);
           let preRequireList = this.getPreRequire(this.vue.resource.deviceConfigSchema);
           console.log(`preRequireList: ${preRequireList}`);
-          if(position == `device.device` || preRequireList.includes(position))
+          if(position == `template` || preRequireList.includes(position))
             this.renewDeviceConfigSchema();
-          // let params = {
-          //   config: this.vue.ui.slider.form.config,
-          //   properties: this.vue.ui.slider.form.properties
-          // };
-          // this.vue.resource.deviceConfigSchema = await this.getDeviceConfigSchema(params);
-          // this.vue.ui.slider.formTemplate.config = this.ui.generateVueData(this.vue.resource.deviceConfigSchema.config);
-          // this.vue.ui.slider.formTemplate.properties.config = this.ui.generateVueData(this.vue.resource.deviceConfigSchema.properties.items);
+        },
+        "onAlternateChange": () => {
+          console.log(`onAlternateChange() >> `);
+          this.renewDeviceConfigSchema();
         },
         "typeIdentify": (param) => {
           let type = undefined;
@@ -134,14 +131,16 @@ export default class PageDevices {
             type = `number`;
           else if(param.type == `boolean`)
             type = `check`;
+          else if(param.type == `object`)
+            type = `object`
           //this.console.log(`${param.title} : ${type}`);
           return type;
         },
         "isDisabled": (param) => {
           if(param.const)
             return true;
-          else if(param.prerequire)
-            return true;
+          // else if(param.prerequire)
+          //   return true;
           return false;
         },
         "defaultValue": (param) => {
@@ -347,8 +346,12 @@ export default class PageDevices {
       list = this.getPreRequire(schema.items);
     }
     else if(schema.type == `object`) {
-      for(let i in schema.properties)
-        list = [...list, ...this.getPreRequire(schema.properties[i])];
+      if(schema.properties)
+        for(let i in schema.properties)
+          list = [...list, ...this.getPreRequire(schema.properties[i])];
+      if(schema.patternProperties)
+        for(let i in schema.patternProperties)
+          list = [...list, ...this.getPreRequire(schema.patternProperties[i])];
     }
     return list;
   }
@@ -357,6 +360,11 @@ export default class PageDevices {
     if(schema.properties) {
       for(let i in schema.properties)
         schema.properties[i] = this.embedPosition(schema.properties[i], `${(prefix) ? `${prefix}.` : ``}${i}`);
+      return schema;
+    }
+    else if(schema.patternProperties) {
+      for(let i in schema.properties)
+        schema.properties[i] = this.embedPosition(schema.patternProperties[i], `${(prefix) ? `${prefix}.` : ``}${i}`);
       return schema;
     }
     else if(schema.items) {

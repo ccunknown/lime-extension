@@ -127,6 +127,16 @@ const errDef = [
     }
   },
   {
+    "name": "QueryParameterNotFound",
+    "extends": Error,
+    "super": (arg) => `Parameter '${arg[0]}' with value '${arg[1]}' not found.`,
+    "httpResponse": {
+      "status": 400,
+      "contentType": "application/json",
+      "contentIndex": "message"
+    }
+  },
+  {
     "name": "ObjectPathNameMismatch",
     "extends": Error,
     "super": (arg) => `Object url path mismatch to payload (found '${arg}').`,

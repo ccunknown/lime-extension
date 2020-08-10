@@ -74,67 +74,28 @@ var Defaults = {
       "devices-service": {
         "directory": "/devices",
         "list": {
-          "device-002": {
-            "id": "device-002",
-            "name": "SDM120CT Power Meter",
-            "type": ["modbus-device"],
-            "description": "Power meter install at room 519 on Pakawat's table on DIN rail together with another devices including Raspberry Pi which is install Mozilla-iot Gateway.",
-            "@context": `https://iot.mozilla.org/schemas`,
-            "@type": [`EnergyMonitor`],
-            "config": {
-              "device": "modbus-rtu",
-              "script": "sdm120ct",
-              "engine": "modbus-engine-001",
-              "address": 11
-            },
-            "properties": {
-              "voltage": {
-                "name": "voltage",
-                "label": "Voltage",
-                "title": "Voltage",
-                "type": "number",
-                "value": 0,
-                "unit": "V",
-                "readOnly": true,
-                "config": {
-                  "property": "default-property",
-                  "address": 0x0000,
-                  "table": "inputRegisters",
-                  "period": 5000
-                }
-              },
-              "current": {
-                "name": "current",
-                "label": "Current",
-                "title": "Current",
-                "type": "number",
-                "value": 0,
-                "unit": "A",
-                "readOnly": true,
-                "config": {
-                  "property": "default-property",
-                  "address": 0x0006,
-                  "table": "inputRegisters",
-                  "period": 5000
-                }
-              },
-              "iae": {
-                "name": "iae",
-                "label": "Import Active Energy",
-                "title": "Import Active Energy",
-                "type": "number",
-                "value": 0,
-                "unit": "kWh",
-                "readOnly": true,
-                "config": {
-                  "property": "default-property",
-                  "address": 0x0048,
-                  "table": "inputRegisters",
-                  "period": 10000
-                }
-              }
-            }
-          }
+          // "lime-device-1": {
+          //   "name": "SDM120CT Power Meter",
+          //   "description": "Power meter install at room 519 on Pakawat's table on DIN rail together with another devices including Raspberry Pi which is install Mozilla-iot Gateway.",
+          //   "template": "modbus-rtu",
+          //   "script": "sdm120ct",
+          //   "engine": "modbus-engine-001",
+          //   "address": 11,
+          //   "properties": {
+          //     "prop-01": {
+          //       "template": "default-property",
+          //       "table": "inputRegisters",
+          //       "address": "Apparent Power [Addr:12]",
+          //       "period": 5000
+          //     },
+          //     "prop-02": {
+          //       "template": "default-property",
+          //       "table": "inputRegisters",
+          //       "address": "Current [Addr:6]",
+          //       "period": 5000
+          //     }
+          //   }
+          // }
         }
       }
     }
@@ -366,83 +327,103 @@ var Defaults = {
                 "patternProperties": {
                   ".+": {
                     "type": "object",
-                    "required": ["id", "name", "type", "@context", "@type", "config", "properties"],
-                    "additionalProperties": false,
+                    "required": ["name", "description", "template", "properties"],
+                    "additionalProperties": true,
                     "properties": {
-                      "id": {
-                        "type": "string"
-                      },
                       "name": {
                         "type": "string"
-                      },
-                      "type": {
-                        "type": "array",
-                        "default": [],
-                        "items": {
-                          "type": "string"
-                        }
                       },
                       "description": {
                         "type": "string"
                       },
-                      "@context": {
+                      "template": {
                         "type": "string"
-                      },
-                      "@type": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "config": {
-                        "type": "object",
-                        "required": ["engine", "script"],
-                        "additionalProperties": true,
-                        "properties": {
-                          "device": {
-                            "type": "string"
-                          }
-                        }
                       },
                       "properties": {
                         "type": "object",
-                        "patternProperties": {
-                          "^.+$": {
-                            "type": "object",
-                            "required": ["name", "type", "value", "readOnly", "config"],
-                            "additionalProperties": false,
-                            "properties": {
-                              "name": {
-                                "type": "string"
-                              },
-                              "label": {
-                                "type": "string"
-                              },
-                              "title": {
-                                "type": "string"
-                              },
-                              "type": {
-                                "type": "string",
-                                "enum": ["string", "number", "boolean"]
-                              },
-                              "value": {
-                                "type": ["string", null, "number", "boolean"]
-                              },
-                              "unit": {
-                                "type": "string"
-                              },
-                              "readOnly": {
-                                "type": "boolean"
-                              },
-                              "config": {
-                                "type": "object"
-                              }
-                            }
-                          }
-                        }
+                        "default": {}
                       }
                     }
                   }
+                  // ".+": {
+                  //   "type": "object",
+                  //   "required": ["id", "name", "type", "@context", "@type", "config", "properties"],
+                  //   "additionalProperties": false,
+                  //   "properties": {
+                  //     "id": {
+                  //       "type": "string"
+                  //     },
+                  //     "name": {
+                  //       "type": "string"
+                  //     },
+                  //     "type": {
+                  //       "type": "array",
+                  //       "default": [],
+                  //       "items": {
+                  //         "type": "string"
+                  //       }
+                  //     },
+                  //     "description": {
+                  //       "type": "string"
+                  //     },
+                  //     "@context": {
+                  //       "type": "string"
+                  //     },
+                  //     "@type": {
+                  //       "type": "array",
+                  //       "items": {
+                  //         "type": "string"
+                  //       }
+                  //     },
+                  //     "config": {
+                  //       "type": "object",
+                  //       "required": ["engine", "script"],
+                  //       "additionalProperties": true,
+                  //       "properties": {
+                  //         "device": {
+                  //           "type": "string"
+                  //         }
+                  //       }
+                  //     },
+                  //     "properties": {
+                  //       "type": "object",
+                  //       "patternProperties": {
+                  //         "^.+$": {
+                  //           "type": "object",
+                  //           "required": ["name", "type", "value", "readOnly", "config"],
+                  //           "additionalProperties": false,
+                  //           "properties": {
+                  //             "name": {
+                  //               "type": "string"
+                  //             },
+                  //             "label": {
+                  //               "type": "string"
+                  //             },
+                  //             "title": {
+                  //               "type": "string"
+                  //             },
+                  //             "type": {
+                  //               "type": "string",
+                  //               "enum": ["string", "number", "boolean"]
+                  //             },
+                  //             "value": {
+                  //               "type": ["string", null, "number", "boolean"]
+                  //             },
+                  //             "unit": {
+                  //               "type": "string"
+                  //             },
+                  //             "readOnly": {
+                  //               "type": "boolean"
+                  //             },
+                  //             "config": {
+                  //               "type": "object"
+                  //             }
+                  //           }
+                  //         }
+                  //       }
+                  //     }
+                  //   }
+                  // }
                 }
               }
             }

@@ -52,17 +52,19 @@
             <label class="miso-label-badge badge-info font-size-inherit">Device</label>
             <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
 
-              <template v-for="(param, index) in resource.deviceConfigSchema.properties.device.properties">
+              <template v-for="(param, index) in resource.deviceConfigSchema.properties">
 
                 <div 
                 class="miso-badge-header-group grow-1">
-                  <label class="miso-label-badge badge-secondary">{{(param.title) ? param.title : index}}</label>
+                  <label v-if="fn.typeIdentify(param) != 'object'" class="miso-label-badge badge-secondary">
+                    {{(param.title) ? param.title : index}}
+                  </label>
                   
                   <select
                   v-if="fn.typeIdentify(param) == 'select'" 
-                  v-model="ui.slider.form.device[index]" 
+                  v-model="ui.slider.form[index]" 
                   :disabled="fn.isDisabled(param)"
-                  @change="fn.onDeviceConfigChange($event, param.position)"
+                  @change="param.alternate && fn.onAlternateChange()"
                   class="miso-badge-union border-secondary">
                     <template v-for="option in param.enum">
                       <option :value="`${option}`">{{option}}</option>
@@ -71,21 +73,69 @@
 
                   <textarea
                   v-else-if="fn.typeIdentify(param) == 'textarea'" 
-                  v-model="ui.slider.form.device[index]"
+                  v-model="ui.slider.form[index]"
                   :disabled="fn.isDisabled(param)"
-                  @change="fn.onDeviceConfigChange($event, param.position)"
+                  @change="param.alternate && fn.onAlternateChange()"
                   class="miso-badge-union border-secondary no-resize"
                   rows="4"
                   type="text">
                   </textarea>
 
                   <input 
-                  v-else
+                  v-else-if="fn.typeIdentify(param) == 'text' || fn.typeIdentify(param) == 'number'"
                   :type="fn.typeIdentify(param)" 
-                  v-model="ui.slider.form.device[index]"
+                  v-model="ui.slider.form[index]"
                   :disabled="fn.isDisabled(param)"
-                  @change="fn.onDeviceConfigChange($event, param.position)"
+                  @change="param.alternate && fn.onAlternateChange()"
                   class="miso-badge-union border-secondary">
+
+                  <div
+                  v-else-if="fn.typeIdentify(param) == 'object'"
+                  class="miso-badge-header-group w-100">
+                    <label class="miso-label-badge badge-info font-size-inherit">{{(param.title) ? param.title : index}}</label>
+                    <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
+
+                      <template v-for="(prop, i) in param.patternProperties['.+'].properties">
+
+                        <div 
+                        class="miso-badge-header-group grow-1">
+                          <label class="miso-label-badge badge-secondary">{{(prop.title) ? prop.title : i}}</label>
+
+                          <select
+                          v-if="fn.typeIdentify(prop) == 'select'" 
+                          v-model="ui.slider.form.properties[i]" 
+                          :disabled="fn.isDisabled(prop)"
+                          @change="prop.alternate && fn.onAlternateChange()"
+                          class="miso-badge-union border-secondary">
+                            <template v-for="option in prop.enum">
+                              <option :value="`${option}`">{{option}}</option>
+                            </template>
+                          </select>
+
+                          <textarea
+                          v-else-if="fn.typeIdentify(prop) == 'textarea'" 
+                          v-model="ui.slider.form.properties[i]"
+                          :disabled="fn.isDisabled(prop)"
+                          @change="prop.alternate && fn.onAlternateChange()"
+                          class="miso-badge-union border-secondary no-resize"
+                          rows="4"
+                          type="text">
+                          </textarea>
+
+                          <input 
+                          v-else-if="fn.typeIdentify(prop) == 'text' || fn.typeIdentify(prop) == 'number'"
+                          :type="fn.typeIdentify(prop)" 
+                          v-model="ui.slider.form.properties[i]"
+                          :disabled="fn.isDisabled(prop)"
+                          @change="prop.alternate && fn.onAlternateChange()"
+                          class="miso-badge-union border-secondary">
+
+                        </div>
+
+                      </template>
+                      
+                    </div>
+                  </div>
 
                 </div>
 
@@ -94,7 +144,7 @@
             </div>
           </div>
 
-          <div 
+          <!-- <div 
           v-if="!!resource.deviceConfigSchema.properties.properties"
           class="miso-badge-header-group align-items-end w-100">
             <label class="miso-label-badge badge-info font-size-inherit">Property</label>
@@ -174,157 +224,6 @@
               </div>
 
             </div>
-          </div>
-
-          <!-- <div class="miso-badge-header-group align-items-end w-100">
-            <label class="miso-label-badge badge-info font-size-inherit">Device</label>
-            <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
-              
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">ID</label>
-                <input 
-                type="text" 
-                v-model="ui.slider.form.id"
-                class="miso-badge-union border-secondary">
-              </div>
-
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Name</label>
-                <input 
-                type="text" 
-                v-model="ui.slider.form.name"
-                class="miso-badge-union border-secondary">
-              </div>
-
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Description</label>
-                <textarea
-                v-model="ui.slider.form.description"
-                class="miso-badge-union border-secondary no-resize"
-                rows="4"
-                type="text">
-                </textarea>
-              </div>
-
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Type</label>
-                <template>
-                  <vue-tags-input
-                    v-model="ui.type"
-                    class="miso-badge-union border-secondary"
-                    :tags="ui.slider.form.type"
-                    :add-on-key="[13, 32]"
-                    @tags-changed="(newTags) => ui.slider.form.type = newTags"
-                  />
-                </template>
-              </div>
-
-              <div 
-              class="miso-badge-header-group align-items-end w-100">
-                <label class="miso-label-badge badge-info font-size-inherit">Config</label>
-                <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
-
-                  <template v-for="(config, index) in ui.slider.formTemplate.config">
-
-                    <div 
-                    v-if="config.enum" 
-                    class="miso-badge-header-group grow-1">
-                      <label class="miso-label-badge badge-secondary">{{index}}</label>
-                      <select
-                      v-model="ui.slider.form.config[index]" 
-                      @change="fn.onDeviceConfigChange"
-                      class="miso-badge-union border-secondary">
-                        <template v-for="option in config.enum">
-                          <option :value="`${option}`">{{option}}</option>
-                        </template>
-                      </select>
-                    </div>
-
-                    <div 
-                    v-else-if="config.type == 'string'"
-                    class="miso-badge-header-group grow-1">
-                      <label class="miso-label-badge badge-secondary">{{index}}</label>
-                      <input 
-                      type="text" 
-                      v-model="ui.slider.form.config[index]"
-                      class="miso-badge-union border-secondary">
-                    </div>
-
-                    <div 
-                    v-else-if="config.type == 'number'"
-                    class="miso-badge-header-group grow-1">
-                      <label class="miso-label-badge badge-secondary">{{index}}</label>
-                      <input 
-                      type="number" 
-                      v-model="ui.slider.form.config[index]"
-                      class="miso-badge-union border-secondary">
-                    </div>
-
-                  </template>
-
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <div class="miso-badge-header-group align-items-end w-100">
-            <label class="miso-label-badge badge-info font-size-inherit">Properties</label>
-            <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
-
-              <template 
-              v-if="!!ui.slider.formTemplate.properties"
-              v-for="(config, index) in ui.slider.formTemplate.properties.config">
-
-                <div 
-                v-if="config.enum" 
-                class="miso-badge-header-group grow-1">
-                  <label class="miso-label-badge badge-secondary">{{index}}</label>
-                  <select
-                  v-model="ui.slider.form.properties[index]" 
-                  @change="fn.onDeviceConfigChange"
-                  class="miso-badge-union border-secondary">
-                    <template v-for="option in config.enum">
-                      <option v-if="typeof option == 'object'" :value="`${option.value}`">{{option.title}}</option>
-                      <option v-else :value="`${option}`">{{option}}</option>
-                    </template>
-                  </select>
-                </div>
-
-                <div 
-                v-else-if="config.type == 'string'"
-                class="miso-badge-header-group grow-1">
-                  <label class="miso-label-badge badge-secondary">{{index}}</label>
-                  <input 
-                  type="text" 
-                  v-model="ui.slider.form.properties[index]"
-                  class="miso-badge-union border-secondary">
-                </div>
-
-                <div 
-                v-else-if="config.type == 'number'"
-                class="miso-badge-header-group grow-1">
-                  <label class="miso-label-badge badge-secondary">{{index}}</label>
-                  <input 
-                  type="number" 
-                  v-model="ui.slider.form.properties[index]"
-                  class="miso-badge-union border-secondary">
-                </div>
-
-              </template>
-
-              <button 
-              type="button" 
-              class="btn btn-primary" 
-              data-toggle="modal" 
-              data-target="#extension-lime-content-devices-add-property-modal">
-                <span>
-                  <i class="fas fa-plus fa-lg"></i>
-                </span>
-                <span>Add Property</span>
-              </button>
-
-            </div>
           </div> -->
 
         </div>
@@ -378,7 +277,7 @@
             <div class="card-header d-flex justify-content-between bg-dark text-light">
               <!-- Icon & Title -->
               <div class="text-truncate">
-                {{item.name}} [{{item.id}}]
+                {{item.name}} [{{index}}]
               </div>
               <!-- Header Button -->
               <div class="miso-card-header-btn-box">
@@ -396,10 +295,15 @@
                 {{item.description}}
               </p>
               <div class="text-truncate mt-2">
+                <span class="badge badge-info mr-2">{{item.template}}</span>
+                <span class="badge badge-info mr-2">{{item.script}}</span>
+                <span class="badge badge-info mr-2">{{item.engine}}</span>
+              </div>
+              <!-- <div class="text-truncate mt-2">
                 <template v-for="tag in [...item['@type'],...((typeof item.type == 'string') ? [item.type] : item.type)]">
                   <span class="badge badge-info mr-2">{{tag}}</span>
                 </template>
-              </div>
+              </div> -->
             </div>
           </div>
           <!-- Adder -->
