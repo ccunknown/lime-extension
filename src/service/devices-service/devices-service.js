@@ -48,7 +48,7 @@ class DevicesService extends Service {
 
   initAdapter() {
     console.log(`DevicesService: initAdapter() >> `);
-    this.adapter = new vAdapter(this.addonManager, this.manifest.name);
+    this.adapter = new vAdapter(this.addonManager, this.manifest.name, this.manifest.id);
     this.adapter.extEventEmitter.on(`remove`, (device) => this.onAdapterDeviceRemove(device));
   }
 
@@ -90,6 +90,7 @@ class DevicesService extends Service {
   }
 
   addToService(id, config) {
+    console.log(`DevicesService: addToService(${id}) >> `);
     return new Promise(async (resolve, reject) => {
       console.log(`add: ${JSON.stringify(config, null, 2)}`);
 
@@ -104,12 +105,14 @@ class DevicesService extends Service {
       let template = await this.getTemplate(config.template, {"deep": true});
       if(template) {
         console.log(`template: ${JSON.stringify(template, null, 2)}`);
-        let path = Path.join(__dirname, `${template.path}`, `device`);
+        let path = Path.join(__dirname, `${template.path}`, `device.js`);
         console.log(`path: ${path}`);
         let Obj = require(path);
         device = new Obj(this, this.adapter, id, config);
         //await device.init();
         await device.init();
+        console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`);
+        console.log(`Device Schema: ${JSON.stringify(device.asThing(), null, 2)}`);
         this.adapter.handleDeviceAdded(device);
         resolve(device.asThing());
       }
@@ -120,6 +123,7 @@ class DevicesService extends Service {
   }
 
   addToConfig(id, config) {
+    console.log(`devicesService: addToConfig(id) >> `);
     return new Promise(async (resolve, reject) => {
       this.configManager.addToConfig(config, `service-config.devices-service.list.${id}`)
       .then((res) => resolve(res))

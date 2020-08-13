@@ -32,7 +32,7 @@ class DefaultProperty extends Property{
     */
 
     this.exConf = {
-      "device-service": device.exConf[`devices-service`],
+      "devices-service": device.exConf[`devices-service`],
       "config": config,
       "schema": null,
       "lock": {
@@ -44,18 +44,21 @@ class DefaultProperty extends Property{
       "timeout": 5000
     };
 
-    this.configTranslator = new ConfigTranslator(this);
-    this.exConf.schema = this.configTranslator.translate(this.exConf.config);
-
-    this.copyDescr();
-
-    // this.setCachedValue(this.exConf.schema.value);
-    // this.device.notifyPropertyChanged(this);
+    this.configTranslator = new ConfigTranslator(this.exConf[`devices-service`]);
   }
 
-  copyDescr() {
-    let schema = this.exConf.schema;
+  init() {
+    return new Promise(async (resolve, reject) => {
+      let schema = await this.configTranslator.translate(this.exConf.config, this.device.exConf.script);
+      this.copyDescr(schema);
+      this.setCachedValue(schema.value);
+      //this.device.notifyPropertyChanged(this);
 
+      resolve();
+    });
+  }
+
+  copyDescr(schema) {
     if(schema.hasOwnProperty(`min`))
       this.minimum = schema.min;
 
@@ -63,7 +66,7 @@ class DefaultProperty extends Property{
       this.maximum = schema.max;
 
     if(schema.hasOwnProperty(`label`))
-      this.label = schema.label;
+      this.title = schema.label;
 
     for(let field of DESCR_FIELDS) {
       if(schema.hasOwnProperty(field)) {
@@ -75,7 +78,6 @@ class DefaultProperty extends Property{
   start() {
     console.log(`propertyWorker: start() >> `);
     return new Promise(async (resolve, reject) => {
-      //this.periodWork();
       await this.setPeriodWork();
       resolve();
     });
@@ -83,7 +85,6 @@ class DefaultProperty extends Property{
 
   stop() {
     console.log(`propertyWorker: stop() >> `);
-    //return clearTimeout(this.period);
     return this.clearPeriodWork();
   }
 
@@ -94,7 +95,7 @@ class DefaultProperty extends Property{
       locker.acquire(key, async () => {
         if(this.device) {
           await this.periodWork();
-          this.period = setTimeout(() => this.setPeriodWork(), this.exConf.schema.config.period);
+          this.period = setTimeout(() => this.setPeriodWork(), this.exConf.config.period);
         }
         return ;
       })
@@ -122,7 +123,6 @@ class DefaultProperty extends Property{
 
       let ex = this.exConf;
       let id = this.device.exConf.config.address;
-      //console.log(`device : ${JSON.stringify(this.device.exConf.schema, null, 2)}`);
       let address = ex.config.address;
       let table = ex.config.table;
       //console.log(`script : ${JSON.stringify(this.script, null, 2)}`);
@@ -137,8 +137,8 @@ class DefaultProperty extends Property{
             "action": "read",
             "id": id,
             "address": address,
-            "numtoread": ntr,
-            "table": table
+            "table": table,
+            "numtoread": ntr
           });
 
           console.log(`ret : ${ret.buffer.toString('hex')}`);

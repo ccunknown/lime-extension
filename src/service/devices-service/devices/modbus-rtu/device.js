@@ -3,16 +3,13 @@
 const Path = require(`path`);
 const {Device} = require(`gateway-addon`);
 
-const Errors = require(`../../../../../constants/errors.js`);
 const ConfigTranslator = require(`./config-translator.js`);
 const ScriptBuilder = require(`./script-builder.js`);
-
-const compatibleScriptList = [`modbus-rtu`];
-const compatibleEngineList = [`modbus-rtu`];
 
 class ModbusDevice extends Device {
   constructor(devicesService, adapter, id, config) {
     super(adapter, id);
+    console.log(`ModbusDevice: constructor(${this.id}) >> `);
     /*
     constructor(adapter, id)
       this.adapter = adapter;
@@ -33,40 +30,33 @@ class ModbusDevice extends Device {
     this.exConf = {
       "devices-service": devicesService,
       "config": config,
-      "schema": null,
       "engine": null,
-      "script": null,
-      "compatibleScriptList": compatibleScriptList,
-      "compatibleEngineList": compatibleEngineList
+      "script": null
     };
-    this.configTranslator = new ConfigTranslator(this);
+
+    this.configTranslator = new ConfigTranslator(this.exConf[`devices-service`]);
     this.scriptBuilder = new ScriptBuilder();
   }
 
-  init(schema) {
+  init(config) {
     console.log(`ModbusDevice: init() >> `);
-    console.log(`ModbusDevice: schema: ${JSON.stringify(schema, null, 2)}`);
     return new Promise(async (resolve, reject) => {
-      this.exConf.schema = await this.configTranslator.translate((schema) ? schema : this.exConf.config);
-      console.log(`translated schema: ${JSON.stringify(this.exConf.schema, null, 2)}`);
-      await this.initAttr();
-      await this.initEngine();
-      await this.initScript();
-      //await this.initPropertyTemplate();
-      await this.initProperty();
+      config = (config) ? config : this.exConf.config;
+      let schema = await this.configTranslator.translate(config);
+      console.log(`ModbusDevice: config: ${JSON.stringify(config, null, 2)}`);
+      //console.log(`translated schema: ${JSON.stringify(this.exConf.schema, null, 2)}`);
+      await this.initAttr(schema);
+      await this.initEngine(config.engine);
+      let script = await this.initScript(config.script);
+      await this.initProperty(script);
       resolve();
     });
   }
 
   initAttr(schema) {
     return new Promise(async (resolve, reject) => {
-      schema = (schema) ? schema : this.exConf.schema;
-
-      this.name = schema.name;
-      this.type = schema.type;
-      this['@type'] = schema['@type'];
-      this.description = schema.description;
-
+      for(let i in schema)
+        this[i] = schema[i];
       resolve();
     });
   }
@@ -74,7 +64,7 @@ class ModbusDevice extends Device {
   initEngine(engineName) {
     return new Promise((resolve, reject) => {
       let enginesService = this.exConf[`devices-service`].enginesService;
-      let engine = enginesService.get(this.exConf.schema.config.engine, {"object": true}).object;
+      let engine = enginesService.get(this.exConf.config.engine, {"object": true}).object;
 
       engine.event.on(`running`, () => this.getScript() ? this.enableProperties() : null);
       engine.event.on(`error`, () => {
@@ -83,7 +73,7 @@ class ModbusDevice extends Device {
       });
 
       this.exConf.engine = engine;
-      resolve();
+      resolve(this.exConf.engine);
     });
   }
 
@@ -97,21 +87,44 @@ class ModbusDevice extends Device {
 
   initScript(scriptName) {
     return new Promise(async (resolve, reject) => {
-      let ex = this.exConf;
-      scriptName = (scriptName) ? scriptName : ex.schema.config.script;
-      let scriptsService = ex[`devices-service`].scriptsService;
+      let scriptsService = this.exConf[`devices-service`].scriptsService;
       let script = await scriptsService.get(scriptName, {"object": true, "deep": true});
-      //console.log(`script: ${JSON.stringify(script, null, 2)}`);
-      this.exConf.script = this.rebuildReadMap(
-        script.children.find((elem) => elem.name == `readMap.js`).object, 
-        script.children.find((elem) => elem.name == `calcMap.js`).object
-      );
+      let readMap = script.children.find((elem) => elem.name == `readMap.js`).object;
+      let calcMap = script.children.find((elem) => elem.name == `calcMap.js`).object;
+      this.exConf.script = this.scriptBuilder.buildFullMap(readMap, calcMap);
       resolve(this.exConf.script);
     });
   }
 
   getScript() {
     return this.exConf.script;
+  }
+
+  initProperty() {
+    console.log(`ModbusDevice: initProperty() >> `);
+    return new Promise(async (resolve, reject) => {
+      let config = this.exConf.config.properties;
+      for(let i in config) {
+        await this.addProperty(i, config[i]);
+      }
+      resolve();
+    });
+  }
+
+  addProperty(id, config) {
+    console.log(`ModbusDevice: addProperty() >> `);
+    console.log(`config: ${JSON.stringify(config, null, 2)}`);
+    return new Promise(async (resolve, reject) => {
+      let PropertyObject = require(`./property/${config.template}/property.js`);
+      let property = new PropertyObject(this, id, config);
+      await property.init();
+      await property.start();
+      this.properties.set(id, property);
+      
+      //this.notifyPropertyChanged(this);
+      //property.start();
+      resolve();
+    });
   }
 
   enableProperties() {
@@ -132,39 +145,6 @@ class ModbusDevice extends Device {
       let prop = this.findProperty(i);
       prop.stop();
     }
-  }
-
-  initProperty() {
-    console.log(`ModbusDevice: initProperty() >> `);
-    return new Promise(async (resolve, reject) => {
-      let config = this.exConf.config.properties;
-      for(let i in config) {
-        await this.addProperty(i, config[i]);
-      }
-    });
-  }
-
-  addProperty(id, config) {
-    console.log(`ModbusDevice: addProperty() >> `);
-    console.log(`config: ${JSON.stringify(config, null, 2)}`);
-    return new Promise(async (resolve, reject) => {
-      let devicesService = this.exConf[`devices-service`];
-      let propDirSchema = (await devicesService.getDirectorySchema(`property`, {"deep": true, "absolute": __dirname})).children;
-      console.log(`propDirSchema: ${JSON.stringify(propDirSchema, null, 2)}`);
-      let propDir = propDirSchema.find((elem) => elem.name == config.template);
-      console.log(`propDir: ${JSON.stringify(propDir, null, 2)}`);
-      if(!propDir)
-        reject(new Errors.ObjectNotFound(config.name));
-      let path = propDir.children.find((elem) => elem.name == `property.js`).path;
-      if(!propDir.path)
-        reject(new Errors.ObjectNotFound(`property.js at ${propDir.path}`));
-      let Obj = require(`./${path}`);
-      let property = new Obj(this, id, config);
-      this.properties.set(id, property);
-      await property.start();
-      //property.start();
-      resolve();
-    });
   }
 }
 

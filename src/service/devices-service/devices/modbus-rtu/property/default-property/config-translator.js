@@ -72,7 +72,6 @@ class PropertyConfigTranslator {
 
       let modbusRegister = fullMap.map[config.table][config.address];
       let schema = {
-        "label": modbusRegister.name,
         "title": modbusRegister.name,
         "type": modbusRegister.type,
         "value": (modbusRegister.type == `string`) ? `` : 

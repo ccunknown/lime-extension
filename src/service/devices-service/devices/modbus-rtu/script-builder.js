@@ -27,9 +27,9 @@ class ScriptBuilder {
   buildFullMap(readMapConfig, calcMapConfig) {
     console.log(`ModbusDevice: buildFullMap() >> `);
 
+    const tableList = [`coils`, `contacts`, `inputRegisters`, `holdingRegisters`];
     let result = JSON.parse(JSON.stringify(readMapConfig));
     let globalDefine = (result.map && result.map.define) ? result.map.define : null;
-    let tableList = [`coils`, `contacts`, `inputRegisters`, `holdingRegisters`];
 
     for(let i in tableList) {
       let tname = tableList[i];

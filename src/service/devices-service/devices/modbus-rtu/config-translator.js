@@ -64,16 +64,16 @@ class DeviceConfigTranslator {
     return new Promise(async (resolve, reject) => {
       let schema = {
         "name": config.name,
-        "type": [
-          "modbus-device"
-        ],
+        // "type": [
+        //   "modbus-device"
+        // ],
         "description": config.description,
         "@context": "https://iot.mozilla.org/schemas",
-        "@type": [`EnergyMonitor`],
-        "properties": {}
+        "@type": [`EnergyMonitor`]
       };
 
       if(options && options.properties) {
+        schema.properties = {};
         
         let script = await this.scriptsService.get(config.script, {"object": true, "deep": true});
         let readMap = script.children.find((elem) => elem.name == `readMap.js`).object;
