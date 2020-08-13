@@ -3,13 +3,15 @@
 const Path = require(`path`);
 const {Device} = require(`gateway-addon`);
 
+const Errors = require(`../../../../../constants/errors.js`);
 const ConfigTranslator = require(`./config-translator.js`);
+const ScriptBuilder = require(`./script-builder.js`);
 
 const compatibleScriptList = [`modbus-rtu`];
 const compatibleEngineList = [`modbus-rtu`];
 
 class ModbusDevice extends Device {
-  constructor(devicesService, adapter, id, schema) {
+  constructor(devicesService, adapter, id, config) {
     super(adapter, id);
     /*
     constructor(adapter, id)
@@ -30,7 +32,7 @@ class ModbusDevice extends Device {
     */
     this.exConf = {
       "devices-service": devicesService,
-      "originSchema": schema,
+      "config": config,
       "schema": null,
       "engine": null,
       "script": null,
@@ -38,26 +40,27 @@ class ModbusDevice extends Device {
       "compatibleEngineList": compatibleEngineList
     };
     this.configTranslator = new ConfigTranslator(this);
+    this.scriptBuilder = new ScriptBuilder();
   }
 
   init(schema) {
     console.log(`ModbusDevice: init() >> `);
     console.log(`ModbusDevice: schema: ${JSON.stringify(schema, null, 2)}`);
     return new Promise(async (resolve, reject) => {
-      this.exConf.schema = await this.configTranslator.translate((schema) ? schema : this.exConf.originSchema);
+      this.exConf.schema = await this.configTranslator.translate((schema) ? schema : this.exConf.config);
       console.log(`translated schema: ${JSON.stringify(this.exConf.schema, null, 2)}`);
       await this.initAttr();
       await this.initEngine();
       await this.initScript();
-      await this.initPropertyTemplate();
+      //await this.initPropertyTemplate();
       await this.initProperty();
       resolve();
     });
   }
 
-  initAttr() {
+  initAttr(schema) {
     return new Promise(async (resolve, reject) => {
-      let schema = this.exConf.schema;
+      schema = (schema) ? schema : this.exConf.schema;
 
       this.name = schema.name;
       this.type = schema.type;
@@ -103,7 +106,7 @@ class ModbusDevice extends Device {
         script.children.find((elem) => elem.name == `readMap.js`).object, 
         script.children.find((elem) => elem.name == `calcMap.js`).object
       );
-      resolve();
+      resolve(this.exConf.script);
     });
   }
 
@@ -131,101 +134,37 @@ class ModbusDevice extends Device {
     }
   }
 
-  initPropertyTemplate() {
-    console.log(`ModbusDevice: initPropertyTemplate() >> `);
-    return new Promise(async (resolve, reject) => {
-      this.propertyTemplate = {};
-      let propArr = await this.getDirectory(Path.join(__dirname, `property`));
-      propArr.forEach((file) => {
-        let name = (file.endsWith(`.js`)) ? `${file.substring(0, file.length - 3)}` : `${file}`;
-        this.propertyTemplate[name] = require(`./property/${name}`);
-      });
-      resolve();
-    });
-  }
-
   initProperty() {
     console.log(`ModbusDevice: initProperty() >> `);
     return new Promise(async (resolve, reject) => {
-      let schema = this.exConf.schema;
-      //console.log(this.propertyTemplate);
-      for(let i in this.exConf.schema.properties) {
-        let propSchema = this.exConf.schema.properties[i];
-        console.log(`propSchema : ${JSON.stringify(propSchema, null ,2)}`);
-        console.log(this.propertyTemplate[propSchema.config.template]);
-        let prop = new (this.propertyTemplate[propSchema.config.template])(this, i, schema.properties[i]);
-        await prop.start();
-        this.properties.set(i, prop);
+      let config = this.exConf.config.properties;
+      for(let i in config) {
+        await this.addProperty(i, config[i]);
       }
+    });
+  }
+
+  addProperty(id, config) {
+    console.log(`ModbusDevice: addProperty() >> `);
+    console.log(`config: ${JSON.stringify(config, null, 2)}`);
+    return new Promise(async (resolve, reject) => {
+      let devicesService = this.exConf[`devices-service`];
+      let propDirSchema = (await devicesService.getDirectorySchema(`property`, {"deep": true, "absolute": __dirname})).children;
+      console.log(`propDirSchema: ${JSON.stringify(propDirSchema, null, 2)}`);
+      let propDir = propDirSchema.find((elem) => elem.name == config.template);
+      console.log(`propDir: ${JSON.stringify(propDir, null, 2)}`);
+      if(!propDir)
+        reject(new Errors.ObjectNotFound(config.name));
+      let path = propDir.children.find((elem) => elem.name == `property.js`).path;
+      if(!propDir.path)
+        reject(new Errors.ObjectNotFound(`property.js at ${propDir.path}`));
+      let Obj = require(`./${path}`);
+      let property = new Obj(this, id, config);
+      this.properties.set(id, property);
+      await property.start();
+      //property.start();
       resolve();
     });
-  }
-
-  getDirectory(path) {
-    return new Promise((resolve, reject) => {
-      const fs = require(`fs`);
-      fs.readdir(path, (err, files) => {
-        (err) ? reject(err) : resolve(files);
-      });
-    });
-  }
-
-  rebuildReadMap(readMapConfig, calcMapConfig) {
-    console.log(`ModbusDevice: rebuildReadMap() >> `);
-
-    let result = JSON.parse(JSON.stringify(readMapConfig));
-    let globalDefine = (result.map && result.map.define) ? result.map.define : null;
-    let tableList = [`coils`, `contacts`, `inputRegisters`, `holdingRegisters`];
-
-    for(let i in tableList) {
-      let tname = tableList[i];
-      let table = result.map[tname];
-      let localDefine = (table.define) ? table.define : null;
-
-      let define = JSON.parse(JSON.stringify((globalDefine) ? globalDefine : {}));
-      
-      //  registerSpec
-      if(localDefine && localDefine.registerSpec)
-        Object.assign(define, localDefine.registerSpec);
-
-      //  translator
-      if(localDefine && localDefine.translator)
-        Object.assign(define, localDefine.registerSpec);
-      
-      for(let j in table) {
-        let elem = JSON.parse(JSON.stringify(table[j]));
-
-        //  registerSpec
-        if((typeof elem.registerSpec) == `string`)
-          elem.registerSpec = JSON.parse(JSON.stringify((define.registerSpec[elem.registerSpec]) ? define.registerSpec[elem.registerSpec] : null));
-        if(!elem.registerSpec)
-          elem.registerSpec = {};
-        if(!elem.registerSpec.size)
-          elem.registerSpec.size = define.registerSpec.default.size;
-        if(!elem.registerSpec.number)
-          elem.registerSpec.number = define.registerSpec.default.number;
-
-        if(!elem.translator)
-          elem.translator = define.translator.default;
-
-        if(!elem.type)
-          elem.type = define.type.default;
-
-        elem.translator = this.getCalculatorFunction(calcMapConfig, elem.translator);
-        result.map[tname][j] = elem;
-      }
-      delete table.define;
-    }
-    return result;
-  }
-
-  getCalculatorFunction(calcMapConfig, translatorDst) {
-    let taddr = translatorDst.split(`.`);
-    let pointer = calcMapConfig;
-    for(let i in taddr) {
-      pointer = (pointer[taddr[i]]) ? pointer[taddr[i]] : null;
-    }
-    return (typeof pointer == `function`) ? pointer : null;
   }
 }
 

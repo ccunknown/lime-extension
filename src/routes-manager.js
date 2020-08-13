@@ -199,13 +199,47 @@ class RoutesManager extends APIHandler{
         }
       },
 
-      /***  Resource : /service/devicesSconfigSchema  ***/
+      /***  Resource : /service/devicesConfigSchema  ***/
       {
         "resource": /\/service\/deviceConfigSchema/,
         "method": {
           "GET": (req) => {
             return new Promise((resolve, reject) => {
               this.laborsManager.getService(`devices-service`).obj.getConfigSchema(this.getParameters(req))
+              .then((json) => {
+                //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
+                resolve(this.makeJsonRespond(JSON.stringify(json)));
+              })
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/devicesConfigSchema  ***/
+      {
+        "resource": /\/service\/devices-service\/generateConfigSchema/,
+        "method": {
+          "POST": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`devices-service`).obj.generateConfigSchema(req.body)
+              .then((json) => {
+                //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
+                resolve(this.makeJsonRespond(JSON.stringify(json)));
+              })
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/devices-service/translate  ***/
+      {
+        "resource": /\/service\/devices-service\/translate/,
+        "method": {
+          "POST": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`devices-service`).obj.translateConfig(req.body)
               .then((json) => {
                 //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
                 resolve(this.makeJsonRespond(JSON.stringify(json)));

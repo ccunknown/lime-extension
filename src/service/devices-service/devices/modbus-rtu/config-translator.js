@@ -1,152 +1,98 @@
-class ConfigTranslator {
-  constructor(device) {
-    this.device = device;
-    this.devicesService = this.device.exConf[`devices-service`];
+const {
+  ValidateConfigSchema, 
+  CompatibleList, 
+  AlternateList,
+  AttributeList
+} = require(`./define.js`);
+
+const ScriptBuilder = require(`./script-builder.js`);
+
+class DeviceConfigTranslator {
+  constructor(devicesService) {
+    this.devicesService = devicesService;
+    this.scriptsService = this.devicesService.scriptsService;
+    this.scriptBuilder = new ScriptBuilder();
   }
 
-  getConfig(params) {
-    console.log(`ConfigSchema: getConfigSchema() >> `);
+  generateConfigSchema(params) {
+    console.log(`DeviceConfigTranslator: generateConfigSchema() >> `);
     console.log(`params: ${JSON.stringify(params, null, 2)}`);
     return new Promise(async (resolve, reject) => {
-      let devices = await this.devicesService.getTemplate(null, {"deep": true});
-      let schema = await this.devicesService.getTemplate(__dirname.split(`/`).pop(), {"deep": true});
-      let props = schema.children.find((elem) => elem.name == `property`).children;
-      let compatScript = await this.devicesService.getCompatibleScript(this.device.exConf.compatibleScriptList);
-      let compatEngine = await this.devicesService.getCompatibleEngine(this.device.exConf.compatibleEngineList);
-      //console.log(`schema : ${JSON.stringify(schema, null ,2)}`);
 
-      let config = {
-        "type": "object",
-        "required": [`script`, `engine`, `address`],
-        "additionalProperties": false,
-        "properties": {
-          "script": {
-            "type": "string",
-            "title": "Script",
-            "enum": compatScript,
-            "alternate": true
-          },
-          "engine": {
-            "type": "string",
-            "title": "Engine",
-            "enum": compatEngine
-          },
-          "address": {
-            "type": "number",
-            "title": "Modbus Address",
-            "default": 1,
-            "min": 0,
-            "attr": {
-              "placeholder": "Modbus address"
-            }
-          },
-          "properties": {
-            "type": "object",
-            "title": "Property",
-            "required": [],
-            "patternProperties": {
-              ".+": {
-                "type": "object",
-                "required": [],
-                "additionalProperties": false,
-                "properties": {
-                  "template": {
-                    "type": "string",
-                    "title": "Property template",
-                    "enum": props.map((elem) => elem.name.split(`.js`)[0])
-                  },
-                  "table": {
-                    "type": "string",
-                    "title": "Register table",
-                    "default": "inputRegisters",
-                    "enum": [`coils`, `contacts`, `inputRegisters`, `holdingRegisters`],
-                    "alternate": true
-                  },
-                  "address": {
-                    "type": "number",
-                    "title": "Register address"
-                  },
-                  "period": {
-                    "type": "number",
-                    "title": "Period (ms)",
-                    "default": 10000,
-                    "min": 1000
-                  }
-                }
-              }
-            }
-          }
-        }
-      };
+      //  Copy config from ValidateConfigSchema.
+      let config = JSON.parse(JSON.stringify(ValidateConfigSchema));
+
+      //  Assign 'alternate' attribute.
+      AlternateList.forEach((index) => {
+        if(config.properties.hasOwnProperty(index))
+          config.properties[index].alternate = true;
+      });
+
+      //  Assign 'attrs' attribute.
+      AttributeList.forEach((index) => {
+        if(config.properties.hasOwnProperty(index.target))
+          config.properties[index.target].attrs = index.attrs;
+      });
+
+      //  Initial 'enum' attribute.
+      config.properties.script.enum = await this.devicesService.getCompatibleScript(CompatibleList.script);
+      config.properties.engine.enum = await this.devicesService.getCompatibleEngine(CompatibleList.engine);
+      let propertiesDirectorySchema = (await this.devicesService.getDirectorySchema(`property`, {"deep": true, "absolute": `${__dirname}`})).children;
+      config.properties.properties.patternProperties[`.+`].properties.template.enum = propertiesDirectorySchema.map((elem) => elem.name);
+
+      //  Extend properties config using 'params.properties'.
       if(params && 
-        params.script && 
-        params.script != `` && 
-        params.properties && 
-        params.properties.table &&
-        params.properties.table != ``) {
+        params.properties &&
+        params.properties.template &&
+        params.properties.template != ``) {
 
-        await this.device.initScript(params.script);
-        let addrList = this.device.exConf.script.map[params.properties.table];
-        config.properties.properties.patternProperties[`.+`].properties.address.enum = [];
-        for(let i in addrList) {
-          config.properties.properties.patternProperties[`.+`].properties.address.enum.push(`${addrList[i].name} [Addr:${Number(i).toString(16)}]`);
+        let PropertyConfigTranslator = require(`./property/${params.properties.template}/config-translator.js`);
+        let propConfTrans = new PropertyConfigTranslator(this.devicesService);
+        let propConf = await propConfTrans.generateConfigSchema(params);
+        for(let i in propConf.properties) {
+          config.properties.properties.patternProperties[`.+`].properties[i] = propConf.properties[i];
         }
+        config.properties.properties.patternProperties[`.+`].required = [...config.properties.properties.patternProperties[`.+`].required, ...propConf.required];
       }
+
       resolve(config);
     });
   }
 
-  translate(schema) {
-    //console.trace(`who call`);
+  translate(config, options) {
+    console.log(`DeviceConfigTranslator: translate() >> `);
     return new Promise(async (resolve, reject) => {
-      let result = {
-        //"id": schema.device.id,
-        "name": schema.name,
+      let schema = {
+        "name": config.name,
         "type": [
           "modbus-device"
         ],
-        "description": schema.description,
+        "description": config.description,
         "@context": "https://iot.mozilla.org/schemas",
         "@type": [`EnergyMonitor`],
-        "config": {
-          "template": schema.template,
-          "script": schema.script,
-          "engine": schema.engine,
-          "address": Number(schema.address)
-        },
         "properties": {}
       };
-      await this.device.initScript(schema.script);
-      console.log(`schema: ${JSON.stringify(schema, null, 2)}`);
-      for(let i in schema.properties) {
-        let prop = schema.properties[i];
-        let id = `${prop.address.match(/(?:\[)([^\]]+)/i)[1].replace(`:`, ``).toLowerCase()}`;
-        console.log(`prop id: ${id}`);
-        let addrstr = prop.address.match(/(?:\[\w+:)([^\]]+)/i)[1];
-        let address = parseInt(`0x${addrstr}`);
-        console.log(`address: ${addrstr}/${address}`);
-        let script = this.device.exConf.script.map[prop.table][address];
 
-        result.properties[id] = {
-          //"name": id,
-          "label": script.name,
-          "title": script.name,
-          "type": script.type,
-          "value": (script.type == `string`) ? `` : (script.type == `number`) ? 0 : (script.type == `boolean`) ? false : undefined,
-          "unit": script.unit,
-          "readOnly": true,
-          "config": {
-            "template": prop.template,
-            "address": address,
-            "table": prop.table,
-            "period": Number(prop.period)
-          }
-        };
+      if(options && options.properties) {
+        
+        let script = await this.scriptsService.get(config.script, {"object": true, "deep": true});
+        let readMap = script.children.find((elem) => elem.name == `readMap.js`).object;
+        let calcMap = script.children.find((elem) => elem.name == `calcMap.js`).object;
+        //console.log(`readMap: ${JSON.stringify(readMap, null, 2)}`);
+        let fullMap = this.scriptBuilder.buildFullMap(readMap, calcMap);
+
+        for(let i in config.properties) {
+          let PropertyConfigTranslator = require(`./property/${config.properties[i].template}/config-translator.js`);
+          let propConfTrans = new PropertyConfigTranslator(this.devicesService);
+          let propSchema = await propConfTrans.translate(config.properties[i], fullMap);
+
+          schema.properties[i] = propSchema;
+        }
       }
 
-      resolve(result);
+      resolve(schema);
     });
   }
 }
 
-module.exports = ConfigTranslator;
+module.exports = DeviceConfigTranslator;

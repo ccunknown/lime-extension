@@ -221,11 +221,6 @@ class ConfigManager {
     return this.validator.validate(data, schema);
   }
 
-  validateAccount(data) {
-    let schema = (schema) ? schema : this.getSchema().account;
-    return this.validator.validate(data, schema);
-  }
-
   updateJsonElement(src, path, data) {
     if(path && path.length) {
       let indexArr = path.split(`.`);

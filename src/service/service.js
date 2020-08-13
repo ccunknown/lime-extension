@@ -77,19 +77,27 @@ class Service extends EventEmitter {
     });
   }
 
+  getRootDirectory() {
+    let split = __dirname.split(`/`);
+    split.pop();
+    split.pop();
+    return split.join(`/`);
+  }
+
   /*
     options: {
       base64: boolean,
       deep: boolean,
+      absolute: `string (absolute path)`,
       object: boolean
     }
   */
   getDirectorySchema(path, options) {
     //console.log(`getDirectorySchema(${path}, ${JSON.stringify(options, null, 2)})`);
-    console.log(`getDirectorySchema(${path})`);
+    //console.log(`getDirectorySchema(${path})`);
     return new Promise(async (resolve, reject) => {
       path = Path.join(``, path);
-      let fpath = Path.join(__dirname, this.id, path);
+      let fpath = (options.absolute) ? Path.join(options.absolute, path) : Path.join(__dirname, this.id, path);
       //console.log(`fpath: ${fpath}`);
       let stats = fs.lstatSync(fpath);
       let info = {

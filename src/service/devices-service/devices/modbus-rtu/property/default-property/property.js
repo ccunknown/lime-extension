@@ -3,9 +3,25 @@
 const AsyncLock = require('async-lock');
 const {Property} = require('gateway-addon');
 
+const ConfigTranslator = require(`./config-translator.js`);
+
+const DESCR_FIELDS = [
+  'title',
+  'type',
+  '@type',
+  'unit',
+  'description',
+  'minimum',
+  'maximum',
+  'enum',
+  'readOnly',
+  'multipleOf',
+  'links',
+];
+
 class DefaultProperty extends Property{
-  constructor(device, name, schema) {
-    super(device, name, schema);
+  constructor(device, name, config) {
+    super(device, name, {});
     /*
     constructor(device, name, propertyDescr) {
       this.device = device;
@@ -17,7 +33,8 @@ class DefaultProperty extends Property{
 
     this.exConf = {
       "device-service": device.exConf[`devices-service`],
-      "schema": schema,
+      "config": config,
+      "schema": null,
       "lock": {
         "period": {
           "key": `period`,
@@ -27,8 +44,32 @@ class DefaultProperty extends Property{
       "timeout": 5000
     };
 
-    this.setCachedValue(this.exConf.schema.value);
-    this.device.notifyPropertyChanged(this);
+    this.configTranslator = new ConfigTranslator(this);
+    this.exConf.schema = this.configTranslator.translate(this.exConf.config);
+
+    this.copyDescr();
+
+    // this.setCachedValue(this.exConf.schema.value);
+    // this.device.notifyPropertyChanged(this);
+  }
+
+  copyDescr() {
+    let schema = this.exConf.schema;
+
+    if(schema.hasOwnProperty(`min`))
+      this.minimum = schema.min;
+
+    if(schema.hasOwnProperty(`max`))
+      this.maximum = schema.max;
+
+    if(schema.hasOwnProperty(`label`))
+      this.label = schema.label;
+
+    for(let field of DESCR_FIELDS) {
+      if(schema.hasOwnProperty(field)) {
+        this[field] = schema[field];
+      }
+    }
   }
 
   start() {
@@ -80,10 +121,10 @@ class DefaultProperty extends Property{
       let script = this.device.getScript();
 
       let ex = this.exConf;
-      let id = this.device.exConf.schema.config.address;
+      let id = this.device.exConf.config.address;
       //console.log(`device : ${JSON.stringify(this.device.exConf.schema, null, 2)}`);
-      let address = ex.schema.config.address;
-      let table = ex.schema.config.table;
+      let address = ex.config.address;
+      let table = ex.config.table;
       //console.log(`script : ${JSON.stringify(this.script, null, 2)}`);
       let ntr = script.map[table][address].registerSpec.number;
 

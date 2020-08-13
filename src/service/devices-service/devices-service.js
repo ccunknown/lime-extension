@@ -10,6 +10,9 @@ const Path = require(`path`);
 const Service = require(`../service`);
 const Database = require(`../../lib/my-database`);
 const {Defaults, Errors} = require(`../../../constants/constants`);
+
+const ConfigTranslator = require(`./config-translator.js`);
+
 //const PropertyWorker = require(`./property-worker`);
 
 class DevicesService extends Service {
@@ -73,6 +76,7 @@ class DevicesService extends Service {
     return new Promise(async (resolve, reject) => {
       this.scriptsService = this.laborsManager.getService(`scripts-service`).obj;
       this.enginesService = this.laborsManager.getService(`engines-service`).obj;
+      this.configTranslator = new ConfigTranslator(this);
       await this.initDevices();
       resolve();
     });
@@ -85,58 +89,58 @@ class DevicesService extends Service {
     });
   }
 
-  addToService(id, schema) {
+  addToService(id, config) {
     return new Promise(async (resolve, reject) => {
-      console.log(`add: ${JSON.stringify(schema, null, 2)}`);
+      console.log(`add: ${JSON.stringify(config, null, 2)}`);
 
       //  Check duplicate.
-      let device = this.adapter.getDevice(schema.id);
+      let device = this.adapter.getDevice(id);
       if(device) {
-        console.warn(`Device id "${schema.id}" already exist. Remove old and add new!!!`);
-        await this.remove(schema.id);
+        console.warn(`Device id "${id}" already exist. Remove old and add new!!!`);
+        await this.remove(id);
       }
 
       //  Initial and Add device to adapter.
-      let template = await this.getTemplate(schema.template, {"deep": true});
+      let template = await this.getTemplate(config.template, {"deep": true});
       if(template) {
         console.log(`template: ${JSON.stringify(template, null, 2)}`);
         let path = Path.join(__dirname, `${template.path}`, `device`);
         console.log(`path: ${path}`);
         let Obj = require(path);
-        device = new Obj(this, this.adapter, id, schema);
+        device = new Obj(this, this.adapter, id, config);
         //await device.init();
         await device.init();
         this.adapter.handleDeviceAdded(device);
         resolve(device.asThing());
       }
       else {
-        reject(new Error(`Device template '${schema.config.device}' not found!!!`));
+        reject(new Error(`Device template '${config.template}' not found!!!`));
       }
     });
   }
 
-  addToConfig(id, schema) {
+  addToConfig(id, config) {
     return new Promise(async (resolve, reject) => {
-      this.configManager.addToConfig(schema, `service-config.devices-service.list.${id}`)
+      this.configManager.addToConfig(config, `service-config.devices-service.list.${id}`)
       .then((res) => resolve(res))
       .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
     });
   }
 
-  add(schema) {
+  add(config) {
     return new Promise(async (resolve, reject) => {
       //console.log(`schema: ${JSON.stringify(schema, null, 2)}`);
-      let template = await this.getTemplate(schema.template, {"deep": true});
+      let template = await this.getTemplate(config.template, {"deep": true});
       if(template) {
         let id = this.generateId();
-        this.addToConfig(id, schema)
-        .then((res) => this.addToService(id, schema))
+        this.addToConfig(id, config)
+        .then((res) => this.addToService(id, config))
         .then((res) => this.reloadConfig())
         .then((res) => resolve(res))
         .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
       }
       else {
-        reject(new Error(`Template '${schema.device.template}' not found!!!`));
+        reject(new Error(`Template '${config.template}' not found!!!`));
       }
     });
   }
@@ -159,60 +163,19 @@ class DevicesService extends Service {
     });
   }
 
-  getConfigSchema(params) {
-    console.log(`DevicesService: getDeviceConfigSchema()`);
+  generateConfigSchema(params) {
+    console.log(`DevicesService: generateConfigSchema() >> `);
     return new Promise(async (resolve, reject) => {
-      let deviceTemplateList = await this.getTemplate(null, {"deep": true});
-      let baseSchema = {
-        "type": "object",
-        "required": [`name`, `description`, `template`],
-        "additionalProperties": false,
-        "properties": {
-          "name": {
-            "type": "string",
-            "title": "Name",
-            "attrs": {
-              "placeholder": "Device's display name"
-            }
-          },
-          "description": {
-            "type": "string",
-            "title": "Description",
-            "attrs": {
-              "type": "textarea",
-              "placeholder": "Device's description"
-            }
-          },
-          "template": {
-            "type": "string",
-            "title": "Template",
-            "enum": deviceTemplateList.map((elem) => elem.name),
-            "alternate": true
-          }
-        }
-      };
+      let config = await this.configTranslator.generateConfigSchema(params);
+      resolve(config);
+    });
+  }
 
-      let templateName = (params) ? params.template : undefined;
-      if(templateName) {
-        let template = await this.getTemplate(templateName, {"deep": true});
-        if(template) {
-          let templateObj = require(`./${this.util.path.trim(template.path)}/device`);
-          let device = new templateObj(this, this.adapter, {"id": "test"});
-          //let schema = await device.getConfigSchema(params);
-          let schema = await device.configTranslator.getConfig(params);
-          for(let i in schema.properties)
-            baseSchema.properties[i] = schema.properties[i];
-          baseSchema.required = [...baseSchema.required, ...schema.required]
-          schema = baseSchema;
-          resolve(schema);
-        }
-        else {
-          reject(new Errors.QueryParameterNotFound([`template`, templateName]));
-        }
-      }
-      else {
-        resolve(baseSchema);
-      }
+  translateConfig(config) {
+    console.log(`DevicesService: getConfigTranslation() >> `);
+    return new Promise(async (resolve, reject) => {
+      let translated = await this.configTranslator.translate(config);
+      resolve(translated);
     });
   }
 
