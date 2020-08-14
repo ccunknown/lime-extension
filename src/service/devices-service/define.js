@@ -1,7 +1,7 @@
 const ValidateConfigSchema = {
   "type": "object",
-  "required": [`name`, `description`, `template`],
-  "additionalProperties": false,
+  "required": ["name", "description", "template"],
+  "additionalProperties": true,
   "properties": {
     "name": {
       "type": "string",

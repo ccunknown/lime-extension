@@ -96,7 +96,8 @@ class SysportService extends Service {
             manufacturer: (port.manufacturer) ? port.manufacturer : null
           });
         });
-        console.log(`portList : ${JSON.stringify(portList, null, 2)}`);
+        console.log(`port: ${JSON.stringify(ports, null, 2)}`);
+        console.log(`portList: ${JSON.stringify(portList, null, 2)}`);
         resolve(portList);
       })
       .catch((err) => {

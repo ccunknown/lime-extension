@@ -1,6 +1,6 @@
 const ValidateConfigSchema = {
   "type": "object",
-  "required": [],
+  "required": ["table", "address", "period"],
   "additionalProperties": true,
   "properties": {
     "table": {

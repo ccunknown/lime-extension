@@ -1,7 +1,7 @@
 'use strict';
 
-const Defaults = require('./defaults');
-const Errors = require('./errors');
+const Defaults = require(`./defaults.js`);
+const Errors = require(`./errors.js`);
 
 module.exports = {
   Defaults,

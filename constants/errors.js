@@ -155,6 +155,16 @@ const errDef = [
       "contentType": "application/json",
       "contentIndex": "message"
     }
+  },
+  {
+    "name": "ParentObjectUnavailable",
+    "extends": Error,
+    "super": (arg) => `Parent object of '${arg}' is unavailable.`,
+    "httpResponse": {
+      "status": 500,
+      "contentType": "application/json",
+      "contentIndex": "message"
+    }
   }
 ];
 

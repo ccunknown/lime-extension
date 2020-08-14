@@ -152,8 +152,8 @@ class ModbusRtu {
   __act(cmd) {
     //console.log(`ModbusRtu: _act() >> `);
     let timestamp = (new Date()).toISOString();
-    console.log(`>>>>>> time: ${timestamp}`);
-    console.log(`cmd : ${JSON.stringify(cmd)}`);
+    //console.log(`>>>>>> time: ${timestamp}`);
+    //console.log(`cmd : ${JSON.stringify(cmd)}`);
     return new Promise(async (resolve, reject) => {
       let timeout = setTimeout(() => {
         let timeerr = (new Date()).toISOString();

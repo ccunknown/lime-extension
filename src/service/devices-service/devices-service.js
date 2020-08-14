@@ -104,15 +104,12 @@ class DevicesService extends Service {
       //  Initial and Add device to adapter.
       let template = await this.getTemplate(config.template, {"deep": true});
       if(template) {
-        console.log(`template: ${JSON.stringify(template, null, 2)}`);
+        // console.log(`template: ${JSON.stringify(template, null, 2)}`);
         let path = Path.join(__dirname, `${template.path}`, `device.js`);
         console.log(`path: ${path}`);
         let Obj = require(path);
         device = new Obj(this, this.adapter, id, config);
-        //await device.init();
         await device.init();
-        console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`);
-        console.log(`Device Schema: ${JSON.stringify(device.asThing(), null, 2)}`);
         this.adapter.handleDeviceAdded(device);
         resolve(device.asThing());
       }
@@ -132,8 +129,9 @@ class DevicesService extends Service {
   }
 
   add(config) {
+    console.log(`DevicesService: add() >> `);
+    console.log(`config: ${JSON.stringify(config, null, 2)}`);
     return new Promise(async (resolve, reject) => {
-      //console.log(`schema: ${JSON.stringify(schema, null, 2)}`);
       let template = await this.getTemplate(config.template, {"deep": true});
       if(template) {
         let id = this.generateId();

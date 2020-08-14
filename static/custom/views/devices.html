@@ -62,18 +62,20 @@
                   
                   <select
                   v-if="fn.typeIdentify(param) == 'select'" 
-                  v-model="ui.slider.form[index]" 
+                  v-model="deviceForm[index]" 
                   :disabled="fn.isDisabled(param)"
                   @change="param.alternate && fn.onAlternateChange()"
                   class="miso-badge-union border-secondary">
                     <template v-for="option in param.enum">
-                      <option :value="`${option}`">{{option}}</option>
+                      <option :value="`${option}`">
+                        {{(param.enumDisplay) ? param.enumDisplay(`${option}`) : option}}
+                      </option>
                     </template>
                   </select>
 
                   <textarea
                   v-else-if="fn.typeIdentify(param) == 'textarea'" 
-                  v-model="ui.slider.form[index]"
+                  v-model="deviceForm[index]"
                   :disabled="fn.isDisabled(param)"
                   @change="param.alternate && fn.onAlternateChange()"
                   class="miso-badge-union border-secondary no-resize"
@@ -84,7 +86,7 @@
                   <input 
                   v-else-if="fn.typeIdentify(param) == 'text' || fn.typeIdentify(param) == 'number'"
                   :type="fn.typeIdentify(param)" 
-                  v-model="ui.slider.form[index]"
+                  v-model="deviceForm[index]"
                   :disabled="fn.isDisabled(param)"
                   @change="param.alternate && fn.onAlternateChange()"
                   class="miso-badge-union border-secondary">
@@ -95,7 +97,7 @@
                     <label class="miso-label-badge badge-info font-size-inherit">{{(param.title) ? param.title : index}}</label>
                     <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
 
-                      <template v-for="(prop, i) in param.patternProperties['.+'].properties">
+                      <template v-for="(prop, i) in param.patternProperties['^[^\n]+$'].properties">
 
                         <div 
                         class="miso-badge-header-group grow-1">
@@ -103,18 +105,20 @@
 
                           <select
                           v-if="fn.typeIdentify(prop) == 'select'" 
-                          v-model="ui.slider.form.properties[i]" 
+                          v-model="propertyForm[i]" 
                           :disabled="fn.isDisabled(prop)"
                           @change="prop.alternate && fn.onAlternateChange()"
                           class="miso-badge-union border-secondary">
                             <template v-for="option in prop.enum">
-                              <option :value="`${option}`">{{option}}</option>
+                              <option :value="`${option}`">
+                                {{(prop.enumDisplay) ? prop.enumDisplay[`${option}`] : option}}
+                              </option>
                             </template>
                           </select>
 
                           <textarea
                           v-else-if="fn.typeIdentify(prop) == 'textarea'" 
-                          v-model="ui.slider.form.properties[i]"
+                          v-model="propertyForm[i]"
                           :disabled="fn.isDisabled(prop)"
                           @change="prop.alternate && fn.onAlternateChange()"
                           class="miso-badge-union border-secondary no-resize"
@@ -125,7 +129,7 @@
                           <input 
                           v-else-if="fn.typeIdentify(prop) == 'text' || fn.typeIdentify(prop) == 'number'"
                           :type="fn.typeIdentify(prop)" 
-                          v-model="ui.slider.form.properties[i]"
+                          v-model="propertyForm[i]"
                           :disabled="fn.isDisabled(prop)"
                           @change="prop.alternate && fn.onAlternateChange()"
                           class="miso-badge-union border-secondary">
@@ -325,12 +329,29 @@
     </div>
   </div>
 
-  <pre v-if="loader.extension.debug">
+  <!-- <div v-if="loader.extension.debug">
     <code class="text-light">
-      {{resource}}
+      <b>resource:</b>
+      <pre class="text-light">{{resource}}</pre>
+      <b>ui:</b>
+      <pre class="text-light">{{ui}}</pre>
+      <b>deviceForm:</b>
+      <pre class="text-light">{{deviceForm}}</pre>
+      <b>propertyForm:</b>
+      <pre class="text-light">{{propertyForm}}</pre>
     </code>
-    <code class="text-light">
-      {{ui}}
-    </code>
-  </pre>
+  </div> -->
+
+  <div v-if="loader.extension.debug">
+    <pre>
+      <b>resource:</b>
+      <code class="text-light">{{resource}}</code>
+      <b>ui:</b>
+      <code class="text-light">{{ui}}</code>
+      <b>deviceForm:</b>
+      <code class="text-light">{{deviceForm}}</code>
+      <b>propertyForm:</b>
+      <code class="text-light">{{propertyForm}}</code>
+    </pre>
+  </div>
 </div>

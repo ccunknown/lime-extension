@@ -1,3 +1,5 @@
+const Mustache = require(`mustache`);
+
 const {
   ValidateConfigSchema, 
   CompatibleList, 
@@ -12,6 +14,12 @@ class DeviceConfigTranslator {
     this.devicesService = devicesService;
     this.scriptsService = this.devicesService.scriptsService;
     this.scriptBuilder = new ScriptBuilder();
+
+    let rootDir = this.devicesService.getRootDirectory();
+    this.Errors = require(`${rootDir}/constants/errors.js`);
+    this.propertySchemaConfig = require(`${rootDir}/config/property-schema.js`);
+    this.propIdPattern = this.propertySchemaConfig.idPattern.regex;
+    console.log(`propertySchemaConfig: ${this.propIdPattern}`);
   }
 
   generateConfigSchema(params) {
@@ -21,12 +29,33 @@ class DeviceConfigTranslator {
 
       //  Copy config from ValidateConfigSchema.
       let config = JSON.parse(JSON.stringify(ValidateConfigSchema));
+      let propertiesStr = JSON.stringify(config.properties.properties);
+
+      let mustacheData = JSON.stringify(this.propertySchemaConfig).replace(/\\/g, `\\\\`);
+      config.properties.properties = JSON.parse(Mustache.render(propertiesStr, JSON.parse(mustacheData)));
 
       //  Assign 'alternate' attribute.
       AlternateList.forEach((index) => {
-        if(config.properties.hasOwnProperty(index))
-          config.properties[index].alternate = true;
+        let indexArray = index.split(`.`);
+        let pointer = config;
+        while(indexArray.length > 0) {
+          index = indexArray.shift();
+          if(pointer.hasOwnProperty(`properties`) && pointer.properties.hasOwnProperty(index)) {
+            pointer = pointer.properties[index];
+            if(indexArray.length == 0)
+              pointer.alternate = true;
+          }
+          else if(pointer.hasOwnProperty(`patternProperties`) && pointer.patternProperties.hasOwnProperty(index)) {
+            pointer = pointer.patternProperties[index];
+            if(indexArray.length == 0)
+              pointer.alternate = true;
+          }
+          else {
+            break;
+          }
+        }
       });
+      //console.log(`schema: ${JSON.stringify(config, null, 2)}`);
 
       //  Assign 'attrs' attribute.
       AttributeList.forEach((index) => {
@@ -38,7 +67,7 @@ class DeviceConfigTranslator {
       config.properties.script.enum = await this.devicesService.getCompatibleScript(CompatibleList.script);
       config.properties.engine.enum = await this.devicesService.getCompatibleEngine(CompatibleList.engine);
       let propertiesDirectorySchema = (await this.devicesService.getDirectorySchema(`property`, {"deep": true, "absolute": `${__dirname}`})).children;
-      config.properties.properties.patternProperties[`.+`].properties.template.enum = propertiesDirectorySchema.map((elem) => elem.name);
+      config.properties.properties.patternProperties[this.propIdPattern].properties.template.enum = propertiesDirectorySchema.map((elem) => elem.name);
 
       //  Extend properties config using 'params.properties'.
       if(params && 
@@ -50,9 +79,9 @@ class DeviceConfigTranslator {
         let propConfTrans = new PropertyConfigTranslator(this.devicesService);
         let propConf = await propConfTrans.generateConfigSchema(params);
         for(let i in propConf.properties) {
-          config.properties.properties.patternProperties[`.+`].properties[i] = propConf.properties[i];
+          config.properties.properties.patternProperties[this.propIdPattern].properties[i] = propConf.properties[i];
         }
-        config.properties.properties.patternProperties[`.+`].required = [...config.properties.properties.patternProperties[`.+`].required, ...propConf.required];
+        config.properties.properties.patternProperties[this.propIdPattern].required = [...config.properties.properties.patternProperties[this.propIdPattern].required, ...propConf.required];
       }
 
       resolve(config);

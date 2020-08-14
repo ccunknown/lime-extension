@@ -1,6 +1,6 @@
 const ValidateConfigSchema = {
   "type": "object",
-  "required": [`script`, `engine`, `address`],
+  "required": ["script", "engine", "address"],
   "additionalProperties": false,
   "properties": {
     "script": {
@@ -22,9 +22,9 @@ const ValidateConfigSchema = {
       "title": "Property",
       "required": [],
       "patternProperties": {
-        ".+": {
+        "{{{idPattern.regex}}}": {
           "type": "object",
-          "required": [],
+          "required": ["template"],
           "additionalProperties": false,
           "properties": {
             "template": {
@@ -44,7 +44,8 @@ const CompatibleList = {
 };
 
 const AlternateList = [
-  "script"
+  "script",
+  "properties.[^\n]+.template"
 ];
 
 const AttributeList = [

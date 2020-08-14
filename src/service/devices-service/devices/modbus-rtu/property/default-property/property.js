@@ -39,11 +39,16 @@ class DefaultProperty extends Property{
         "period": {
           "key": `period`,
           "locker": new AsyncLock()
+        },
+        "periodWork": {
+          "key": `periodWork`,
+          "locker": new AsyncLock()
         }
       },
       "timeout": 5000
     };
 
+    this.Errors = require(`${this.exConf[`devices-service`].getRootDirectory()}/constants/errors.js`);
     this.configTranslator = new ConfigTranslator(this.exConf[`devices-service`]);
   }
 
@@ -76,27 +81,32 @@ class DefaultProperty extends Property{
   }
 
   start() {
-    console.log(`propertyWorker: start() >> `);
-    return new Promise(async (resolve, reject) => {
-      await this.setPeriodWork();
-      resolve();
-    });
+    console.log(`${this.name}: DefaultProperty: start() >> `);
+    return this.setPeriodWork();
   }
 
   stop() {
-    console.log(`propertyWorker: stop() >> `);
+    console.log(`${this.name}: DefaultProperty: stop() >> `);
     return this.clearPeriodWork();
   }
 
   setPeriodWork() {
+    console.log(`${this.name}: DefaultProperty: setPeriodWork() >> `);
     let locker = this.exConf.lock.period.locker;
     let key = this.exConf.lock.period.key;
     return new Promise((resolve, reject) => {
       locker.acquire(key, async () => {
-        if(this.device) {
-          await this.periodWork();
-          this.period = setTimeout(() => this.setPeriodWork(), this.exConf.config.period);
+        if(this.device && !this.period) {
+          console.log(`setPeriodWork(${this.name}) >> Accept.`);
+          //await this.periodWork();
+          //this.period = setTimeout(() => this.setPeriodWork(), this.exConf.config.period);
+          this.period = setInterval(
+            () => this.periodWork(), 
+            this.exConf.config.period
+          );
         }
+        else
+          console.log(`setPeriodWork(${this.name}) >> Deny.`);
         return ;
       })
       .then(() => resolve());
@@ -104,11 +114,13 @@ class DefaultProperty extends Property{
   }
 
   clearPeriodWork() {
+    console.log(`${this.name}: DefaultProperty: clearPeriodWork() >> `);
     let locker = this.exConf.lock.period.locker;
     let key = this.exConf.lock.period.key;
     return new Promise((resolve, reject) => {
       locker.acquire(key, () => {
-        clearTimeout(this.period);
+        clearInterval(this.period);
+        this.period = null;
         return ;
       })
       .then(() => resolve());
@@ -116,7 +128,29 @@ class DefaultProperty extends Property{
   }
 
   periodWork() {
-    console.log(`DefaultProperty: periodWork() >> `);
+    let locker = this.exConf.lock.periodWork.locker;
+    let key = this.exConf.lock.periodWork.key;
+    return new Promise((resolve, reject) => {
+      locker.acquire(
+        key, 
+        async (done) => {
+          if(this.device) {
+            let ret = await this._periodWork();
+            done(null, ret);
+          }
+          else {
+            await this.clearPeriodWork();
+            done(new this.Errors(ParentObjectUnavailable));
+          }
+        },
+        (err, ret) => (err) ? reject(err) : resolve(ret),
+        {maxPending: 1}
+      );
+    });
+  }
+
+  _periodWork() {
+    // console.log(`${this.name}: DefaultProperty: _periodWork() >> `);
     return new Promise(async (resolve, reject) => {
       let engine = this.device.getEngine();
       let script = this.device.getScript();
@@ -141,9 +175,9 @@ class DefaultProperty extends Property{
             "numtoread": ntr
           });
 
-          console.log(`ret : ${ret.buffer.toString('hex')}`);
           let value = script.map[table][address].translator(ret.buffer, script.map[table][address]);
-          console.log(`${this.device.id} : ${this.name} : ${typeof value} : ${value}`);
+          console.log(`${this.device.id}[${this.name}] => [hex: ${ret.buffer.toString('hex')}] / [${typeof value}: ${value}]`);
+          //console.log(`${this.device.id} : ${this.name} : ${typeof value} : ${value}`);
           this.setCachedValueAndNotify(value);
         }
       }

@@ -51,6 +51,8 @@ export default class PageDevices {
             },
             "type": ""
           },
+          "deviceForm": {},
+          "propertyForm": {},
           /** Function **/
           "fn": {
             // "add": () => {},
@@ -117,7 +119,7 @@ export default class PageDevices {
         },
         "onAlternateChange": () => {
           console.log(`onAlternateChange() >> `);
-          this.renewDeviceConfigSchema();
+          this.onAlternateChange();
         },
         "typeIdentify": (param) => {
           let type = undefined;
@@ -219,7 +221,7 @@ export default class PageDevices {
   }
 
   renderForm(name) {
-    this.console.log(`PageDevices: renderForm() >> `);
+    this.console.log(`PageDevices: renderForm(${(name) ? `${name}` : ``}) >> `);
     return new Promise(async (resolve, reject) => {
       //this.vue.resource.deviceTemplate = await this.getDeviceTemplate();
       if(name) {
@@ -241,62 +243,94 @@ export default class PageDevices {
           resolve();
         });
       }
-      // else {
-      //   let schema = this.ui.shortJsonElement(this.vue.resource.schema, `items`);
-      //   this.vue.ui.slider.form = this.ui.generateData(schema);
-      //   this.vue.ui.slider.formTemplate = this.ui.generateVueData(schema);
-      //   this.vue.ui.slider.formTemplate.properties = this.ui.generateVueData(this.ui.shortJsonElement(schema, `^.+$`));
-      //   this.vue.ui.slider.formTemplate.properties.config = {};
-      //   this.vue.ui.slider.formTemplate.config.device.enum = this.vue.resource.deviceTemplate.map((elem) => elem.name);
-      //   resolve();
-      // }
       else {
-        let schema = await this.getDeviceConfigSchema();
-        //  Embed Json Position.
-        schema = this.embedPosition(schema);
-        this.vue.resource.deviceConfigSchema = schema;
-        this.vue.ui.slider.form = await this.ui.generateData(schema);
-        this.vue.ui.slider.form.properties = {};
-        await this.renewDeviceConfigSchema();
+        // this.vue.ui.slider.form = {};
+        // await this.onAlternateChange();
+        // await this.onAlternateChange();
+        // resolve();
+        this.vue.deviceForm = {};
+        this.vue.propertyForm = {};
+        await this.onAlternateChange();
+        //await this.onAlternateChange();
         resolve();
       }
-
-      // //  Render Device ID.
-      // let index = 1;
-      // let id = ``;
-      // this.console.log(`ui ext: ${JSON.stringify(this.ui.ext, null, 2)}`);
-      // while(true) {
-      //   id = `${this.ui.ext.short}-device-${index}`;
-      //   let device = this.vue.resource.config.list.find((elem) => elem.id == id);
-      //   if(!device) {
-      //     this.vue.ui.slider.form.id = id;
-      //     break;
-      //   }
-      // }
     });
   }
 
-  renewDeviceConfigSchema() {
-    this.console.log(`renewDeviceConfigSchema()`);
+  onAlternateChange() {
+    this.console.log(`onAlternateChange() >> `);
     return new Promise(async (resolve, reject) => {
-      let schema = await this.getDeviceConfigSchema(this.vue.ui.slider.form);
-      //  Embed Json Position.
-      schema = this.embedPosition(schema);
-      this.vue.resource.deviceConfigSchema = schema;
-      if(!this.vue.ui.slider.form.device)
-        this.vue.ui.slider.form.device = {};
-      if(!this.vue.ui.slider.form.properties)
-        this.vue.ui.slider.form.properties = {};
+      let config = JSON.parse(JSON.stringify(this.vue.deviceForm));
+      config.properties = JSON.parse(JSON.stringify(this.vue.propertyForm));
 
-      if(!this.vue.ui.slider.final.device)
-        this.vue.ui.slider.final.device = {};
-      if(!this.vue.ui.slider.final.properties)
-        this.vue.ui.slider.final.properties = [];
-      //let data = await this.ui.generateData(schema);
-      //this.vue.ui.slider.form = 
+      let schema = await this.generateDeviceConfigSchema(config);
+      this.vue.resource.deviceConfigSchema = JSON.parse(JSON.stringify(schema));
+
+      let deviceGen = await this.ui.generateData(schema);
+      let vueDevTemp = JSON.parse(JSON.stringify(this.vue.deviceForm));
+      let deviceCopy = this.jsonCopy(vueDevTemp, deviceGen);
+      this.vue.deviceForm = vueDevTemp;
+
+      let propertyCopy = false;
+      if(schema.properties && schema.properties.properties && schema.properties.properties.patternProperties) {
+        this.console.log(schema.properties.properties.patternProperties);
+        let propertyGen = await this.ui.generateData(schema.properties.properties.patternProperties[`^[^\n]+$`]);
+        let vuePropTemp = JSON.parse(JSON.stringify(this.vue.propertyForm));
+        propertyCopy = this.jsonCopy(vuePropTemp, propertyGen);
+        this.vue.propertyForm = vuePropTemp;
+      }
+
+      if(deviceCopy || propertyCopy)
+        await this.onAlternateChange();
+
       resolve();
     });
   }
+
+  generateDeviceConfigSchema(params) {
+    this.console.log(`generateDeviceConfigSchema() >> `);
+    return new Promise(async (resolve, reject) => {
+      params = (params) ? params : {};
+      let res = await this.api.restCall(`post`, `/api/service/devices-service/generateConfigSchema`, params);
+      resolve(res);
+    });
+  }
+
+  jsonCopy(dst, src) {
+    src = JSON.parse(JSON.stringify(src));
+    let copy = false;
+    for(let i in src) {
+      if(!dst.hasOwnProperty(i)) {
+        dst[i] = src[i];
+        copy = true;
+      }
+      else if(typeof src[i] == `object`)
+        copy = this.jsonCopy(dst[i], src[i]) || copy;
+    }
+    return copy;
+  }
+
+  // renewDeviceConfigSchema() {
+  //   this.console.log(`renewDeviceConfigSchema()`);
+  //   return new Promise(async (resolve, reject) => {
+  //     let schema = await this.getDeviceConfigSchema(this.vue.ui.slider.form);
+  //     //  Embed Json Position.
+  //     schema = this.embedPosition(schema);
+  //     this.vue.resource.deviceConfigSchema = schema;
+  //     if(!this.vue.ui.slider.form.device)
+  //       this.vue.ui.slider.form.device = {};
+  //     if(!this.vue.ui.slider.form.properties)
+  //       this.vue.ui.slider.form.properties = {};
+
+  //     if(!this.vue.ui.slider.final.device)
+  //       this.vue.ui.slider.final.device = {};
+  //     if(!this.vue.ui.slider.final.properties)
+  //       this.vue.ui.slider.final.properties = [];
+  //     //let data = await this.ui.generateData(schema);
+  //     //this.vue.ui.slider.form = 
+  //     resolve();
+  //   });
+  // }
 
   getConfig() {
     this.console.log(`getConfig()`);
@@ -314,88 +348,88 @@ export default class PageDevices {
     });
   }
 
-  getDeviceTemplate(name) {
-    this.console.log(`getDeviceTemplate()`);
-    return new Promise(async (resolve, reject) => {
-      let template = await this.api.restCall(`get`, `/api/service/deviceTemplate${(name) ? `/${name}` : ``}`);
-      resolve(template);
-    });
-  }
+  // getDeviceTemplate(name) {
+  //   this.console.log(`getDeviceTemplate()`);
+  //   return new Promise(async (resolve, reject) => {
+  //     let template = await this.api.restCall(`get`, `/api/service/deviceTemplate${(name) ? `/${name}` : ``}`);
+  //     resolve(template);
+  //   });
+  // }
 
-  getDeviceConfigSchema(params) {
-    this.console.log(`getDeviceConfigSchema()`);
-    return new Promise(async (resolve, reject) => {
-      // let paramStr = ``;
-      // for(let i in params)
-      //   paramStr = `${paramStr}${(paramStr != ``) ? `&` : ``}${i}=${params[i]}`;
-      let paramStr = this.generateParameters(params);
-      this.console.log(`params: ${params}`);
-      this.console.log(`paramStr: ${paramStr}`);
-      let template = await this.api.restCall(`get`, `/api/service/deviceConfigSchema${(paramStr && paramStr.length > 0) ? `?${paramStr}` : ``}`);
-      resolve(template);
-    });
-  }
+  // getDeviceConfigSchema(params) {
+  //   this.console.log(`getDeviceConfigSchema()`);
+  //   return new Promise(async (resolve, reject) => {
+  //     // let paramStr = ``;
+  //     // for(let i in params)
+  //     //   paramStr = `${paramStr}${(paramStr != ``) ? `&` : ``}${i}=${params[i]}`;
+  //     let paramStr = this.generateParameters(params);
+  //     this.console.log(`params: ${params}`);
+  //     this.console.log(`paramStr: ${paramStr}`);
+  //     let template = await this.api.restCall(`get`, `/api/service/deviceConfigSchema${(paramStr && paramStr.length > 0) ? `?${paramStr}` : ``}`);
+  //     resolve(template);
+  //   });
+  // }
 
-  getPreRequire(schema) {
-    let list = [];
-    if(!schema)
-      return [];
-    else if(schema.prerequire)
-      list = schema.prerequire;
-    else if(schema.items) {
-      list = this.getPreRequire(schema.items);
-    }
-    else if(schema.type == `object`) {
-      if(schema.properties)
-        for(let i in schema.properties)
-          list = [...list, ...this.getPreRequire(schema.properties[i])];
-      if(schema.patternProperties)
-        for(let i in schema.patternProperties)
-          list = [...list, ...this.getPreRequire(schema.patternProperties[i])];
-    }
-    return list;
-  }
+  // getPreRequire(schema) {
+  //   let list = [];
+  //   if(!schema)
+  //     return [];
+  //   else if(schema.prerequire)
+  //     list = schema.prerequire;
+  //   else if(schema.items) {
+  //     list = this.getPreRequire(schema.items);
+  //   }
+  //   else if(schema.type == `object`) {
+  //     if(schema.properties)
+  //       for(let i in schema.properties)
+  //         list = [...list, ...this.getPreRequire(schema.properties[i])];
+  //     if(schema.patternProperties)
+  //       for(let i in schema.patternProperties)
+  //         list = [...list, ...this.getPreRequire(schema.patternProperties[i])];
+  //   }
+  //   return list;
+  // }
 
-  embedPosition(schema, prefix) {
-    if(schema.properties) {
-      for(let i in schema.properties)
-        schema.properties[i] = this.embedPosition(schema.properties[i], `${(prefix) ? `${prefix}.` : ``}${i}`);
-      return schema;
-    }
-    else if(schema.patternProperties) {
-      for(let i in schema.properties)
-        schema.properties[i] = this.embedPosition(schema.patternProperties[i], `${(prefix) ? `${prefix}.` : ``}${i}`);
-      return schema;
-    }
-    else if(schema.items) {
-      schema.items = this.embedPosition(schema.items, prefix);
-      return schema;
-    }
-    else {
-      schema.position = `${prefix}`;
-      return schema;
-    }
-  }
+  // embedPosition(schema, prefix) {
+  //   if(schema.properties) {
+  //     for(let i in schema.properties)
+  //       schema.properties[i] = this.embedPosition(schema.properties[i], `${(prefix) ? `${prefix}.` : ``}${i}`);
+  //     return schema;
+  //   }
+  //   else if(schema.patternProperties) {
+  //     for(let i in schema.properties)
+  //       schema.properties[i] = this.embedPosition(schema.patternProperties[i], `${(prefix) ? `${prefix}.` : ``}${i}`);
+  //     return schema;
+  //   }
+  //   else if(schema.items) {
+  //     schema.items = this.embedPosition(schema.items, prefix);
+  //     return schema;
+  //   }
+  //   else {
+  //     schema.position = `${prefix}`;
+  //     return schema;
+  //   }
+  // }
 
-  generateParameters(params) {
-    console.log(`params: ${JSON.stringify(params, null, 2)}`);
-    let result = ``;
-    for(let i in params) {
-      console.log(`paramsType[${i}]: ${typeof params[i]}`);
-      if(typeof params[i] == `object`) {
-        if(JSON.stringify(params[i]) != `{}`) {
-          let tmp = this.generateParameters(params[i]);
-          tmp = tmp.split(`&`).map((elem) => `${i}.${elem}`).join(`&`);
-          tmp = tmp.replace(/^&/, ``);
-          result = `${result}&${tmp}`;
-        }
-      }
-      else {
-        result = `${result}&${i}=${params[i]}`;
-      }
-    }
-    result = result.replace(/^&/, ``);
-    console.log(`result: ${result}`);
-    return result;
-  }
+  // generateParameters(params) {
+  //   console.log(`params: ${JSON.stringify(params, null, 2)}`);
+  //   let result = ``;
+  //   for(let i in params) {
+  //     console.log(`paramsType[${i}]: ${typeof params[i]}`);
+  //     if(typeof params[i] == `object`) {
+  //       if(JSON.stringify(params[i]) != `{}`) {
+  //         let tmp = this.generateParameters(params[i]);
+  //         tmp = tmp.split(`&`).map((elem) => `${i}.${elem}`).join(`&`);
+  //         tmp = tmp.replace(/^&/, ``);
+  //         result = `${result}&${tmp}`;
+  //       }
+  //     }
+  //     else {
+  //       result = `${result}&${i}=${params[i]}`;
+  //     }
+  //   }
+  //   result = result.replace(/^&/, ``);
+  //   console.log(`result: ${result}`);
+  //   return result;
+  // }
 }
