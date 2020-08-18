@@ -78,6 +78,7 @@ export default class ExtensionLoader {
     let prefix = `/extensions/${this.schema.extension.full}`;
     //path = (path.startsWith(prefix) || path.startsWith(`http`)) ? path : [prefix, `static`, path].join("/").replace(/\/+/g, "/");
     path = this.path(`${path}`);
+    console.log(`path: ${path}`);
     if(path.endsWith(`.js`))
       return this.loadScript(path);
     else if(path.endsWith(`.html`))

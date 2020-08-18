@@ -9,7 +9,21 @@ export default class PageDevices {
   init(config) {
     this.console.trace(`init()`);
     return new Promise(async (resolve, reject) => {
+      await this.initVueComponent();
       await this.initVue();
+      resolve();
+    });
+  }
+
+  initVueComponent() {
+    return new Promise(async (resolve, reject) => {
+      //  Load resource.
+      let loader = this.ui.extension.loader;
+      let script = await loader.getObject(`vue-component-json-schema-script`);
+      console.log(loader.objects);
+      script.template = await loader.getObject(`vue-component-json-schema-template`);
+
+      Vue.component(`json-schema-form`, script);
       resolve();
     });
   }
@@ -152,6 +166,15 @@ export default class PageDevices {
           (param.type == `string`) ? `` :
           (param.type == `number`) ? (param.min) ? param.min : 0 :
           (param.type == `boolean`) ? false : undefined;
+        },
+        "hasPropertyConfigSchema": () => {
+          if(this.vue.resource.deviceConfigSchema &&
+            this.vue.resource.deviceConfigSchema.properties &&
+            this.vue.resource.deviceConfigSchema.properties.properties &&
+            JSON.stringify(this.vue.resource.deviceConfigSchema.properties.properties) != `{}`)
+            return true;
+          else
+            return false;
         },
         "addProperty": () => {
           this.console.log(`addProperty()`);
@@ -310,28 +333,6 @@ export default class PageDevices {
     return copy;
   }
 
-  // renewDeviceConfigSchema() {
-  //   this.console.log(`renewDeviceConfigSchema()`);
-  //   return new Promise(async (resolve, reject) => {
-  //     let schema = await this.getDeviceConfigSchema(this.vue.ui.slider.form);
-  //     //  Embed Json Position.
-  //     schema = this.embedPosition(schema);
-  //     this.vue.resource.deviceConfigSchema = schema;
-  //     if(!this.vue.ui.slider.form.device)
-  //       this.vue.ui.slider.form.device = {};
-  //     if(!this.vue.ui.slider.form.properties)
-  //       this.vue.ui.slider.form.properties = {};
-
-  //     if(!this.vue.ui.slider.final.device)
-  //       this.vue.ui.slider.final.device = {};
-  //     if(!this.vue.ui.slider.final.properties)
-  //       this.vue.ui.slider.final.properties = [];
-  //     //let data = await this.ui.generateData(schema);
-  //     //this.vue.ui.slider.form = 
-  //     resolve();
-  //   });
-  // }
-
   getConfig() {
     this.console.log(`getConfig()`);
     return new Promise((resolve, reject) => {
@@ -347,89 +348,4 @@ export default class PageDevices {
       .then((schema) => resolve(schema.properties[`service-config`].properties[`devices-service`]));
     });
   }
-
-  // getDeviceTemplate(name) {
-  //   this.console.log(`getDeviceTemplate()`);
-  //   return new Promise(async (resolve, reject) => {
-  //     let template = await this.api.restCall(`get`, `/api/service/deviceTemplate${(name) ? `/${name}` : ``}`);
-  //     resolve(template);
-  //   });
-  // }
-
-  // getDeviceConfigSchema(params) {
-  //   this.console.log(`getDeviceConfigSchema()`);
-  //   return new Promise(async (resolve, reject) => {
-  //     // let paramStr = ``;
-  //     // for(let i in params)
-  //     //   paramStr = `${paramStr}${(paramStr != ``) ? `&` : ``}${i}=${params[i]}`;
-  //     let paramStr = this.generateParameters(params);
-  //     this.console.log(`params: ${params}`);
-  //     this.console.log(`paramStr: ${paramStr}`);
-  //     let template = await this.api.restCall(`get`, `/api/service/deviceConfigSchema${(paramStr && paramStr.length > 0) ? `?${paramStr}` : ``}`);
-  //     resolve(template);
-  //   });
-  // }
-
-  // getPreRequire(schema) {
-  //   let list = [];
-  //   if(!schema)
-  //     return [];
-  //   else if(schema.prerequire)
-  //     list = schema.prerequire;
-  //   else if(schema.items) {
-  //     list = this.getPreRequire(schema.items);
-  //   }
-  //   else if(schema.type == `object`) {
-  //     if(schema.properties)
-  //       for(let i in schema.properties)
-  //         list = [...list, ...this.getPreRequire(schema.properties[i])];
-  //     if(schema.patternProperties)
-  //       for(let i in schema.patternProperties)
-  //         list = [...list, ...this.getPreRequire(schema.patternProperties[i])];
-  //   }
-  //   return list;
-  // }
-
-  // embedPosition(schema, prefix) {
-  //   if(schema.properties) {
-  //     for(let i in schema.properties)
-  //       schema.properties[i] = this.embedPosition(schema.properties[i], `${(prefix) ? `${prefix}.` : ``}${i}`);
-  //     return schema;
-  //   }
-  //   else if(schema.patternProperties) {
-  //     for(let i in schema.properties)
-  //       schema.properties[i] = this.embedPosition(schema.patternProperties[i], `${(prefix) ? `${prefix}.` : ``}${i}`);
-  //     return schema;
-  //   }
-  //   else if(schema.items) {
-  //     schema.items = this.embedPosition(schema.items, prefix);
-  //     return schema;
-  //   }
-  //   else {
-  //     schema.position = `${prefix}`;
-  //     return schema;
-  //   }
-  // }
-
-  // generateParameters(params) {
-  //   console.log(`params: ${JSON.stringify(params, null, 2)}`);
-  //   let result = ``;
-  //   for(let i in params) {
-  //     console.log(`paramsType[${i}]: ${typeof params[i]}`);
-  //     if(typeof params[i] == `object`) {
-  //       if(JSON.stringify(params[i]) != `{}`) {
-  //         let tmp = this.generateParameters(params[i]);
-  //         tmp = tmp.split(`&`).map((elem) => `${i}.${elem}`).join(`&`);
-  //         tmp = tmp.replace(/^&/, ``);
-  //         result = `${result}&${tmp}`;
-  //       }
-  //     }
-  //     else {
-  //       result = `${result}&${i}=${params[i]}`;
-  //     }
-  //   }
-  //   result = result.replace(/^&/, ``);
-  //   console.log(`result: ${result}`);
-  //   return result;
-  // }
 }

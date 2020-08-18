@@ -50,10 +50,10 @@ class EnginesService extends Service {
       let template = this.engineTemplateList.find((elem) => schema.engine == elem.name);
       if(template) {
         let path = template.path.replace(/^\//, ``);
-        let object = require(`./${path}`);
+        let Obj = require(`./${path}`);
         let engine = {
           "schema": schema,
-          "object": new (object)()
+          "object": new (Obj)()
         };
         this.engineList.push(engine);
         await this.startEngine(schema.name);

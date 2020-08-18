@@ -27,10 +27,9 @@
               "load": [
                 "jquery",
                 "mustache",
-                //"crypto-js",
                 "vue",
-                "vue-multiselect",
-                "vue-tags-input",
+                // "vue-multiselect",
+                // "vue-tags-input",
                 "popper",
                 "bootstrap",
                 
@@ -44,11 +43,17 @@
             {
               "type": "parallel",
               "load": [
-                //"page-vthings",
                 "page-devices",
                 "page-scripts",
                 "page-engines",
                 "page-sysport"
+              ]
+            },
+            {
+              "type": "parallel",
+              "load": [
+                "vue-component-json-schema-template",
+                "vue-component-json-schema-script"
               ]
             }
           ]
@@ -58,7 +63,6 @@
           "load": [
             "extension-view-main",
             "extension-view-resource",
-            //"script-vthings",
             "script-devices",
             "script-scripts",
             "script-engines",
@@ -120,12 +124,6 @@
         "type": "script",
         "path": "/js/mustache.js"
       },
-      /*
-      "crypto-js": {
-        "type": "script",
-        "path": "/js/crypto-js.min.js"
-      },
-      */
       "vue": {
         "type": "script",
         "path": "/js/vue.js"
@@ -147,19 +145,15 @@
         "path": "/js/bootstrap.min.js"
       },
 
-
-      // "page-vthings": {
-      //   "name": "vthings",
-      //   "type": "custom-view",
-      //   "path": "/custom/views/vthings.html",
-      //   "icon": "fas fa-paper-plane",
-      //   "link-script": "script-vthings"
-      // },
-      // "script-vthings": {
-      //   "type": "custom-script",
-      //   "path": "/custom/js/vthings.js",
-      //   "object-name": "LimeExtensionPageVthings"
-      // },
+      "vue-component-json-schema-template": {
+        "type": "vue-component-template",
+        "path": "/custom/vue/template/jsonSchemaVue/template.html"
+      },
+      "vue-component-json-schema-script": {
+        "type": "vue-component-script",
+        "path": "/custom/vue/template/jsonSchemaVue/script.js",
+        "object-name": "jsonSchemaVue"
+      },
 
 
       "page-devices": {
