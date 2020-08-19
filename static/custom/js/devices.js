@@ -57,7 +57,7 @@ export default class PageDevices {
               "formTemplate": {},
               "final": {
                 "device": {},
-                "properties": []
+                "properties": {}
               }
             },
             "base": {
@@ -93,8 +93,13 @@ export default class PageDevices {
           this.console.log(`edit(${name})`);
           this.renderSlider(name);
         },
-        "remove": (name) => {
-          this.console.log(`delete(${name})`);
+        "remove": (id) => {
+          this.console.log(`delete(${id})`);
+          return new Promise(async (resolve, reject) => {
+            let res = await this.deleteDevice(id);
+            this.render();
+            resolve();
+          });
         },
         "save": () => {
           this.console.log(`save()`);
@@ -102,8 +107,10 @@ export default class PageDevices {
             this.vue.ui.slider.ready = false;
             this.vue.ui.base.ready = false;
             //  Build final.
-            this.vue.ui.slider.final.device = this.vue.ui.slider.form.device;
-            await this.api.restCall(`put`, `/api/service/devices`, this.vue.ui.slider.final);
+            this.vue.ui.slider.final.device = JSON.parse(JSON.stringify(this.vue.deviceForm));
+            this.vue.ui.slider.final.device.properties = JSON.parse(JSON.stringify(this.vue.ui.slider.final.properties));
+            //await this.api.restCall(`put`, `/api/service/devices`, this.vue.ui.slider.final);
+            await this.api.restCall(`put`, `/api/service/devices`, this.vue.ui.slider.final.device);
             await this.render();
             resolve();
           });
@@ -159,6 +166,9 @@ export default class PageDevices {
           //   return true;
           return false;
         },
+        "isEmpty": (json) => {
+          return (JSON.stringify(json) == `{}`) ? true : false;
+        },
         "defaultValue": (param) => {
           return (param.const) ? param.const :
           (param.default) ? param.default :
@@ -178,10 +188,18 @@ export default class PageDevices {
         },
         "addProperty": () => {
           this.console.log(`addProperty()`);
-          this.console.log(`properties: ${JSON.stringify(this.vue.ui.slider.form.properties, null ,2)}`);
-          //this.vue.ui.slider.final.properties = [`hello`];
-          this.vue.ui.slider.final.properties.push(JSON.parse(JSON.stringify(this.vue.ui.slider.form.properties)));
-          this.console.log(`final: ${JSON.stringify(this.vue.ui.slider.final, null ,2)}`);
+          this.console.log(`properties: ${JSON.stringify(this.vue.propertyForm, null ,2)}`);
+
+          let params = JSON.parse(JSON.stringify(this.vue.deviceForm));
+          params.properties = JSON.parse(JSON.stringify(this.vue.propertyForm));
+          this.generatePropertyId(params)
+          .then((id) => {
+            let finalProp = JSON.parse(JSON.stringify(this.vue.ui.slider.final.properties));
+            finalProp[id] = params.properties;
+            this.vue.ui.slider.final.properties = finalProp;
+          });
+
+          //this.vue.ui.slider.final.properties.push(JSON.parse(JSON.stringify(this.vue.propertyForm)));
         },
         "objectToText": (obj) => {
           let result = ``;
@@ -267,6 +285,10 @@ export default class PageDevices {
         });
       }
       else {
+        //  Pre-set form (Cleaning).
+        this.vue.ui.slider.final.device = {};
+        this.vue.ui.slider.final.properties = {};
+
         // this.vue.ui.slider.form = {};
         // await this.onAlternateChange();
         // await this.onAlternateChange();
@@ -315,6 +337,22 @@ export default class PageDevices {
     return new Promise(async (resolve, reject) => {
       params = (params) ? params : {};
       let res = await this.api.restCall(`post`, `/api/service/devices-service/generateConfigSchema`, params);
+      resolve(res);
+    });
+  }
+
+  generatePropertyId(params) {
+    this.console.log(`generatePropertyId() >> `);
+    return new Promise(async (resolve, reject) => {
+      let res = await this.api.restCall(`post`, `/api/service/devices-service/generatePropertyId`, params);
+      resolve((res.id) ? res.id : null);
+    });
+  }
+
+  deleteDevice(id) {
+    this.console.log(`deleteDevice(${id}) >> `);
+    return new Promise(async (resolve, reject) => {
+      let res = await this.api.restCall(`delete`, `/api/service/devices-service/devices/${id}`);
       resolve(res);
     });
   }

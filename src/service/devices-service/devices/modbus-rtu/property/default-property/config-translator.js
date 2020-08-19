@@ -63,6 +63,17 @@ class PropertyConfigTranslator {
     });
   }
 
+  generateId(params) {
+    console.log(`PropertyConfigTranslator: generateId() >> `);
+    return new Promise(async (resolve, reject) => {
+      // let script = await this.scriptsService.get(params.script, {"object": true, "deep": true});
+      // let readMap = script.children.find((elem) => elem.name == `readMap.js`).object.map;
+      // let elem = readMap[params.properties.table][params.properties.address];
+      let id = `${params.properties.table}-addr-${Number(params.properties.address).toString(16)}`;
+      resolve(id);
+    });
+  }
+
   translate(config, fullMap) {
     console.log(`PropertyConfigTranslator: translate() >> `);
     return new Promise(async (resolve, reject) => {

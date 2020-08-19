@@ -216,7 +216,27 @@ class RoutesManager extends APIHandler{
         }
       },
 
-      /***  Resource : /service/devicesConfigSchema  ***/
+      /***  Resource : /service/devicesSconfigSchema/name  ***/
+      {
+        "resource": /\/service\/deviceConfigSchema\/[^/]+/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              let params = this.getParameters(req);
+              params.device = (params.device) ? params.device : {};
+              params.device.device = req.path.split(`/`).pop();
+              this.laborsManager.getService(`devices-service`).obj.getConfigSchema(params)
+              .then((json) => {
+                //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
+                resolve(this.makeJsonRespond(JSON.stringify(json)));
+              })
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/devices-service/devicesConfigSchema  ***/
       {
         "resource": /\/service\/devices-service\/generateConfigSchema/,
         "method": {
@@ -226,6 +246,23 @@ class RoutesManager extends APIHandler{
               .then((json) => {
                 //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
                 resolve(this.makeJsonRespond(JSON.stringify(json)));
+              })
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/devices-service/devicesConfigSchema  ***/
+      {
+        "resource": /\/service\/devices-service\/generatePropertyId/,
+        "method": {
+          "POST": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`devices-service`).obj.generatePropertyId(req.body)
+              .then((propId) => {
+                console.log(`propId: ${propId}`);
+                resolve(this.makeJsonRespond(JSON.stringify({"id": `${propId}`})));
               })
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -250,16 +287,28 @@ class RoutesManager extends APIHandler{
         }
       },
 
-      /***  Resource : /service/devicesSconfigSchema/name  ***/
+      /***  Resource : /service/devices-service/devices  ***/
       {
-        "resource": /\/service\/deviceConfigSchema\/[^/]+/,
+        "resource": /\/service\/devices-service\/devices/,
         "method": {
-          "GET": (req) => {
+          "PUT": (req) => {
             return new Promise((resolve, reject) => {
-              let params = this.getParameters(req);
-              params.device = (params.device) ? params.device : {};
-              params.device.device = req.path.split(`/`).pop();
-              this.laborsManager.getService(`devices-service`).obj.getConfigSchema(params)
+              this.laborsManager.getService(`devices-service`).obj.add(req.body)
+              .then((json) => resolve(this.makeJsonRespond(JSON.stringify(json))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/devices-service/translate  ***/
+      {
+        "resource": /\/service\/devices-service\/devices\/[^/]+/,
+        "method": {
+          "DELETE": (req) => {
+            return new Promise((resolve, reject) => {
+              let id = req.path.split(`/`).pop();
+              this.laborsManager.getService(`devices-service`).obj.remove(id)
               .then((json) => {
                 //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
                 resolve(this.makeJsonRespond(JSON.stringify(json)));

@@ -173,6 +173,14 @@ class DevicesService extends Service {
     });
   }
 
+  generatePropertyId(params) {
+    console.log(`DevicesService: generatePropertyId() >> `);
+    return new Promise(async (resolve, reject) => {
+      let id = await this.configTranslator.generatePropertyId(params);
+      resolve(id);
+    });
+  }
+
   translateConfig(config) {
     console.log(`DevicesService: getConfigTranslation() >> `);
     return new Promise(async (resolve, reject) => {
@@ -183,13 +191,20 @@ class DevicesService extends Service {
 
   remove(id) {
     console.log(`DevicesService: removeDevice() >> `);
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       let device = this.adapter.getDevice(id);
-      if(device)
+      if(device) {
+        await device.disableProperties();
+        //  Delete from adapter.
         this.adapter.handleDeviceRemoved(device);
-      else
+        //  Delete from config.
+        await this.configManager.deleteConfig(`service-config.devices-service.list.${id}`);
+      }
+      else {
         console.warn(`Device "${id}" not found in list!!!`);
-      resolve();
+        await this.configManager.deleteConfig(`service-config.devices-service.list.${id}`);
+      }
+      resolve({});
     });
   }
 

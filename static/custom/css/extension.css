@@ -43,7 +43,7 @@
 #extension-lime-extension-view {
   height: calc(100% - 7.6rem);
   box-sizing: border-box;
-  overflow: auto;
+  /*overflow: auto;*/
   position: relative;
   top: 7.6rem;
 }
@@ -357,9 +357,13 @@
   background-color: var(--dark);
 }
 
-#extension-lime-contents .miso-modal .modal-body input {
-  font: 400 13.3333px Arial;
+#extension-lime-contents .miso-modal .modal-body {
+  font-size: small;
 }
+
+/*#extension-lime-contents .miso-modal .modal-body input {
+  font: 400 13.3333px Arial;
+}*/
 
 /* Setting item */
 #extension-lime-contents .miso-setting-item {

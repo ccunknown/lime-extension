@@ -2,11 +2,11 @@
 v-if="fn.typeIdentify(param) == 'select'"
 :disabled="fn.isDisabled(param)"
 v-bind:value="value"
-v-on:input="$emit('input', $event.target.value)"
-v-on:change="$emit('change', $event.target.value)"
+v-on:input="$emit('input', (param.type == 'number') ? Number($event.target.value) : $event.target.value)"
+v-on:change="$emit('change', (param.type == 'number') ? Number($event.target.value) : $event.target.value)"
 >
   <template v-for="option in param.enum">
-    <option :value="`${option}`">
+    <option :value="option">
       {{(param.enumDisplay) ? param.enumDisplay[`${option}`] : option}}
     </option>
   </template>
@@ -22,10 +22,19 @@ rows="4">
 </textarea>
 
 <input 
-v-else-if="fn.typeIdentify(param) == 'text' || fn.typeIdentify(param) == 'number'"
+v-else-if="fn.typeIdentify(param) == 'text'"
 :type="fn.typeIdentify(param)" 
 :disabled="fn.isDisabled(param)"
 v-bind:value="value"
 v-on:input="$emit('input', $event.target.value)"
 v-on:change="$emit('change', $event.target.value)"
+>
+
+<input 
+v-else-if="fn.typeIdentify(param) == 'number'"
+:type="fn.typeIdentify(param)" 
+:disabled="fn.isDisabled(param)"
+v-bind:value="value"
+v-on:input="$emit('input', Number($event.target.value))"
+v-on:change="$emit('change', Number($event.target.value))"
 >

@@ -88,6 +88,17 @@ class DeviceConfigTranslator {
     });
   }
 
+  generatePropertyId(params) {
+    console.log(`DeviceConfigTranslator: generatePropertyId() >> `);
+    return new Promise(async (resolve, reject) => {
+      let PropertyConfigTranslator = require(`./property/${params.properties.template}/config-translator.js`);
+      let propConfTrans = new PropertyConfigTranslator(this.devicesService);
+      let propId = await propConfTrans.generateId(params);
+      
+      resolve(propId);
+    });
+  }
+
   translate(config, options) {
     console.log(`DeviceConfigTranslator: translate() >> `);
     return new Promise(async (resolve, reject) => {
@@ -104,11 +115,12 @@ class DeviceConfigTranslator {
       if(options && options.properties) {
         schema.properties = {};
         
-        let script = await this.scriptsService.get(config.script, {"object": true, "deep": true});
-        let readMap = script.children.find((elem) => elem.name == `readMap.js`).object;
-        let calcMap = script.children.find((elem) => elem.name == `calcMap.js`).object;
-        //console.log(`readMap: ${JSON.stringify(readMap, null, 2)}`);
-        let fullMap = this.scriptBuilder.buildFullMap(readMap, calcMap);
+        let fullMap = await this.buildFullMap(config.script);
+        // let script = await this.scriptsService.get(config.script, {"object": true, "deep": true});
+        // let readMap = script.children.find((elem) => elem.name == `readMap.js`).object;
+        // let calcMap = script.children.find((elem) => elem.name == `calcMap.js`).object;
+        // //console.log(`readMap: ${JSON.stringify(readMap, null, 2)}`);
+        // let fullMap = this.scriptBuilder.buildFullMap(readMap, calcMap);
 
         for(let i in config.properties) {
           let PropertyConfigTranslator = require(`./property/${config.properties[i].template}/config-translator.js`);
@@ -120,6 +132,18 @@ class DeviceConfigTranslator {
       }
 
       resolve(schema);
+    });
+  }
+
+  buildFullMap(scriptName) {
+    console.log(`DeviceConfigTranslator: buildFullMap() >> `);
+    return new Promise(async (resolve, reject) => {
+      let script = await this.scriptsService.get(scriptName, {"object": true, "deep": true});
+      let readMap = script.children.find((elem) => elem.name == `readMap.js`).object;
+      let calcMap = script.children.find((elem) => elem.name == `calcMap.js`).object;
+      let fullMap = this.scriptBuilder.buildFullMap(readMap, calcMap);
+
+      resolve(fullMap);
     });
   }
 }

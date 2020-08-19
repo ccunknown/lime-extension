@@ -5504,7 +5504,7 @@
   border-radius: 0.3rem;
   outline: 0;
 }
-#extension-lime-contents .modal-backdrop {
+.modal-backdrop {
   position: fixed;
   top: 0;
   left: 0;
@@ -5513,10 +5513,10 @@
   height: 100vh;
   background-color: #000;
 }
-#extension-lime-contents .modal-backdrop.fade {
+.modal-backdrop.fade {
   opacity: 0;
 }
-#extension-lime-contents .modal-backdrop.show {
+.modal-backdrop.show {
   opacity: 0.5;
 }
 #extension-lime-contents .modal-header {
