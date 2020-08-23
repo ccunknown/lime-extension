@@ -98,7 +98,7 @@ class Service extends EventEmitter {
     return new Promise(async (resolve, reject) => {
       path = Path.join(``, path);
       let fpath = (options.absolute) ? Path.join(options.absolute, path) : Path.join(__dirname, this.id, path);
-      //console.log(`fpath: ${fpath}`);
+      console.log(`fpath: ${fpath}`);
       let stats = fs.lstatSync(fpath);
       let info = {
         path: Path.join(``, path),

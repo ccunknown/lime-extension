@@ -29,7 +29,7 @@
                 "mustache",
                 "vue",
                 // "vue-multiselect",
-                // "vue-tags-input",
+                "vue-tags-input",
                 "popper",
                 "bootstrap",
                 

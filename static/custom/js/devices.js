@@ -201,6 +201,14 @@ export default class PageDevices {
 
           //this.vue.ui.slider.final.properties.push(JSON.parse(JSON.stringify(this.vue.propertyForm)));
         },
+        "removeProperty": (id) => {
+          this.console.log(`removeProperty(${id})`);
+          let result = {};
+          for(let i in this.vue.ui.slider.final.properties)
+            if(i != id)
+              result[i] = this.vue.ui.slider.final.properties[i];
+          this.vue.ui.slider.final.properties = result;
+        },
         "objectToText": (obj) => {
           let result = ``;
           for(let i in obj) {
@@ -208,10 +216,10 @@ export default class PageDevices {
               result = `${(result == ``) ? `` : `${result}/`}${obj[i]}`;
           }
           return result;
-        },
-        "removeProperty": (prop) => {
-          this.vue.ui.slider.final.properties = this.vue.ui.slider.final.properties.filter((elem) => JSON.stringify(elem) != JSON.stringify(prop));
-        }
+        }//,
+        // "removeProperty": (prop) => {
+        //   this.vue.ui.slider.final.properties = this.vue.ui.slider.final.properties.filter((elem) => JSON.stringify(elem) != JSON.stringify(prop));
+        // }
       };
 
       this.console.log(this.vue);
@@ -309,19 +317,42 @@ export default class PageDevices {
       config.properties = JSON.parse(JSON.stringify(this.vue.propertyForm));
 
       let schema = await this.generateDeviceConfigSchema(config);
+      let oldSchema = JSON.parse(JSON.stringify(this.vue.resource.deviceConfigSchema));
       this.vue.resource.deviceConfigSchema = JSON.parse(JSON.stringify(schema));
 
       let deviceGen = await this.ui.generateData(schema);
       let vueDevTemp = JSON.parse(JSON.stringify(this.vue.deviceForm));
-      let deviceCopy = this.jsonCopy(vueDevTemp, deviceGen);
+      // let deviceCopy = this.jsonCopy(vueDevTemp, deviceGen);
+      let copySchema = this.jsonDiv((oldSchema.properties) ? oldSchema.properties : {}, schema.properties, {"level": 1});
+      let deviceCopy = this.jsonCopyBySchema(vueDevTemp, deviceGen, copySchema);
+      console.log(`oldSchema`, JSON.parse(JSON.stringify(oldSchema)));
+      console.log(`newSchema`, schema);
+      console.log(`copySchema: `, copySchema);
+      console.log(`deviceCopy: ${deviceCopy}`);
+      console.log(`deviceGen: `, deviceGen);
       this.vue.deviceForm = vueDevTemp;
+
 
       let propertyCopy = false;
       if(schema.properties && schema.properties.properties && schema.properties.properties.patternProperties) {
-        this.console.log(schema.properties.properties.patternProperties);
+        this.console.log(schema.properties.properties.patternProperties[`^[^\n]+$`].properties);
         let propertyGen = await this.ui.generateData(schema.properties.properties.patternProperties[`^[^\n]+$`]);
         let vuePropTemp = JSON.parse(JSON.stringify(this.vue.propertyForm));
-        propertyCopy = this.jsonCopy(vuePropTemp, propertyGen);
+        console.log(`vuePropTemp: `, JSON.stringify(vuePropTemp, null, 2));
+        console.log(`propertyGen: `, JSON.stringify(propertyGen, null, 2));
+        let oldPropertySchema = (
+          oldSchema && 
+          oldSchema.properties && 
+          oldSchema.properties.properties && 
+          oldSchema.properties.properties.patternProperties &&
+          oldSchema.properties.properties.patternProperties[`^[^\n]+$`]
+        ) ? oldSchema.properties.properties.patternProperties[`^[^\n]+$`].properties : {};
+        let propSchema = this.jsonDiv(
+          oldPropertySchema,
+          schema.properties.properties.patternProperties[`^[^\n]+$`].properties,
+          {"level": 1}
+        );
+        propertyCopy = this.jsonCopyBySchema(vuePropTemp, propertyGen, propSchema);
         this.vue.propertyForm = vuePropTemp;
       }
 
@@ -357,19 +388,57 @@ export default class PageDevices {
     });
   }
 
-  jsonCopy(dst, src) {
+  // jsonCopy(dst, src) {
+  //   src = JSON.parse(JSON.stringify(src));
+  //   let copy = false;
+  //   for(let i in src) {
+  //     if(!dst.hasOwnProperty(i)) {
+  //       dst[i] = src[i];
+  //       copy = true;
+  //     }
+  //     else if(typeof src[i] == `object`)
+  //       copy = this.jsonCopy(dst[i], src[i]) || copy;
+  //   }
+  //   return copy;
+  // }
+
+  jsonCopyBySchema(dst, src, schema) {
+    console.log(`dst: `, dst);
     src = JSON.parse(JSON.stringify(src));
-    let copy = false;
-    for(let i in src) {
-      if(!dst.hasOwnProperty(i)) {
-        dst[i] = src[i];
-        copy = true;
+    let copyFlag = false;
+    for(let i in schema) {
+      if(schema[i] == true) {
+        dst[i] = ([`object`, `array`].includes(typeof src[i])) ? JSON.parse(JSON.stringify(src[i])) : src[i];
+        copyFlag = true;
+        console.log(`jsonCopyBySchema[${i}]: `, dst[i]);
       }
-      else if(typeof src[i] == `object`)
-        copy = this.jsonCopy(dst[i], src[i]) || copy;
+      else if([`object`, `array`].includes(typeof schema[i]))
+        copyFlag = this.jsonCopyBySchema(dst[i], src[i], schema[i]) || copyFlag;
     }
-    return copy;
+    return copyFlag;
   }
+
+  jsonDiv(dst, src, options) {
+    console.log(`jsonDiv()`);
+    let result = {};
+    let opt = (options) ? JSON.parse(JSON.stringify(options)) : {};
+    if(opt.level)
+      opt.level = opt.level - 1;
+
+    for(let i in dst) {
+      result[i] = (!src.hasOwnProperty(i)) ? true :
+        ([`object`, `array`].includes(typeof src[i])) ? 
+        (JSON.stringify(dst[i]) == JSON.stringify(src[i])) ? false :
+        (opt.level == 0) ? true :
+        this.jsonDiv(dst[i], src[i], opt) :
+        (dst[i] == src[i]) ? false : true;
+    }
+    for(let i in src) {
+      if(!dst.hasOwnProperty(i))
+        result[i] = true;
+    }
+    return result;
+  };
 
   getConfig() {
     this.console.log(`getConfig()`);

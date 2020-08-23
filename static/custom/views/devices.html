@@ -81,15 +81,15 @@
               <!-- Property Container -->
               <div 
               v-if="!fn.isEmpty(ui.slider.final.properties)"
-              class="border-dash mt-2 pt-1 pr-1 pl-1">
+              class="border-dash border-warning mt-2 pt-1 pr-1 pl-1">
                 <template v-for="(prop, i) in ui.slider.final.properties">
                   <div class="d-flex justify-content-between align-items-center text-light bg-secondary w-100 mb-1 p-1">
                     <div>
                       <span class="badge badge-warning mx-2">{{prop.template}}</span>
-                      <span>{{i}}</span>
+                      <span>{{i}} {{(prop.name) ? prop.name : ``}}</span>
                     </div>
                     <div>
-                      <button class="btn btn-danger" @click="fn.remove(index)">
+                      <button class="btn btn-danger" @click="fn.removeProperty(i)">
                         <i class="fas fa-trash fa-lg"></i>
                       </button>
                     </div>

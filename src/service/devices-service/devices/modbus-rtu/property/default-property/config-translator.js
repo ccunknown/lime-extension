@@ -81,7 +81,8 @@ class PropertyConfigTranslator {
       if(validateInfo.errors.length)
         reject(new this.Errors.InvalidConfigSchema(validateInfo.errors));
 
-      let modbusRegister = fullMap.map[config.table][config.address];
+      let modbusRegister = fullMap.map[config.table][`${config.address}`];
+      console.log(`FullMap: ${JSON.stringify(fullMap.map[config.table], null, 2)}`);
       let schema = {
         "title": modbusRegister.name,
         "type": modbusRegister.type,

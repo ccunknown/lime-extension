@@ -117,10 +117,13 @@ class ScriptsService extends Service {
         if(!script)
           resolve(undefined);
         else {
-          //let script = JSON.parse(JSON.stringify(script));
+          // let script = JSON.parse(JSON.stringify(script));
           let meta = script.children.find((elem) => elem.name == `metadata.js`);
           script.children = script.children.filter((elem) => elem.name != `metadata.js`);
-          let path = Path.join(__dirname, script.path.replace(/^\//, ``), `metadata.js`);
+          // let path = Path.join(__dirname, script.path.replace(/^\//, ``), `metadata.js`);
+          let path = Path.join(__dirname, script.path, `metadata.js`);
+          if(require.cache[require.resolve(path)])
+            delete require.cache[require.resolve(path)]
           script.meta = (meta) ? JSON.parse(JSON.stringify(require(path))) : {};
           resolve(script);
         }
