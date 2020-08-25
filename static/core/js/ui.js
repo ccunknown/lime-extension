@@ -80,8 +80,14 @@ export default class ExtensionUi {
   }
 
   initFunction() {
-    this.show = (id) => this.saidObj(id).removeClass(`hide`);
-    this.hide = (id) => this.saidObj(id).addClass(`hide`);
+    this.show = (id) => {
+      this.saidObj(id).removeClass(`hide`);
+      this.saidObj(id).addClass(`show`);
+    };
+    this.hide = (id) => {
+      this.saidObj(id).removeClass(`show`);
+      this.saidObj(id).addClass(`hide`);
+    };
     this.enable = (id) => this.saidObj(id).removeClass(`disabled`);
     this.disable = (id) => this.saidObj(id).addClass(`disabled`);
     this.click = (id) => this.saidObj(id).click();

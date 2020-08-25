@@ -459,6 +459,34 @@ class RoutesManager extends APIHandler{
         }
       },
 
+      /***  Resource : /service/sysport-service/system-port  ***/
+      {
+        "resource": /\/service\/sysport-service\/system-port/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`sysport-service`).obj.getSerialPortList()
+              .then((serialPortList) => resolve(this.makeJsonRespond(JSON.stringify(serialPortList))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/sysport-service/system-port  ***/
+      {
+        "resource": /\/service\/sysport-service\/port/,
+        "method": {
+          "POST": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`sysport-service`).obj.addSerialPort()
+              .then((serialPort) => resolve(this.makeJsonRespond(JSON.stringify(serialPort))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
       /***  Resource : /system/portlist  ***/
       {
         "resource": /\/system\/portlist/,
@@ -481,6 +509,7 @@ class RoutesManager extends APIHandler{
           }
         }
       }
+
     ];
   }
 

@@ -40,9 +40,9 @@ var Defaults = {
       //  Port Service
       "sysport-service": {
         "list": {
-          "modbus-01": {
-            "name": "modbus-01",
-            "path": "/dev/ttyUSB0",
+          "port-1": {
+            "name": "port-1",
+            "path": "/dev/ttyS0",
             "config": {
               "baudRate": 9600,
               "databits": 8,
@@ -61,7 +61,7 @@ var Defaults = {
           "modbus-engine-001": {
             "name": "modbus-engine-001",
             "engine": "modbus-rtu",
-            "port": "modbus-01"
+            "port": "port-1"
           }
         }
       },

@@ -124,6 +124,8 @@ class Service extends EventEmitter {
         if(options && options.object) {
           let p = `/${fpath.replace(/^\//, ``)}`;
           //console.log(`require: ${p}`);
+          if(require.cache[require.resolve(p)])
+            delete require.cache[require.resolve(p)];
           info.object = require(p);
         }
       }
@@ -174,7 +176,6 @@ class Service extends EventEmitter {
   }
 
   base64Decode(data, encoding) {
-    //let buff = new Buffer(data, `base64`);
     let buff = Buffer.from(data, `base64`);
     let result = buff.toString((encoding) ? encoding : `utf8`);
     return result;

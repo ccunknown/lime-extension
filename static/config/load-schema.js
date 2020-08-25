@@ -13,6 +13,9 @@
         "config-sync": {
           "enable": false,
           "period": 10000
+        },
+        "api": {
+          "timeout": 5000
         }
       }
     },

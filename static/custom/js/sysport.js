@@ -193,7 +193,7 @@ export default class PageSysport {
   getPortList() {
     this.console.log(`getPortList()`);
     return new Promise(async (resolve, reject) => {
-      let list = await this.api.restCall(`get`, `/api/system/portlist`);
+      let list = await this.api.restCall(`get`, `/api/service/sysport-service/system-port`);
       let data = [];
       for(let i in list) {
         data.push({

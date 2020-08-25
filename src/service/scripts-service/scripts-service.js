@@ -123,7 +123,7 @@ class ScriptsService extends Service {
           // let path = Path.join(__dirname, script.path.replace(/^\//, ``), `metadata.js`);
           let path = Path.join(__dirname, script.path, `metadata.js`);
           if(require.cache[require.resolve(path)])
-            delete require.cache[require.resolve(path)]
+            delete require.cache[require.resolve(path)];
           script.meta = (meta) ? JSON.parse(JSON.stringify(require(path))) : {};
           resolve(script);
         }

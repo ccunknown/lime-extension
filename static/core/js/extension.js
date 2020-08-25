@@ -55,9 +55,9 @@ export default class ExtensionMain extends window.Extension {
       this.api = new (this.loader.getCoreObject(`api`))(this);
       this.ui = new (this.loader.getCoreObject(`ui`))(this);
 
+      await this.ui.init();
       await this.collector.init();
       await this.api.init();
-      await this.ui.init();
 
       resolve();
     });

@@ -145,7 +145,7 @@ class ModbusRtu {
         this.__act(cmd)
         .then((res) => resolve(res))
         .catch((err) => reject(err));
-      }, 20);
+      }, 100);
     });
   }
 
@@ -158,8 +158,9 @@ class ModbusRtu {
       let timeout = setTimeout(() => {
         let timeerr = (new Date()).toISOString();
         console.log(`>>>>>> error time: ${timestamp}/${timeerr}`);
+        console.log(`cmd`, JSON.stringify(cmd, null, 2));
         reject(`Engine command timeout.`);
-      }, 500);
+      }, 3000);
       if(this.state != `running`) {
         reject(new Error(`Port currently "${this.state}".`));
       }

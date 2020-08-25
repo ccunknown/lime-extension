@@ -33,6 +33,8 @@
   --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
   --miso-content-min-height: 230px;
+  --miso-loading-dialog-width: 200px;
+  --miso-loading-dialog-height: 50px;
 }
 
 #main-menu #extension-lime-extension-menu-item {
@@ -547,6 +549,27 @@
 #extension-lime-contents .progress-bar-black-striped {
   background-image: linear-gradient(45deg, rgba(0, 0, 0, 0.75) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.75) 50%, rgba(0, 0, 0, 0.75) 75%, transparent 75%, transparent);
   background-size: 1rem 1rem;
+}
+
+#extension-lime-contents .miso-backdrop {
+  background-color: black;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1080;
+  width: 100vw;
+  height: 100vh;
+  opacity: 0.5;
+}
+
+#extension-lime-contents .miso-loading-dialog {
+  background-color: black;
+  position: fixed;
+  top: calc(calc(100vh - var(--miso-loading-dialog-height))/2);
+  left: calc(calc(100vw - var(--miso-loading-dialog-width))/2);
+  z-index: 1100;
+  width: 150px;
+  height: 50px;
 }
 
 /* Millicious Settings */

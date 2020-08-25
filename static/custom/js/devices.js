@@ -33,7 +33,6 @@ export default class PageDevices {
     return new Promise(async (resolve, reject) => {
       let id = this.ui.said(`content.devices.section`);
       this.console.log(`id : ${id}`);
-      //let schema = await this.getSchema();
 
       this.vue = new Vue({
         "el": `#${id}`,
@@ -42,8 +41,6 @@ export default class PageDevices {
           "loader": this.extension.schema,
           /** Resource **/
           "resource": {
-            //"schema": schema,
-            //"deviceTemplate": [],
             "deviceConfigSchema": {},
             "config": {"directory": null, "list": []}
           },
@@ -53,7 +50,7 @@ export default class PageDevices {
               "hide": true,
               "ready": false,
               "edit": true,
-              "form": {},//this.ui.generateData(this.ui.shortJsonElement(schema, `items`)),
+              "form": {},
               "formTemplate": {},
               "final": {
                 "device": {},
@@ -68,18 +65,7 @@ export default class PageDevices {
           "deviceForm": {},
           "propertyForm": {},
           /** Function **/
-          "fn": {
-            // "add": () => {},
-            // "edit": () => {},
-            // "remove": () => {},
-            // "save": () => {},
-            // "renderBase": () => {},
-            // "renderSlider": () => {},
-            // "onDeviceTemplateChange": () => {},
-            // "onDeviceConfigChange": () => {},
-            // "typeIdentify": () => {},
-            // "isDisabled": () => {}
-          }
+          "fn": {}
         },
         "methods": {}
       });
@@ -109,7 +95,6 @@ export default class PageDevices {
             //  Build final.
             this.vue.ui.slider.final.device = JSON.parse(JSON.stringify(this.vue.deviceForm));
             this.vue.ui.slider.final.device.properties = JSON.parse(JSON.stringify(this.vue.ui.slider.final.properties));
-            //await this.api.restCall(`put`, `/api/service/devices`, this.vue.ui.slider.final);
             await this.api.restCall(`put`, `/api/service/devices`, this.vue.ui.slider.final.device);
             await this.render();
             resolve();
@@ -156,14 +141,11 @@ export default class PageDevices {
             type = `check`;
           else if(param.type == `object`)
             type = `object`
-          //this.console.log(`${param.title} : ${type}`);
           return type;
         },
         "isDisabled": (param) => {
           if(param.const)
             return true;
-          // else if(param.prerequire)
-          //   return true;
           return false;
         },
         "isEmpty": (json) => {
@@ -198,8 +180,6 @@ export default class PageDevices {
             finalProp[id] = params.properties;
             this.vue.ui.slider.final.properties = finalProp;
           });
-
-          //this.vue.ui.slider.final.properties.push(JSON.parse(JSON.stringify(this.vue.propertyForm)));
         },
         "removeProperty": (id) => {
           this.console.log(`removeProperty(${id})`);
@@ -216,14 +196,9 @@ export default class PageDevices {
               result = `${(result == ``) ? `` : `${result}/`}${obj[i]}`;
           }
           return result;
-        }//,
-        // "removeProperty": (prop) => {
-        //   this.vue.ui.slider.final.properties = this.vue.ui.slider.final.properties.filter((elem) => JSON.stringify(elem) != JSON.stringify(prop));
-        // }
+        }
       };
-
       this.console.log(this.vue);
-
       resolve();
     });
   }
@@ -294,17 +269,14 @@ export default class PageDevices {
       }
       else {
         //  Pre-set form (Cleaning).
+        this.vue.resource.deviceConfigSchema = {};
         this.vue.ui.slider.final.device = {};
         this.vue.ui.slider.final.properties = {};
 
-        // this.vue.ui.slider.form = {};
-        // await this.onAlternateChange();
-        // await this.onAlternateChange();
-        // resolve();
         this.vue.deviceForm = {};
         this.vue.propertyForm = {};
         await this.onAlternateChange();
-        //await this.onAlternateChange();
+
         resolve();
       }
     });
@@ -388,29 +360,15 @@ export default class PageDevices {
     });
   }
 
-  // jsonCopy(dst, src) {
-  //   src = JSON.parse(JSON.stringify(src));
-  //   let copy = false;
-  //   for(let i in src) {
-  //     if(!dst.hasOwnProperty(i)) {
-  //       dst[i] = src[i];
-  //       copy = true;
-  //     }
-  //     else if(typeof src[i] == `object`)
-  //       copy = this.jsonCopy(dst[i], src[i]) || copy;
-  //   }
-  //   return copy;
-  // }
-
   jsonCopyBySchema(dst, src, schema) {
-    console.log(`dst: `, dst);
+    // console.log(`dst: `, dst);
     src = JSON.parse(JSON.stringify(src));
     let copyFlag = false;
     for(let i in schema) {
       if(schema[i] == true) {
         dst[i] = ([`object`, `array`].includes(typeof src[i])) ? JSON.parse(JSON.stringify(src[i])) : src[i];
         copyFlag = true;
-        console.log(`jsonCopyBySchema[${i}]: `, dst[i]);
+        // console.log(`jsonCopyBySchema[${i}]: `, dst[i]);
       }
       else if([`object`, `array`].includes(typeof schema[i]))
         copyFlag = this.jsonCopyBySchema(dst[i], src[i], schema[i]) || copyFlag;
@@ -419,7 +377,7 @@ export default class PageDevices {
   }
 
   jsonDiv(dst, src, options) {
-    console.log(`jsonDiv()`);
+    // console.log(`jsonDiv()`);
     let result = {};
     let opt = (options) ? JSON.parse(JSON.stringify(options)) : {};
     if(opt.level)

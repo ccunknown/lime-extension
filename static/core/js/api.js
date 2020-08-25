@@ -180,9 +180,15 @@ export default class ExtensionApi {
           func = this.rest.delete;
           break;
       }
+      this.extension.ui.show(`content.backdrop`);
+      this.extension.ui.show(`content.loading-dialog`);
       func(`${this.extension.loader.define[`url-prefix`]}${path}`, body)
       .then((resBody) => resolve(resBody))
-      .catch((err) => reject(err));
+      .catch((err) => reject(err))
+      .finally(() => {
+        this.extension.ui.hide(`content.loading-dialog`);
+        this.extension.ui.hide(`content.backdrop`);
+      });
     });
   }
 }

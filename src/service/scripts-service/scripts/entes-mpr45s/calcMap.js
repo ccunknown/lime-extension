@@ -21,6 +21,8 @@ config = {
     bufferToUint16: (buffer) => config.function.bufferToDataView(buffer).getUint16(),
     bufferToUint32: (buffer) => config.function.bufferToDataView(buffer).getUint32(),
     bufferToUint32Div10: (buffer) => (config.function.bufferToDataView(buffer).getUint32()/10.0),
+    bufferToUint32Div100: (buffer) => (config.function.bufferToDataView(buffer).getUint32()/100.0),
+    bufferToUint32Div1000: (buffer) => (config.function.bufferToDataView(buffer).getUint32()/1000.0),
     bufferToFloat32: (buffer) => config.function.bufferToDataView(buffer).getFloat32()
   },
 
