@@ -459,6 +459,22 @@ class RoutesManager extends APIHandler{
         }
       },
 
+      /***  Resource : /service/sysport-service/devicesConfigSchema  ***/
+      {
+        "resource": /\/service\/sysport-service\/generateConfigSchema/,
+        "method": {
+          "POST": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`sysport-service`).obj.generateConfigSchema(req.body)
+              .then((json) => {
+                resolve(this.makeJsonRespond(JSON.stringify(json)));
+              })
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
       /***  Resource : /service/sysport-service/system-port  ***/
       {
         "resource": /\/service\/sysport-service\/system-port/,
@@ -466,44 +482,51 @@ class RoutesManager extends APIHandler{
           "GET": (req) => {
             return new Promise((resolve, reject) => {
               this.laborsManager.getService(`sysport-service`).obj.getSerialPortList()
-              .then((serialPortList) => resolve(this.makeJsonRespond(JSON.stringify(serialPortList))))
+              .then((ports) => resolve(this.makeJsonRespond(JSON.stringify(ports))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           }
         }
       },
 
-      /***  Resource : /service/sysport-service/system-port  ***/
+      /***  Resource : /service/sysport-service/config-port  ***/
       {
-        "resource": /\/service\/sysport-service\/port/,
-        "method": {
-          "POST": (req) => {
-            return new Promise((resolve, reject) => {
-              this.laborsManager.getService(`sysport-service`).obj.addSerialPort()
-              .then((serialPort) => resolve(this.makeJsonRespond(JSON.stringify(serialPort))))
-              .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          }
-        }
-      },
-
-      /***  Resource : /system/portlist  ***/
-      {
-        "resource": /\/system\/portlist/,
+        "resource": /\/service\/sysport-service\/config-port/,
         "method": {
           "GET": (req) => {
             return new Promise((resolve, reject) => {
-              this.laborsManager.getService(`sysport-service`).obj.getSerialPortList()
-              //this.laborsManager.getService(`sysport-service`)
-              //.then((service) => service.obj.getSerialPortList())
-              .then((serialPortList) => resolve(this.makeJsonRespond(JSON.stringify(serialPortList))))
+              this.laborsManager.getService(`sysport-service`).obj.get()
+              .then((ports) => resolve(this.makeJsonRespond(JSON.stringify(ports))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
-          "POST": (req) => {
+          "PUT": (req) => {
             return new Promise((resolve, reject) => {
-              this.laborsManager.getService(`sysport-service`).obj.addSerialPort()
-              .then((serialPort) => resolve(this.makeJsonRespond(JSON.stringify(serialPort))))
+              this.laborsManager.getService(`sysport-service`).obj.add(req.body)
+              .then((ports) => resolve(this.makeJsonRespond(JSON.stringify(ports))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/sysport-service/config-port/{{id}}  ***/
+      {
+        "resource": /\/service\/sysport-service\/config-port\/[^/]+/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              let id = req.path.split(`/`).pop();
+              this.laborsManager.getService(`sysport-service`).obj.get(id)
+              .then((ports) => resolve(this.makeJsonRespond(JSON.stringify(ports))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          "DELETE": (req) => {
+            return new Promise((resolve, reject) => {
+              let id = req.path.split(`/`).pop();
+              this.laborsManager.getService(`sysport-service`).obj.remove(id)
+              .then((ports) => resolve(this.makeJsonRespond(JSON.stringify(ports))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           }

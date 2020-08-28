@@ -121,7 +121,7 @@ class DevicesService extends Service {
 
   addToConfig(id, config) {
     console.log(`devicesService: addToConfig(id) >> `);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this.configManager.addToConfig(config, `service-config.devices-service.list.${id}`)
       .then((res) => resolve(res))
       .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
@@ -258,7 +258,7 @@ class DevicesService extends Service {
 
   generateId() {
     console.log(`DevicesService: generateId() >> `);
-    let deviceList = this.getSchema().list;
+    let deviceList = this.getSchema({"renew": true}).list;
     let id;
     let maxIndex = 10000;
     for(let i = 1;i < maxIndex;i++) {

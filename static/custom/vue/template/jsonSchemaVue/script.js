@@ -15,7 +15,7 @@ export default {
           else if(param.type == `number`)
             type = `number`;
           else if(param.type == `boolean`)
-            type = `check`;
+            type = `checkbox`;
           else if(param.type == `object`)
             type = `object`;
           return type;

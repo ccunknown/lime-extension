@@ -16,6 +16,8 @@ export default class ExtensionUi {
     return new Promise(async (resolve, reject) => {
       await this.initView();
       await this.initRaid(this.view);
+      await this.initVue();
+      await this.initVueComponent();
       this.initFunction();
       //await this.initScript();
       //await this.initScript();
@@ -56,6 +58,39 @@ export default class ExtensionUi {
     this.dom = new DOMParser().parseFromString(this.view, `text/html`);
 
     console.log(this.dom);
+  }
+
+  initToasted() {
+    console.log(`ExtensionUi: initVue() >> `);
+    return new Promise((resolve, reject) => {
+      Vue.use(Toasted, {
+        "iconPack": "fontawesome"
+      });
+      this.toast = {
+        "error": (title, message) => {
+          Vue.toasted.show("hello", {
+            "position": `bottom-right`,
+            "icon": `fa-exclamation-triangle`,
+            "iconPack": `fontawesome`,
+            "duration": 5000
+          });
+        }
+      };
+      resolve();
+    });
+  }
+
+  initVueComponent() {
+    return new Promise(async (resolve, reject) => {
+      //  Load resource.
+      let loader = this.extension.loader;
+      let script = await loader.getObject(`vue-component-json-schema-script`);
+      console.log(loader.objects);
+      script.template = await loader.getObject(`vue-component-json-schema-template`);
+
+      Vue.component(`json-schema-form`, script);
+      resolve();
+    });
   }
 
   initRaid(str) {

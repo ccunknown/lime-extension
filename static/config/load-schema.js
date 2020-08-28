@@ -33,6 +33,7 @@
                 "vue",
                 // "vue-multiselect",
                 "vue-tags-input",
+                "vue-toasted",
                 "popper",
                 "bootstrap",
                 
@@ -138,6 +139,10 @@
       "vue-tags-input": {
         "type": "script",
         "path": "/js/vue-tags-input.js"
+      },
+      "vue-toasted": {
+        "type": "script",
+        "path": "/js/vue-toasted.js"
       },
       "popper": {
         "type": "script",

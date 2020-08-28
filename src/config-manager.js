@@ -82,7 +82,7 @@ class ConfigManager {
         if(err)
           throw(err);
         else
-          return config
+          return config;
       })
       .then((conf) => this.saveConfigToDatabase(conf))
       .then(() => resolve(newElem))
@@ -270,7 +270,7 @@ class ConfigManager {
       if(src.hasOwnProperty(index))
         delete src[index];
       else {
-        return new Errors.FoundDuplicate(index);
+        return new Errors.ObjectNotFound(index);
       }
     }
     else {

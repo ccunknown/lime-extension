@@ -9,24 +9,24 @@ export default class PageDevices {
   init(config) {
     this.console.trace(`init()`);
     return new Promise(async (resolve, reject) => {
-      await this.initVueComponent();
+      // await this.initVueComponent();
       await this.initVue();
       resolve();
     });
   }
 
-  initVueComponent() {
-    return new Promise(async (resolve, reject) => {
-      //  Load resource.
-      let loader = this.ui.extension.loader;
-      let script = await loader.getObject(`vue-component-json-schema-script`);
-      console.log(loader.objects);
-      script.template = await loader.getObject(`vue-component-json-schema-template`);
+  // initVueComponent() {
+  //   return new Promise(async (resolve, reject) => {
+  //     //  Load resource.
+  //     let loader = this.ui.extension.loader;
+  //     let script = await loader.getObject(`vue-component-json-schema-script`);
+  //     console.log(loader.objects);
+  //     script.template = await loader.getObject(`vue-component-json-schema-template`);
 
-      Vue.component(`json-schema-form`, script);
-      resolve();
-    });
-  }
+  //     Vue.component(`json-schema-form`, script);
+  //     resolve();
+  //   });
+  // }
 
   initVue() {
     this.console.trace(`initVue()`);
@@ -140,7 +140,7 @@ export default class PageDevices {
           else if(param.type == `boolean`)
             type = `check`;
           else if(param.type == `object`)
-            type = `object`
+            type = `object`;
           return type;
         },
         "isDisabled": (param) => {

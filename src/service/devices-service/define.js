@@ -5,18 +5,11 @@ const ValidateConfigSchema = {
   "properties": {
     "name": {
       "type": "string",
-      "title": "Name",
-      "attrs": {
-        "placeholder": "Device's display name"
-      }
+      "title": "Name"
     },
     "description": {
       "type": "string",
-      "title": "Description",
-      "attrs": {
-        "type": "textarea",
-        "placeholder": "Device's description"
-      }
+      "title": "Description"
     },
     "template": {
       "type": "string",

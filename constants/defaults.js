@@ -43,6 +43,7 @@ var Defaults = {
           "port-1": {
             "name": "port-1",
             "path": "/dev/ttyS0",
+            //"path": "/dev/serial0",
             "config": {
               "baudRate": 9600,
               "databits": 8,
@@ -153,63 +154,63 @@ var Defaults = {
                 "patternProperties": {
                   ".+": {
                     "type": "object",
-                    "required": ["name", "path", "config"],
-                    "additionalProperties": false,
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                      },
-                      "path": {
-                        "type": "string",
-                      },
-                      "config": {
-                        "type": "object",
-                        "required": [],
-                        "additionalProperties": false,
-                        "properties": {
-                          "baudRate": {
-                            "type": "number",
-                            "default": 9600,
-                            "enum": [
-                              1200,
-                              2400,
-                              4800,
-                              9600,
-                              19200,
-                              38400,
-                              57600,
-                              115200,
-                              230400,
-                              460800,
-                              921600
-                            ]
-                          },
-                          "databits": {
-                            "type": "number",
-                            "default": 8,
-                            "enum": [8, 7]
-                          },
-                          "parity": {
-                            "type": "string",
-                            "default": "none",
-                            "enum": ["none", "even", "odd", "mark", "space"]
-                          },
-                          "stopbits": {
-                            "type": "number",
-                            "default": 1,
-                            "enum": [1, 2]
-                          },
-                          "flowControl": {
-                            "type": "boolean",
-                            "default": false
-                          },
-                          "autoOpen": {
-                            "type": "boolean",
-                            "default": false
-                          }
-                        }
-                      }
-                    }
+                    // "required": ["name", "path", "config"],
+                    // "additionalProperties": false,
+                    // "properties": {
+                    //   "name": {
+                    //     "type": "string",
+                    //   },
+                    //   "path": {
+                    //     "type": "string",
+                    //   },
+                    //   "config": {
+                    //     "type": "object",
+                    //     "required": [],
+                    //     "additionalProperties": false,
+                    //     "properties": {
+                    //       "baudRate": {
+                    //         "type": "number",
+                    //         "default": 9600,
+                    //         "enum": [
+                    //           1200,
+                    //           2400,
+                    //           4800,
+                    //           9600,
+                    //           19200,
+                    //           38400,
+                    //           57600,
+                    //           115200,
+                    //           230400,
+                    //           460800,
+                    //           921600
+                    //         ]
+                    //       },
+                    //       "databits": {
+                    //         "type": "number",
+                    //         "default": 8,
+                    //         "enum": [8, 7]
+                    //       },
+                    //       "parity": {
+                    //         "type": "string",
+                    //         "default": "none",
+                    //         "enum": ["none", "even", "odd", "mark", "space"]
+                    //       },
+                    //       "stopbits": {
+                    //         "type": "number",
+                    //         "default": 1,
+                    //         "enum": [1, 2]
+                    //       },
+                    //       "flowControl": {
+                    //         "type": "boolean",
+                    //         "default": false
+                    //       },
+                    //       "autoOpen": {
+                    //         "type": "boolean",
+                    //         "default": false
+                    //       }
+                    //     }
+                    //   }
+                    // }
                   }
                 }
               }

@@ -6,8 +6,8 @@ v-on:input="$emit('input', (param.type == 'number') ? Number($event.target.value
 v-on:change="$emit('change', (param.type == 'number') ? Number($event.target.value) : $event.target.value)"
 >
   <template v-for="option in param.enum">
-    <option :value="option">
-      {{(param.enumDisplay) ? param.enumDisplay[`${option}`] : option}}
+    <option :value="option" :disabled="(param.enumDisplay && param.enumDisplay[`${option}`] && param.enumDisplay[`${option}`].disabled) ? true : false">
+      {{(param.enumDisplay && param.enumDisplay[`${option}`] && param.enumDisplay[`${option}`].title) ? param.enumDisplay[`${option}`].title : option}}
     </option>
   </template>
 </select>
@@ -37,4 +37,12 @@ v-else-if="fn.typeIdentify(param) == 'number'"
 v-bind:value="value"
 v-on:input="$emit('input', Number($event.target.value))"
 v-on:change="$emit('change', Number($event.target.value))"
+>
+
+<input 
+v-else-if="fn.typeIdentify(param) == 'checkbox'"
+:type="fn.typeIdentify(param)" 
+:disabled="fn.isDisabled(param)"
+v-on:input="$emit('input', $event.target.checked)"
+v-on:change="$emit('change', $event.target.checked)"
 >

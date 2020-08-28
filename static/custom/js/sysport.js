@@ -19,24 +19,28 @@ export default class PageSysport {
     this.console.trace(`initVue()`);
     return new Promise(async (resolve, reject) => {
       let id = this.ui.said(`content.sysport.section`);
-      let schema = await this.getSchema();
+      // let schema = await this.getSchema();
 
       this.vue = new Vue({
         "el": `#${id}`,
         "data": {
+          /** Loader **/
+          "loader": this.extension.schema,
           /** Resource **/
           "resource": {
-            "config": {"list": []},
-            "schema": schema,
-            "portList": [],
+            // "config": {"list": []},
+            // "schema": schema,
+            "configPort": {},
+            "systemPort": [],
           },
           /** UI **/
           "ui": {
             "slider": {
               "hide": true,
               "ready": false,
-              "form": this.ui.generateData(this.ui.shortJsonElement(schema, `.+`)),
-              "formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `.+`))
+              // "form": this.ui.generateData(this.ui.shortJsonElement(schema, `.+`)),
+              "form": {},
+              // "formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `.+`))
             },
             "base": {
               "ready": false
@@ -48,7 +52,7 @@ export default class PageSysport {
             "edit": () => {},
             "remove": () => {},
             "save": () => {},
-            "updatePortList": () => {},
+            "updateSystemPort": () => {},
             "shortSchemaCall": () => {}
           }
         },
@@ -64,12 +68,46 @@ export default class PageSysport {
           this.console.log(`edit(${name})`);
           this.renderSlider(name);
         },
-        "remove": (name) => {
+        "remove": (id) => {
           this.console.log(`delete(${name})`);
+          return new Promise((resolve, reject) => {
+            let conf = confirm(`Are you sure to delete port "${id}"!`);
+            if(conf) {
+              this.deleteConfigPort(id)
+              .then((res) => this.render())
+              .then(() => resolve())
+              .catch((err) => reject(err));
+            }
+            else
+              resolve();
+          });
         },
         "save": () => {
           this.console.log(`save()`);
           this.console.log(`save data: ${JSON.stringify(this.vue.ui.slider.form, null, 2)}`);
+          return new Promise((resolve, reject) => {
+            this.addConfigPort(this.vue.ui.slider.form)
+            .then((res) => this.render())
+            .then(() => resolve())
+            .catch((err) => reject(err));
+          });
+        },
+        "typeIdentify": (param) => {
+          let type = undefined;
+          if(param.attrs && param.attrs.type)
+            type = param.attrs.type;
+          else if(param.enum)
+            type = `select`;
+          else if(param.type == `string`)
+            type = `text`;
+          else if(param.type == `number`)
+            type = `number`;
+          else if(param.type == `boolean`)
+            type = `check`;
+          else if(param.type == `object`)
+            type = `object`;
+          // console.log(`type: ${type}`);
+          return type;
         },
         "renderBase": () => {
           this.render();
@@ -77,14 +115,17 @@ export default class PageSysport {
         "renderSlider": () => {
           this.render(false);
         },
-        "updatePortList": async () => {
-          console.log(`sysport.updatePortList()`);
-          this.vue.resource.portList = await this.getPortList();
+        "updateSystemPort": async () => {
+          console.log(`sysport.updateSystemPort()`);
+          this.vue.resource.systemPort = await this.getSystemPort();
         },
         "shortSchemaCall": (key) => {
           let res = this.ui.shortJsonElement(this.vue.resource.schema, key);
           console.log(`short json : ${JSON.stringify(res, null, 2)}`);
           return res;
+        },
+        "print": (obj) => {
+          console.log(obj);
         }
       };
 
@@ -111,8 +152,10 @@ export default class PageSysport {
       this.vue.ui.base.ready = false;
       this.vue.ui.slider.hide = true;
 
-      let config = await this.getConfig();
-      this.vue.resource.config = config;
+      // let config = await this.getConfig();
+      // this.vue.resource.config = config;
+      let configPort = await this.getConfigPort();
+      this.vue.resource.configPort = configPort;
 
       this.vue.ui.base.ready = true;
       resolve();
@@ -137,34 +180,37 @@ export default class PageSysport {
     this.console.log(`PageSysport: renderVueAddForm() >> `);
     return new Promise((resolve, reject) => {
       Promise.all([
-        this.getConfig(),
-        this.getPortList()
+        this.getConfigPort(),
+        this.getSystemPort(),
+        this.generateConfigSchema()
       ])
       .then((promArr) => {
-        this.vue.resource.config = promArr[0];
-        this.vue.resource.portlist = promArr[1];
+        this.vue.resource.configPort = promArr[0];
+        this.vue.resource.systemPort = promArr[1];
+        this.vue.resource.configSchema = promArr[2];
 
-        //this.console.log(`add before short : ${JSON.stringify(schema, null, 2)}`);
+        // let schema = this.ui.shortJsonElement(this.vue.resource.schema, `.+`);
 
-        let schema = this.ui.shortJsonElement(this.vue.resource.schema, `.+`);
-
-        if(name)
-          this.vue.ui.slider.form = this.vue.resource.config.list[name];
+        if(name && this.vue.resource.configPort[name])
+          this.vue.ui.slider.form = this.vue.resource.configPort[name];
         else
-          this.vue.ui.slider.form = this.ui.generateData(schema);
+          this.vue.ui.slider.form = this.ui.generateData(this.vue.resource.configSchema);
+          // this.vue.ui.slider.form = this.ui.generateData(schema);
 
-        this.vue.ui.slider.formTemplate = this.ui.generateVueData(schema);
-        this.vue.ui.slider.formTemplate.path.enum = this.vue.resource.portlist.map((elem) => {
-          let disabled = false;
-          for(let i in this.vue.resource.config.list)
-            if(this.vue.resource.config.list[i].path == elem.path && this.vue.resource.config.list[i] != name)
-              disabled = true;
-          return {
-            "title": elem.path,
-            "value": elem.path,
-            "disabled": disabled
-          }
-        });
+        // this.vue.ui.slider.formTemplate = this.ui.generateVueData(schema);
+        // this.vue.ui.slider.formTemplate.path.enum = [];
+        // this.vue.ui.slider.formTemplate.path.enumDisplay = [];
+        // this.vue.resource.systemPort.forEach((elem) => {
+        //   let disabled = false;
+        //   for(let i in this.vue.resource.configPort)
+        //     if(this.vue.resource.configPort[i].path == elem.path && this.vue.resource.configPort[i] != name)
+        //       disabled = true;
+        //   return {
+        //     "title": elem.path,
+        //     "value": elem.path,
+        //     "disabled": disabled
+        //   }
+        // });
 
         //this.console.log(`form : ${JSON.stringify(this.vue.ui.slider.form, null, 2)}`);
         //this.console.log(`form template : ${JSON.stringify(this.vue.ui.slider.formTemplate, null, 2)}`);
@@ -190,20 +236,59 @@ export default class PageSysport {
     });
   }
 
-  getPortList() {
-    this.console.log(`getPortList()`);
+  getConfigPort() {
+    this.console.log(`PageSysport: getConfigPort() >> `);
     return new Promise(async (resolve, reject) => {
-      let list = await this.api.restCall(`get`, `/api/service/sysport-service/system-port`);
-      let data = [];
-      for(let i in list) {
-        data.push({
-          path: list[i].path,
-          pnpid: (list[i].pnpId) ? list[i].pnpId : `null`,
-          manufacturer: (list[i].manufacturer) ? list[i].manufacturer : `null`,
-          index: i
-        });
-      }
-      resolve(data);
+      this.api.restCall(`get`, `/api/service/sysport-service/config-port`)
+      .then((res) => (res.error) ? reject(res.error) : resolve(res))
+      .catch((err) => reject(err));
+    });
+  }
+
+  getSystemPort() {
+    this.console.log(`PageSysport: getSystemPort() >> `);
+    return new Promise((resolve, reject) => {
+      this.api.restCall(`get`, `/api/service/sysport-service/system-port`)
+      .then((res) => (res.error) ?
+        reject(res.error) : 
+        resolve(
+          res.map((elem) => {
+            return {
+              path: elem.path,
+              pnpid: (elem.pnpId) ? elem.pnpId : `null`,
+              manufacturer: (elem.manufacturer) ? elem.manufacturer : `null`
+            };
+          })
+        )
+      )
+      .catch((err) => reject(err));
+    });
+  }
+
+  addConfigPort(config) {
+    this.console.log(`PageSysport: addConfigPort() >> `);
+    return new Promise((resolve, reject) => {
+      this.api.restCall(`put`, `/api/service/sysport-service/config-port`, config)
+      .then((res) => (res.error) ? reject(res.error) : resolve(res))
+      .catch((err) => reject(err));
+    });
+  }
+
+  deleteConfigPort(id) {
+    this.console.log(`PageSysport: deleteConfigPort() >> `);
+    return new Promise((resolve, reject) => {
+      this.api.restCall(`delete`, `/api/service/sysport-service/config-port/${id}`)
+      .then((res) => (res.error) ? reject(res.error) : resolve(res))
+      .catch((err) => reject(err));
+    });
+  }
+
+  generateConfigSchema(param) {
+    this.console.log(`PageSysport: generateConfigSchema() >> `);
+    return new Promise((resolve, reject) => {
+      this.api.restCall(`post`, `/api/service/sysport-service/generateConfigSchema`, {})
+      .then((res) => (res.error) ? reject(res.error) : resolve(res))
+      .catch((err) => reject(err));
     });
   }
 }

@@ -78,7 +78,7 @@ class EnginesService extends Service {
     return new Promise(async (resolve, reject) => {
       let engine = this.get(name, {"object": true});
       console.log(`start engine '${name} : ${JSON.stringify(engine, null ,2)}'`);
-      let port = (await this.sysportService.get(engine.schema.port)).object;
+      let port = (await this.sysportService.get(engine.schema.port, {"object": true})).object;
       engine.object.init(port);
       engine.object.start();
       resolve();

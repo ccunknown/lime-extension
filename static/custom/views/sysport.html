@@ -50,31 +50,20 @@
             <label class="miso-label-badge badge-info font-size-inherit">Port</label>
             <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
               
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Name</label>
-                <input 
-                type="text" 
-                v-model="ui.slider.form.name"
-                class="miso-badge-union border-secondary">
-              </div>
-
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Serial Port</label>
-                <select 
-                v-model="ui.slider.form.path"
-                class="miso-badge-union border-secondary">
-                  <template v-for="port in ui.slider.formTemplate.path.enum">
-                    <option v-if="port.disabled" disabled :value="`${port.value}`">{{port.title}}</option>
-                    <option v-else :value="`${port.value}`">{{port.title}}</option>
-                    <!-- <option v-for="port in portList" :value="`${port.path}`" :disabled="`${function.isAvailable(port.path)}`">{{port.path}}</option> -->
-                  </template>
-                </select>
-              </div>
-
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Description</label>
-                <textarea class="miso-badge-union border-secondary no-resize" rows="4" type="text"></textarea>
-              </div>
+              <template v-for="(param, index) in resource.configSchema.properties">
+                <div class="miso-badge-header-group grow-1">
+                  <label v-if="fn.typeIdentify(param) != 'object'" class="miso-label-badge badge-secondary">
+                    {{(param.title) ? param.title : index}}
+                  </label>
+                  <json-schema-form 
+                  v-bind:param="param"
+                  class="miso-badge-union border-secondary"
+                  v-bind:class="{'no-resize': param.attrs && param.attrs.type == 'textarea'}"
+                  v-model="ui.slider.form[index]"
+                  @change="param.alternate && fn.onAlternateChange()">
+                  </json-schema-form>
+                </div>
+              </template>
 
             </div>
           </div>
@@ -84,48 +73,58 @@
             <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
 
               <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Baudrate</label>
-                <select v-model="ui.slider.form.config.baudRate" class="miso-badge-union border-secondary">
-                  <template v-for="option in ui.slider.formTemplate.config.baudRate.enum">
-                    <option :value="`${option}`">{{option}}</option>
-                  </template>
-                </select>
+                <label class="miso-label-badge badge-secondary">
+                  {{resource.configSchema.properties.config.properties.baudRate.title}}
+                </label>
+                <json-schema-form 
+                v-bind:param="resource.configSchema.properties.config.properties.baudRate"
+                class="miso-badge-union border-secondary"
+                v-model="ui.slider.form.config.baudRate">
+                </json-schema-form>
               </div>
 
               <div class="miso-form-row">
-
                 <div class="miso-badge-header-group grow-1 mr-2">
-                  <label class="miso-label-badge badge-secondary">Databits</label>
-                  <select v-model="ui.slider.form.config.databits" class="miso-badge-union border-secondary">
-                    <template v-for="option in ui.slider.formTemplate.config.databits.enum">
-                      <option :value="`${option}`">{{option}}</option>
-                    </template>
-                  </select>
+                  <label class="miso-label-badge badge-secondary">
+                    {{resource.configSchema.properties.config.properties.databits.title}}
+                  </label>
+                  <json-schema-form 
+                  v-bind:param="resource.configSchema.properties.config.properties.databits"
+                  class="miso-badge-union border-secondary"
+                  v-model="ui.slider.form.config.databits">
+                  </json-schema-form>
                 </div>
 
                 <div class="miso-badge-header-group grow-1 mr-2">
-                  <label class="miso-label-badge badge-secondary">Parity</label>
-                  <select v-model="ui.slider.form.config.parity" class="miso-badge-union border-secondary">
-                    <template v-for="option in ui.slider.formTemplate.config.parity.enum">
-                      <option :value="`${option}`">{{option}}</option>
-                    </template>
-                  </select>
+                  <label class="miso-label-badge badge-secondary">
+                    {{resource.configSchema.properties.config.properties.parity.title}}
+                  </label>
+                  <json-schema-form 
+                  v-bind:param="resource.configSchema.properties.config.properties.parity"
+                  class="miso-badge-union border-secondary"
+                  v-model="ui.slider.form.config.parity">
+                  </json-schema-form>
                 </div>
 
                 <div class="miso-badge-header-group grow-1">
-                  <label class="miso-label-badge badge-secondary">Stopbits</label>
-                  <select v-model="ui.slider.form.config.stopbits" class="miso-badge-union border-secondary">
-                    <template v-for="option in ui.slider.formTemplate.config.stopbits.enum">
-                      <option :value="`${option}`">{{option}}</option>
-                    </template>
-                  </select>
+                  <label class="miso-label-badge badge-secondary">
+                    {{resource.configSchema.properties.config.properties.stopbits.title}}
+                  </label>
+                  <json-schema-form 
+                  v-bind:param="resource.configSchema.properties.config.properties.stopbits"
+                  class="miso-badge-union border-secondary"
+                  v-model="ui.slider.form.config.stopbits">
+                  </json-schema-form>
                 </div>
-
               </div>
 
               <div class="d-flex flex-row align-items-center text-truncate">
-                <input v-model="ui.slider.form.config.autoOpen" type="checkbox">
-                <div class="text-truncate text-light pl-2">Auto open port!</div>
+                <json-schema-form 
+                v-bind:param="resource.configSchema.properties.config.properties.autoOpen"
+                class="miso-badge-union border-secondary"
+                v-model="ui.slider.form.config.autoOpen">
+                </json-schema-form>
+                <div class="text-truncate text-light pl-2">{{resource.configSchema.properties.config.properties.autoOpen.title}}</div>
               </div>
 
             </div>
@@ -173,19 +172,19 @@
 
           <div 
           class="card miso-grid-item" 
-          v-for="(item, index) in resource.config.list">
+          v-for="(item, index) in resource.configPort">
 
             <div class="card-header d-flex justify-content-between bg-dark text-light">
               <!-- Icon & Title -->
               <div class="text-truncate">
-                {{item.name}}
+                {{item.name}} [{{index}}]
               </div>
               <!-- Header Button -->
               <div class="miso-card-header-btn-box">
-                <button class="btn btn-warning" @click="fn.edit(item.name)">
+                <button class="btn btn-warning" @click="fn.edit(index)">
                   <i class="fas fa-edit fa-lg"></i>
                 </button>
-                <button class="btn btn-danger" @click="fn.remove(item.name)">
+                <button class="btn btn-danger" @click="fn.remove(index)">
                   <i class="fas fa-trash fa-lg"></i>
                 </button>
               </div>
@@ -223,5 +222,16 @@
       </div>
 
     </div>
+  </div>
+
+  <div v-if="loader.extension.debug">
+    <code class="text-light">
+      <template v-for="(elem, index) in $data">
+        <div v-if="index != 'loader'">
+          <b>{{index}} :</b>
+          <pre class="text-light">{{elem}}</pre>
+        </div>
+      </template>
+    </code>
   </div>
 </div>

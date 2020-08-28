@@ -55,7 +55,9 @@ class PropertyConfigTranslator {
         for(let i in addrList) {
           //config.properties.address.enum.push(`${addrList[i].name} [Addr:${Number(i).toString(16)}]`);
           config.properties.address.enum.push(Number(i));
-          config.properties.address.enumDisplay[Number(i)] = `${addrList[i].name} [Addr:${Number(i).toString(16)}]`;
+          config.properties.address.enumDisplay[Number(i)] = {
+            "title": `${addrList[i].name} [Addr:${Number(i).toString(16)}]`
+          };
         }
       }
 
