@@ -16,7 +16,7 @@ export default class ExtensionUi {
     return new Promise(async (resolve, reject) => {
       await this.initView();
       await this.initRaid(this.view);
-      await this.initVue();
+      await this.initToasted();
       await this.initVueComponent();
       this.initFunction();
       //await this.initScript();
@@ -66,14 +66,47 @@ export default class ExtensionUi {
       Vue.use(Toasted, {
         "iconPack": "fontawesome"
       });
+      let defaultOptions = {
+        "position": `bottom-right`,
+        "keepOnHover": true,
+        "iconPack": `fontawesome`,
+        "duration": 5000
+      };
       this.toast = {
-        "error": (title, message) => {
-          Vue.toasted.show("hello", {
-            "position": `bottom-right`,
-            "icon": `fa-exclamation-triangle`,
-            "iconPack": `fontawesome`,
-            "duration": 5000
-          });
+        "error": (message, options) => {
+          return Vue.toasted.error(message, Object.assign(defaultOptions, 
+            Object.assign({
+              "icon": `fa-exclamation-triangle`
+            }, (options) ? options : {})
+          ));
+        },
+        "info": (message, options) => {
+          return Vue.toasted.info(message, Object.assign(defaultOptions, 
+            Object.assign({
+              "icon": `fa-info-circle`
+            }, (options) ? options : {})
+          ));
+        },
+        "success": (message, options) => {
+          return Vue.toasted.success(message, Object.assign(defaultOptions, 
+            Object.assign({
+              "icon": `fa-check-circle`
+            }, (options) ? options : {})
+          ));
+        },
+        "show": (message, options) => {
+          return Vue.toasted.show(message, Object.assign(defaultOptions, 
+            Object.assign({
+              // "icon": `fa-check-circle`
+            }, (options) ? options : {})
+          ));
+        },
+        "transform": (toast, dest, message) => {
+          let styleArr = [`default`, `success`, `info`, `error`];
+          for(let i in styleArr)
+            toast.el.classList.remove(styleArr[i]);
+          toast.el.classList.add((styleArr.includes(dest)) ? dest : `default`);
+          toast.text(message);
         }
       };
       resolve();

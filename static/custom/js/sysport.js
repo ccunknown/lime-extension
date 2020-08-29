@@ -268,27 +268,42 @@ export default class PageSysport {
   addConfigPort(config) {
     this.console.log(`PageSysport: addConfigPort() >> `);
     return new Promise((resolve, reject) => {
+      let toast = this.ui.toast.info(`Adding new port.`);
       this.api.restCall(`put`, `/api/service/sysport-service/config-port`, config)
-      .then((res) => (res.error) ? reject(res.error) : resolve(res))
-      .catch((err) => reject(err));
+      .then((res) => {
+        this.ui.toast.success(`Port saving complete.`, {"icon": `fa-save`});
+        resolve(res);
+      })
+      .catch((err) => reject(err))
+      .finally(() => toast.remove());
     });
   }
 
   deleteConfigPort(id) {
     this.console.log(`PageSysport: deleteConfigPort() >> `);
     return new Promise((resolve, reject) => {
+      let toast = this.ui.toast.info(`Delete port "${id}".`, {"icon": `fa-trash-alt`});
       this.api.restCall(`delete`, `/api/service/sysport-service/config-port/${id}`)
-      .then((res) => (res.error) ? reject(res.error) : resolve(res))
-      .catch((err) => reject(err));
+      .then((res) => {
+        this.ui.toast.success(`Port "${id}" delete complete.`, {"icon": `fa-trash-alt`});
+        resolve(res);
+      })
+      .catch((err) => reject(err))
+      .finally(() => toast.remove());
     });
   }
 
   generateConfigSchema(param) {
     this.console.log(`PageSysport: generateConfigSchema() >> `);
     return new Promise((resolve, reject) => {
+      // let toast = this.ui.toast.info(`Generate config schema.`);
       this.api.restCall(`post`, `/api/service/sysport-service/generateConfigSchema`, {})
-      .then((res) => (res.error) ? reject(res.error) : resolve(res))
+      .then((res) => {
+        // this.ui.toast.success(`Config schema generated.`);
+        resolve(res);
+      })
       .catch((err) => reject(err));
+      // .finally(() => toast.remove());
     });
   }
 }

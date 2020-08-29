@@ -184,7 +184,18 @@ export default class ExtensionApi {
       this.extension.ui.show(`content.loading-dialog`);
       func(`${this.extension.loader.define[`url-prefix`]}${path}`, body)
       .then((resBody) => resolve(resBody))
-      .catch((err) => reject(err))
+      .catch((err) => {
+        console.log(err);
+        if(err && err.body && err.body.error && err.body.error.name) {
+          let stack = null;
+          if(err.body.error.message) {
+            let json = JSON.parse(err.body.error.message);
+            stack = (json.length) ? json[0].stack : stack;
+          }
+          this.extension.ui.toast.error(`${(err.status) ? `[${err.status}] ` : ``}${err.body.error.name}${(stack) ? `: ${stack}`: ``}`);
+        }
+        reject(err)
+      })
       .finally(() => {
         this.extension.ui.hide(`content.loading-dialog`);
         this.extension.ui.hide(`content.backdrop`);

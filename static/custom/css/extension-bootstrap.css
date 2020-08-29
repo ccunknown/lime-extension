@@ -2975,15 +2975,15 @@
 #extension-lime-contents input[type="button"].btn-block {
   width: 100%;
 }
-#extension-lime-contents .fade {
+.fade {
   transition: opacity 0.15s linear;
 }
 @media (prefers-reduced-motion: reduce) {
-  #extension-lime-contents .fade {
+  .fade {
     transition: none;
   }
 }
-#extension-lime-contents .fade:not(.show) {
+.fade:not(.show) {
   opacity: 0;
 }
 #extension-lime-contents .collapse:not(.show) {
