@@ -147,6 +147,16 @@ const errDef = [
     }
   },
   {
+    "name": "ResourceAlreadyInUse",
+    "extends": Error,
+    "super": (arg) => `Resource ${arg} already in use.`,
+    "httpResponse": {
+      "status": 403,
+      "contentType": "application/json",
+      "contentIndex": "message"
+    }
+  },
+  {
     "name": "FoundDuplicateServiceId",
     "extends": Error,
     "super": (arg) => `Found multiple service which id '${arg}'.`,

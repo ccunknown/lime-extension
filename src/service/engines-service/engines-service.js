@@ -8,6 +8,8 @@ const Service = require(`../service`);
 const Database = require('../../lib/my-database');
 const {Defaults, Errors} = require('../../../constants/constants');
 
+const ConfigTranslator = require(`./config-translator.js`);
+
 class EnginesService extends Service {
   constructor(extension, config, id) {
     console.log(`EnginesService: contructor() >> `);
@@ -22,8 +24,16 @@ class EnginesService extends Service {
       //let sysport = this.laborsManager.getService(`sysport-service`);
       //this.sysportService = sysport.obj;
       this.config = (config) ? config : this.config;
-      this.engineList = [];
+      this.engineList = {};
       this.engineTemplateList = {};
+      resolve();
+    });
+  }
+
+  start() {
+    return new Promise(async (resolve, reject) => {
+      await this.initEngine();
+      this.configTranslator = new ConfigTranslator(this);
       resolve();
     });
   }
@@ -38,107 +48,240 @@ class EnginesService extends Service {
       //let list = serviceSchema.config.list;
       let list = serviceSchema.list;
       for(let i in list) {
-        await this.add(list[i]);
+        await this.addToService(i, list[i]);
       }
       resolve();
     });
   }
 
-  add(schema) {
-    console.log(`EnginesService: add("${schema.name}")`);
+  add(config) {
+    console.log(`EnginesService: add("${config.name}")`);
+    return new Promise((resolve, reject) => {
+      let id = this.generateId();
+      this.addToService(id, config)
+      .then(() => this.addToConfig(id, config))
+      .then(() => {
+        let res = {};
+        res[id] = config;
+        resolve(res);
+      })
+      .catch((err) => reject(err));
+    });
+  }
+
+  addToConfig(id, config) {
+    console.log(`EnginesService: addToConfig() >> `);
+    return new Promise((resolve, reject) => {
+      this.configTranslator.validate(config)
+      .then((validateInfo) => {
+        if(validateInfo.errors && validateInfo.errors.length)
+          throw(new Errors.InvalidConfigSchema(validateInfo.errors));
+        else
+          return validateInfo;
+      })
+      .then((validateInfo) => this.configManager.addToConfig(config, `service-config.engines-service.list.${id}`))
+      .then((res) => resolve(res))
+      .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
+    });
+  }
+
+  addToService(id, config) {
+    console.log(`EnginesService: addToService(${id}) >> `);
     return new Promise(async (resolve, reject) => {
-      let template = this.engineTemplateList.find((elem) => schema.engine == elem.name);
+      let template = this.engineTemplateList.find((elem) => config.template == elem.name);
       if(template) {
         let path = template.path.replace(/^\//, ``);
-        let Obj = require(`./${path}`);
-        let engine = {
-          "schema": schema,
-          "object": new (Obj)()
-        };
-        this.engineList.push(engine);
-        await this.startEngine(schema.name);
+        let Obj = require(`./${path}/engine.js`);
+        let engine = new (Obj)(this, config);
+        let port = (await this.sysportService.get(config.port, {"object": true})).object;
+        engine.init(port)
+        .then(() => engine.start())
+        .then(() => {
+          this.engineList[id] = engine;
+          resolve({});
+        })
+        .catch((err) => {
+          console.log(`error name: ${err.name}`);
+          console.log(`error message: ${err.message}`);
+          reject(err)
+        });
+      }
+      else
+        reject(new Error(`Engine id "${id}" with template "${config.template}" not found!!!`));
+    });
+  }
+
+  remove(id) {
+    console.log(`EnginesService: remove("${id}")`);
+    return new Promise(async (resolve, reject) => {
+      this.removeFromConfig(id)
+      .then(() => this.removeFromService(id))
+      .then(() => resolve({}))
+      .catch((err) => reject(err));
+    });
+  }
+
+  removeFromConfig(id) {
+    console.log(`EnginesService: removeFromConfig() >> `);
+    return new Promise((resolve, reject) => {
+      this.configManager.deleteConfig(`service-config.engines-service.list.${id}`)
+      .then(() => resolve())
+      .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
+    });
+  }
+
+  removeFromService(id) {
+    console.log(`EnginesService: removeFromService() >> `);
+    return new Promise((resolve, reject) => {
+      this.stopEngine(id)
+      .then(() => delete this.engineList[id])
+      .then(() => resolve())
+      .catch((err) => reject(err));
+    });
+  }
+
+  update(id, config) {
+    console.log(`EnginesService: update(${id}) >> `);
+    return new Promise((resolve, reject) => {
+      this.updateConfig(id, config)
+      .then(() => this.updateService(id, config))
+      .then(() => {
+        let res = {};
+        res[id] = config;
+        resolve(res);
+      })
+      .catch((err) => reject(err));
+    });
+  }
+
+  updateConfig(id, config) {
+    console.log(`EnginesService: updateConfig(${id}) >> `);
+    return new Promise((resolve, reject) => {
+      this.configTranslator.validate(config)
+      .then((validateInfo) => {
+        if(validateInfo.errors && validateInfo.errors.length)
+          throw(new Errors.InvalidConfigSchema(validateInfo.errors));
+        else
+          return validateInfo;
+      })
+      .then((validateInfo) => this.configManager.updateConfig(config, `service-config.engines-service.list.${id}`))
+      .then((res) => resolve(res))
+      .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
+    });
+  }
+
+  updateService(id, config) {
+    console.log(`EnginesService: updateService(${id}) >> `);
+    return new Promise((resolve, reject) => {
+      this.removeFromService(id)
+      .then(() => this.addToService(id, config))
+      .then(() => resolve())
+      .catch((err) => reject(err));
+    });
+  }
+
+  startEngine(id) {
+    console.log(`EnginesService: startEngine("${id}") >> `);
+    return new Promise((resolve, reject) => {
+      this.get(id, {"object": true})
+      .then((engine) => (engine) ? engine.start() : reject(new Errors.ObjectNotFound(id)))
+      .then(() => resolve())
+      .catch((err) => reject(err));
+    });
+  }
+
+  stopEngine(id) {
+    console.log(`EnginesService: stopEngine("${id}") >> `);
+    return new Promise((resolve, reject) => {
+      if(this.engineList.hasOwnProperty(id)) {
+        this.engineList[id].stop()
+        .then(() => resolve())
+        .catch((err) => reject(err));
+      }
+      else {
         resolve();
       }
-      reject(new Error(`Engine '${schema.name}' not found!!!`));
     });
   }
 
-  remove(name) {
-    console.log(`EnginesService: remove("${name}")`);
+  get(id, options) {
+    options = (options) ? options : (typeof id == `object`) ? id : undefined;
+    id = (typeof id == `string`) ? id : (options && options.id) ? options.id : undefined;
+    console.log(`EnginesService: get(${(id) ? `${id}` : ``}) >> `);
+    return (options && options.object) ? this.getServiceEngine(id, options) : this.getConfigEngine(id, options);
+  }
+
+  getSystemEngine(id) {
+    console.log(`EnginesService: getSystemEngine(${(id) ? `${id}` : ``}) >> `);
+    return new Promise((resolve, reject) => {
+      let config = null;
+      this.getConfigEngine(id)
+      .then((conf) => {
+        config = conf;
+        return (id) ? this.getServiceEngine(id, {"object": true}) : this.getServiceEngine(null, {"object": true});
+      })
+      .then((service) => {
+        let result = JSON.parse(JSON.stringify(config));
+        for(let i in result)
+          result[i].state = (service.hasOwnProperty(i)) ? service[i].getState() : `error`;
+        return result;
+      })
+      .then((result) => resolve(result))
+      .catch((err) => reject(err));
+    });
+  }
+
+  getServiceEngine(id, options) {
+    options = (options) ? options : (typeof id == `object`) ? id : undefined;
+    id = (typeof id == `string`) ? id : (options && options.id) ? options.id : undefined;
+    console.log(`EnginesService: getServiceEngine(${(id) ? `${id}` : ``}) >> `);
     return new Promise(async (resolve, reject) => {
-      await this.stopEngine(name);
-      //delete this.engineList[name];
-      this.engineList = this.engineList.filter((elem) => elem.schema.name != name);
-      resolve();
-    });
-  }
-
-  startEngine(name) {
-    console.log(`EnginesService: startEngine("${name}") >> `);
-    return new Promise(async (resolve, reject) => {
-      let engine = this.get(name, {"object": true});
-      console.log(`start engine '${name} : ${JSON.stringify(engine, null ,2)}'`);
-      let port = (await this.sysportService.get(engine.schema.port, {"object": true})).object;
-      engine.object.init(port);
-      engine.object.start();
-      resolve();
-      // let port = (await this.sysportService.get(this.engineList.find((elem) => elem.schema.name == name).schema.port)).object;
-      // this.engineList.find((elem) => elem.schema.name == name).object.init(port);
-      // this.engineList.find((elem) => elem.schema.name == name).object.start();
-      // resolve();
-    });
-  }
-
-  stopEngine(name) {
-    console.log(`EnginesService: stopEngine("${name}") >> `);
-    return new Promise(async (resolve, reject) => {
-      await this.engineList.find((elem) => elem.schema.name == name).object.stop();
-      resolve();
-    });
-  }
-
-  start() {
-    return new Promise(async (resolve, reject) => {
-      await this.initEngine();
-      resolve();
-    });
-  }
-
-  get(name, options) {
-    console.log(`EnginesService: getEngine(${name}) >> `);
-    //console.log(this.engineList);
-    if(name) {
-      let result = {};
-      //console.log(`engineList: ${JSON.stringify(this.engineList, null, 2)}`);
-      let engine = this.engineList.find((elem) => elem.schema.name == name);
-      //console.log(`engine: ${JSON.stringify(engine, null, 2)}`);
-      for(let i in engine) {
-        if(i == `object`) {
-          if(options && options.object)
-            result[i] = engine.object;
+      if(options && options.object == true)
+        resolve((id) ? this.engineList[id] : this.engineList);
+      else {
+        if(id) {
+          let result = this.engineList[id].config;
+          if(options && options.state)
+            result.state = this.engineList[id].getState();
+          resolve(result);
         }
         else {
-          result[i] = engine[i];
+          let engineList = {};
+          for(let i in this.engineList)
+            engineList[i] = await this.get(i, options);
+          resolve(engineList);
         }
       }
-      if(options && options.state)
-        result.state = engine.object.state;
-      //console.log(`result: ${JSON.stringify(result, null, 2)}`);
-      return result;
-    }
-    else {
-      let result = [];
-      this.engineList.forEach((elem) => result.push(this.get(elem.schema.name, options)));
-      return result;
-    }
+    });
   }
 
-  getByAttribute(attr, val) {
-    return this.engineList.find((elem) => elem.schema[attr] == val);
+  getConfigEngine(id, options) {
+    options = (options) ? options : (typeof id == `object`) ? id : undefined;
+    id = (typeof id == `string`) ? id : (options && options.id) ? options.id : undefined;
+    console.log(`EnginesService: getConfigEngine(${(id) ? `${id}` : ``}) >> `);
+    return new Promise(async (resolve, reject) => {
+      if(id) {
+        this.getSchema({"renew": true})
+        .then((conf) => (conf.list.hasOwnProperty(id)) ? resolve(conf.list[id]) : reject(new Errors.ObjectNotFound(id)))
+        .catch((err) => reject(err));
+      }
+      else {
+        this.getSchema({"renew": true})
+        .then((conf) => {
+          console.log(`conf: ${JSON.stringify(conf.list, null, 2)}`);
+          resolve(conf.list)
+        })
+        .catch((err) => reject(err));
+      }
+    });
   }
+
+  // getByAttribute(attr, val) {
+  //   return this.engineList.find((elem) => elem.schema[attr] == val);
+  // }
 
   getTemplate(key, options) {
-    console.log(`EnginesService: get(${(key) ? key : ``})`);
+    console.log(`EnginesService: getTemplate(${(key) ? key : ``})`);
     return new Promise(async (resolve, reject) => {
       let serviceSchema = this.getSchema();
       let templateList = (await this.getDirectorySchema(serviceSchema.directory, options)).children;
@@ -154,6 +297,27 @@ class EnginesService extends Service {
         resolve(templateList);
       }
     });
+  }
+
+  generateConfigSchema(params) {
+    console.log(`EnginesService: generateConfigSchema() >> `);
+    return new Promise((resolve, reject) => {
+      this.configTranslator.generateConfigSchema(params)
+      .then((schema) => resolve(schema))
+      .catch((err) => reject(err));
+    });
+  }
+
+  generateId() {
+    console.log(`EnginesService: generateId() >> `);
+    let id;
+    let maxIndex = 10000;
+    for(let i = 1;i < maxIndex;i++) {
+      id = `engine-${i}`;
+      if(!this.engineList.hasOwnProperty(id))
+        break;
+    }
+    return id;
   }
 }
 

@@ -173,7 +173,7 @@
           <div 
           class="card miso-grid-item" 
           v-for="(item, index) in resource.configPort">
-
+            <!-- Item Header -->
             <div class="card-header d-flex justify-content-between bg-dark text-light">
               <!-- Icon & Title -->
               <div class="text-truncate">
@@ -189,20 +189,25 @@
                 </button>
               </div>
             </div>
-
-            <div class="card-body bg-secondary">
-              <span class="header-item">
-                <span class="bg-dark text-light">path</span>
-                <span class="bg-warning text-dark">
-                  {{item.path}}
+            <!-- Item Body -->
+            <div class="card-body bg-secondary d-flex flex-column">
+              <p class="card-text text-light grow-1">
+                {{item.description}}
+              </p>
+              <div class="text-truncate d-flex mt-2">
+                <span class="header-item text-truncate mr-2">
+                  <span class="bg-dark text-light">path</span>
+                  <span class="bg-warning text-dark">
+                    {{item.path}}
+                  </span>
                 </span>
-              </span>
-              <span class="header-item">
-                <span class="bg-dark text-light">config</span>
-                <span class="bg-warning text-dark">
-                  {{item.config.baudRate}}/{{item.config.databits}}/{{item.config.parity}}/{{item.config.stopbits}}
+                <span class="header-item text-truncate">
+                  <span class="bg-dark text-light">config</span>
+                  <span class="bg-warning text-dark">
+                    {{item.config.baudRate}}/{{item.config.databits}}/{{item.config.parity}}/{{item.config.stopbits}}
+                  </span>
                 </span>
-              </span>
+              </div>
             </div>
           </div>
 

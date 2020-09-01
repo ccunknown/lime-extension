@@ -6,14 +6,14 @@ const {
 } = require(`./define`);
 
 class ServiceConfigTranslator {
-  constructor(sysportService) {
-    this.sysportService = sysportService;
+  constructor(enginesService) {
+    this.enginesService = enginesService;
+    this.sysportService = this.enginesService.sysportService;
     this.validator = new Validator();
   }
 
-  generateConfigSchema(params) {
+  generateConfigSchema() {
     console.log(`ServiceConfigTranslator: generateConfigSchema() >> `);
-    console.log(`Params: ${JSON.stringify(params, null, 2)}`);
     return new Promise(async (resolve, reject) => {
       //  Copy config from ValidateConfigSchema.
       let config = JSON.parse(JSON.stringify(ValidateConfigSchema));
@@ -31,17 +31,10 @@ class ServiceConfigTranslator {
       });
 
       //  Initial 'enum' attribute.
-      let systemPort = await this.sysportService.getSerialPortList();
-      let configPort = await this.sysportService.get();
-      config.properties[`path`].enum = [];
-      config.properties[`path`].enumDisplay = {};
-      systemPort.forEach((elem, index) => {
-        config.properties[`path`].enum.push(elem.path);
-        let disabled = false;
-        for(let i in configPort)
-          disabled = disabled || (configPort[i].path == elem.path);
-        config.properties[`path`].enumDisplay[elem.path] = {"disabled": disabled};
-      });
+      let portList = await this.sysportService.get();
+      config.properties[`port`].enum = [];
+      for(let i in portList)
+        config.properties[`port`].enum.push(i);
 
       resolve(config);
     });

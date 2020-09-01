@@ -349,16 +349,6 @@ class RoutesManager extends APIHandler{
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           }
-          /*
-          "DELETE": (req) => {
-            return new Promise(async (resolve, reject) => {
-              let defaults = this.configManager.getDefaults();
-              this.configManager.saveConfig(defaults.config)
-              .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
-              .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          }
-          */
         }
       },
 
@@ -385,73 +375,81 @@ class RoutesManager extends APIHandler{
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           }
-          /*
-          "DELETE": (req) => {
-            return new Promise(async (resolve, reject) => {
-              let defaults = this.configManager.getDefaults();
-              this.configManager.saveConfig(defaults.config)
-              .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
-              .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          }
-          */
         }
       },
 
-      /***  Resource : /service/engines  ***/
-      {
-        "resource": /\/service\/engines/,
-        "method": {
-          "GET": (req) => {
-            return new Promise((resolve, reject) => {
-              Promise.resolve(this.laborsManager.getService(`engines-service`).obj.get(null, {"state": true}))
-              .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
-              .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          }
-        }
-      },
+      // /***  Resource : /service/engines  ***/
+      // {
+      //   "resource": /\/service\/engines/,
+      //   "method": {
+      //     "GET": (req) => {
+      //       return new Promise((resolve, reject) => {
+      //         Promise.resolve(this.laborsManager.getService(`engines-service`).obj.get(null, {"state": true}))
+      //         .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
+      //         .catch((err) => resolve(this.catchErrorRespond(err)));
+      //       });
+      //     }
+      //   }
+      // },
 
-      /***  Resource : /service/engines/{name}  ***/
-      {
-        "resource": /\/service\/engines\/[^/]+/,
-        "method": {
-          "GET": (req) => {
-            return new Promise((resolve, reject) => {
-              let name = req.path.split(`/`).pop();
-              Promise.resolve(this.laborsManager.getService(`engines-service`).obj.get(name, {"state": true}))
-              .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
-              .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          }
-        }
-      },
+      // /***  Resource : /service/engines/{name}  ***/
+      // {
+      //   "resource": /\/service\/engines\/[^/]+/,
+      //   "method": {
+      //     "GET": (req) => {
+      //       return new Promise((resolve, reject) => {
+      //         let name = req.path.split(`/`).pop();
+      //         Promise.resolve(this.laborsManager.getService(`engines-service`).obj.get(name, {"state": true}))
+      //         .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
+      //         .catch((err) => resolve(this.catchErrorRespond(err)));
+      //       });
+      //     }
+      //   }
+      // },
 
-      /***  Resource : /service/engineTemplate  ***/
-      {
-        "resource": /\/service\/engineTemplate/,
-        "method": {
-          "GET": (req) => {
-            return new Promise((resolve, reject) => {
-              this.laborsManager.getService(`engines-service`).obj.getTemplate(null, {"deep": true})
-              .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
-              .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          }
-        }
-      },
+      // /***  Resource : /service/engineTemplate  ***/
+      // {
+      //   "resource": /\/service\/engineTemplate/,
+      //   "method": {
+      //     "GET": (req) => {
+      //       return new Promise((resolve, reject) => {
+      //         this.laborsManager.getService(`engines-service`).obj.getTemplate(null, {"deep": true})
+      //         .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
+      //         .catch((err) => resolve(this.catchErrorRespond(err)));
+      //       });
+      //     }
+      //   }
+      // },
 
-      /***  Resource : /service/engineTemplate/{name}  ***/
+      // /***  Resource : /service/engineTemplate/{name}  ***/
+      // {
+      //   "resource": /\/service\/engineTemplate\/[^/]+/,
+      //   "method": {
+      //     "GET": (req) => {
+      //       return new Promise((resolve, reject) => {
+      //         let name = req.path.split(`/`).pop();
+      //         this.laborsManager.getService(`engines-service`).obj.getTemplate(name, {"deep": true, "base64": true})
+      //         .then((conf) => {
+      //           console.log(`config: ${JSON.stringify(conf, null ,2)}`);
+      //           resolve(this.makeJsonRespond(JSON.stringify(conf)))
+      //         })
+      //         .catch((err) => resolve(this.catchErrorRespond(err)));
+      //       });
+      //     }
+      //   }
+      // },
+
+
+
+      /***  Resource : /service/engines-service/generateConfigSchema  ***/
       {
-        "resource": /\/service\/engineTemplate\/[^/]+/,
+        "resource": /\/service\/engines-service\/generateConfigSchema/,
         "method": {
-          "GET": (req) => {
+          "POST": (req) => {
             return new Promise((resolve, reject) => {
-              let name = req.path.split(`/`).pop();
-              this.laborsManager.getService(`engines-service`).obj.getTemplate(name, {"deep": true, "base64": true})
-              .then((conf) => {
-                console.log(`config: ${JSON.stringify(conf, null ,2)}`);
-                resolve(this.makeJsonRespond(JSON.stringify(conf)))
+              this.laborsManager.getService(`engines-service`).obj.generateConfigSchema(req.body)
+              .then((json) => {
+                resolve(this.makeJsonRespond(JSON.stringify(json)));
               })
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -459,7 +457,75 @@ class RoutesManager extends APIHandler{
         }
       },
 
-      /***  Resource : /service/sysport-service/devicesConfigSchema  ***/
+      /***  Resource : /service/engines-service/system-engine  ***/
+      {
+        "resource": /\/service\/engines-service\/system-engine/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`engines-service`).obj.getSystemEngine()
+              .then((engines) => resolve(this.makeJsonRespond(JSON.stringify(engines))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/engines-service/config-engine  ***/
+      {
+        "resource": /\/service\/engines-service\/config-engine/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`engines-service`).obj.get()
+              .then((engines) => resolve(this.makeJsonRespond(JSON.stringify(engines))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          "POST": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`engines-service`).obj.add(req.body)
+              .then((engine) => resolve(this.makeJsonRespond(JSON.stringify(engine))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/engines-service/config-engine/{{id}}  ***/
+      {
+        "resource": /\/service\/engines-service\/config-engine\/[^/]+/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              let id = req.path.split(`/`).pop();
+              this.laborsManager.getService(`engines-service`).obj.get(id)
+              .then((engine) => resolve(this.makeJsonRespond(JSON.stringify(engine))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          "PUT": (req) => {
+            return new Promise((resolve, reject) => {
+              let id = req.path.split(`/`).pop();
+              this.laborsManager.getService(`engines-service`).obj.update(id, req.body)
+              .then((engine) => resolve(this.makeJsonRespond(JSON.stringify(engine))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          "DELETE": (req) => {
+            return new Promise((resolve, reject) => {
+              let id = req.path.split(`/`).pop();
+              this.laborsManager.getService(`engines-service`).obj.remove(id)
+              .then((engine) => resolve(this.makeJsonRespond(JSON.stringify(engine))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+
+
+      /***  Resource : /service/sysport-service/generateConfigSchema  ***/
       {
         "resource": /\/service\/sysport-service\/generateConfigSchema/,
         "method": {
@@ -500,7 +566,7 @@ class RoutesManager extends APIHandler{
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
-          "PUT": (req) => {
+          "POST": (req) => {
             return new Promise((resolve, reject) => {
               this.laborsManager.getService(`sysport-service`).obj.add(req.body)
               .then((ports) => resolve(this.makeJsonRespond(JSON.stringify(ports))))
@@ -518,6 +584,14 @@ class RoutesManager extends APIHandler{
             return new Promise((resolve, reject) => {
               let id = req.path.split(`/`).pop();
               this.laborsManager.getService(`sysport-service`).obj.get(id)
+              .then((ports) => resolve(this.makeJsonRespond(JSON.stringify(ports))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          "PUT": (req) => {
+            return new Promise((resolve, reject) => {
+              let id = req.path.split(`/`).pop();
+              this.laborsManager.getService(`sysport-service`).obj.update(id, req.body)
               .then((ports) => resolve(this.makeJsonRespond(JSON.stringify(ports))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -607,7 +681,19 @@ class RoutesManager extends APIHandler{
     return new Promise((resolve, reject) => {
       err = (err) ? err : new Errors.ErrorObjectNotReturn();
       console.error(err);
-      let res = err.getHttpResponse();
+      let res;
+      if(err.getHttpResponse) {
+        console.log(`Extension error.`);
+        res = err.getHttpResponse();
+      }
+      else {
+        console.log(`System error.`);
+        console.log(`error message: ${err.message}`);
+        res = {
+          "status": 500,
+          "content": err.message
+        };
+      }
       res.contentType = "application/json";
       res.content = JSON.stringify({
         "error": {

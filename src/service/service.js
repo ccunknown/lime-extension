@@ -37,7 +37,7 @@ class Service extends EventEmitter {
     if(options && options.renew)
       return new Promise(async (resolve, reject) => {
         let config = await this.getConfig(options);
-        resolve(config[`service-config`].find((elem) => (elem.id == this.id)));
+        resolve(config[`service-config`][this.id]);
       });
     else {
       return this.config[`service-config`][this.id];
@@ -97,7 +97,7 @@ class Service extends EventEmitter {
     //console.log(`getDirectorySchema(${path})`);
     return new Promise(async (resolve, reject) => {
       path = Path.join(``, path);
-      let fpath = (options.absolute) ? Path.join(options.absolute, path) : Path.join(__dirname, this.id, path);
+      let fpath = (options && options.absolute) ? Path.join(options.absolute, path) : Path.join(__dirname, this.id, path);
       console.log(`fpath: ${fpath}`);
       let stats = fs.lstatSync(fpath);
       let info = {

@@ -6,8 +6,8 @@ const {
 } = require(`./define`);
 
 class ServiceConfigTranslator {
-  constructor(sysportService) {
-    this.sysportService = sysportService;
+  constructor(enginesService) {
+    this.enginesService = enginesService;
     this.validator = new Validator();
   }
 
@@ -31,17 +31,22 @@ class ServiceConfigTranslator {
       });
 
       //  Initial 'enum' attribute.
-      let systemPort = await this.sysportService.getSerialPortList();
-      let configPort = await this.sysportService.get();
-      config.properties[`path`].enum = [];
-      config.properties[`path`].enumDisplay = {};
-      systemPort.forEach((elem, index) => {
-        config.properties[`path`].enum.push(elem.path);
-        let disabled = false;
-        for(let i in configPort)
-          disabled = disabled || (configPort[i].path == elem.path);
-        config.properties[`path`].enumDisplay[elem.path] = {"disabled": disabled};
-      });
+      let engineTemplate = await this.enginesService.getTemplate(null, {"deep": true});
+      config.properties[`template`].enum = engineTemplate.map((elem) => elem.name);
+
+      //  Extend engine config using 'params.template'.
+      if(params && params.template && params.template != ``) {
+        let EngineConfigTranslator = require(`./engines/${params.template}/config-translator.js`);
+        let engConfTrans = new EngineConfigTranslator(this.enginesService);
+        let engConf = await engConfTrans.generateConfigSchema(params);
+        console.log(`engConf: ${JSON.stringify(engConf, null, 2)}`);
+        for(let i in engConf.properties) {
+          config.properties[i] = engConf.properties[i];
+        }
+        config.required = [...config.required, ...engConf.required];
+        if(engConf.hasOwnProperty(`additionalProperties`))
+          config.additionalProperties = engConf.additionalProperties;
+      }
 
       resolve(config);
     });

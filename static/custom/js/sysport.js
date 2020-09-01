@@ -38,9 +38,8 @@ export default class PageSysport {
             "slider": {
               "hide": true,
               "ready": false,
-              // "form": this.ui.generateData(this.ui.shortJsonElement(schema, `.+`)),
+              "edit-id": null,
               "form": {},
-              // "formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `.+`))
             },
             "base": {
               "ready": false
@@ -62,11 +61,13 @@ export default class PageSysport {
       //  Setup vue function.
       this.vue.fn = {
         "add": async () => {
+          this.vue.ui.slider[`edit-id`] = null;
           this.renderSlider();
         },
-        "edit": (name) => {
-          this.console.log(`edit(${name})`);
-          this.renderSlider(name);
+        "edit": (id) => {
+          this.console.log(`edit(${id})`);
+          this.vue.ui.slider[`edit-id`] = id;
+          this.renderSlider(id);
         },
         "remove": (id) => {
           this.console.log(`delete(${name})`);
@@ -86,7 +87,9 @@ export default class PageSysport {
           this.console.log(`save()`);
           this.console.log(`save data: ${JSON.stringify(this.vue.ui.slider.form, null, 2)}`);
           return new Promise((resolve, reject) => {
-            this.addConfigPort(this.vue.ui.slider.form)
+            let id = this.vue.ui.slider[`edit-id`];
+            let config = this.vue.ui.slider.form;
+            ((id) ? this.editConfigPort(id, config) : this.addConfigPort(config))
             .then((res) => this.render())
             .then(() => resolve())
             .catch((err) => reject(err));
@@ -152,8 +155,6 @@ export default class PageSysport {
       this.vue.ui.base.ready = false;
       this.vue.ui.slider.hide = true;
 
-      // let config = await this.getConfig();
-      // this.vue.resource.config = config;
       let configPort = await this.getConfigPort();
       this.vue.resource.configPort = configPort;
 
@@ -167,10 +168,9 @@ export default class PageSysport {
     return new Promise(async (resolve, reject) => {
       this.vue.ui.slider.ready = false;
       this.vue.ui.slider.hide = false;
-      //this.console.log(`ui slider : ${JSON.stringify(this.vue.ui.slider, null, 2)}`);
-      //this.ui.saidObj(`content.sysport.slider`).removeClass(`hide`);
-      //(name) ? await this.renderEditForm(name) : await this.renderAddForm();
+
       await this.renderForm(name);
+
       this.vue.ui.slider.ready = true;
       resolve();
     });
@@ -189,31 +189,14 @@ export default class PageSysport {
         this.vue.resource.systemPort = promArr[1];
         this.vue.resource.configSchema = promArr[2];
 
-        // let schema = this.ui.shortJsonElement(this.vue.resource.schema, `.+`);
+        this.vue.ui.slider.form = (name && this.vue.resource.configPort[name]) ? 
+          this.vue.resource.configPort[name] :
+          this.ui.generateData(this.vue.resource.configSchema);
 
-        if(name && this.vue.resource.configPort[name])
-          this.vue.ui.slider.form = this.vue.resource.configPort[name];
-        else
-          this.vue.ui.slider.form = this.ui.generateData(this.vue.resource.configSchema);
-          // this.vue.ui.slider.form = this.ui.generateData(schema);
-
-        // this.vue.ui.slider.formTemplate = this.ui.generateVueData(schema);
-        // this.vue.ui.slider.formTemplate.path.enum = [];
-        // this.vue.ui.slider.formTemplate.path.enumDisplay = [];
-        // this.vue.resource.systemPort.forEach((elem) => {
-        //   let disabled = false;
-        //   for(let i in this.vue.resource.configPort)
-        //     if(this.vue.resource.configPort[i].path == elem.path && this.vue.resource.configPort[i] != name)
-        //       disabled = true;
-        //   return {
-        //     "title": elem.path,
-        //     "value": elem.path,
-        //     "disabled": disabled
-        //   }
-        // });
-
-        //this.console.log(`form : ${JSON.stringify(this.vue.ui.slider.form, null, 2)}`);
-        //this.console.log(`form template : ${JSON.stringify(this.vue.ui.slider.formTemplate, null, 2)}`);
+        // if(name && this.vue.resource.configPort[name])
+        //   this.vue.ui.slider.form = this.vue.resource.configPort[name];
+        // else
+        //   this.vue.ui.slider.form = this.ui.generateData(this.vue.resource.configSchema);
 
         resolve();
       });
@@ -269,9 +252,23 @@ export default class PageSysport {
     this.console.log(`PageSysport: addConfigPort() >> `);
     return new Promise((resolve, reject) => {
       let toast = this.ui.toast.info(`Adding new port.`);
-      this.api.restCall(`put`, `/api/service/sysport-service/config-port`, config)
+      this.api.restCall(`post`, `/api/service/sysport-service/config-port`, config)
       .then((res) => {
         this.ui.toast.success(`Port saving complete.`, {"icon": `fa-save`});
+        resolve(res);
+      })
+      .catch((err) => reject(err))
+      .finally(() => toast.remove());
+    });
+  }
+
+  editConfigPort(id, config) {
+    this.console.log(`PageSysport: editConfigPort() >> `);
+    return new Promise((resolve, reject) => {
+      let toast = this.ui.toast.info(`Edit port "${id}".`);
+      this.api.restCall(`put`, `/api/service/sysport-service/config-port/${id}`, config)
+      .then((res) => {
+        this.ui.toast.success(`Port "${id}" edit complete.`, {"icon": `fa-save`});
         resolve(res);
       })
       .catch((err) => reject(err))

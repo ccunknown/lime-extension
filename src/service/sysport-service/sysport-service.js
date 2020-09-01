@@ -42,6 +42,37 @@ class SysportService extends Service {
     });
   }
 
+  add(config) {
+    console.log(`SysportService: add() >> `);
+    return new Promise((resolve, reject) => {
+      let id = this.generateId();
+      this.addToConfig(id, config)
+      .then(() => this.addToService(id, config))
+      .then(() => {
+        let res = {};
+        res[id] = config;
+        resolve(res);
+      })
+      .catch((err) => reject(err));
+    });
+  }
+
+  addToConfig(id, config) {
+    console.log(`SysportService: addToConfig() >> `);
+    return new Promise((resolve, reject) => {
+      this.configTranslator.validate(config)
+      .then((validateInfo) => {
+        if(validateInfo.errors && validateInfo.errors.length)
+          throw(new Errors.InvalidConfigSchema(validateInfo.errors));
+        else
+          return validateInfo;
+      })
+      .then((validateInfo) => this.configManager.addToConfig(config, `service-config.sysport-service.list.${id}`))
+      .then((res) => resolve(res))
+      .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
+    });
+  }
+
   addToService(id, schema) {
     console.log(`SysportService: addPort("${id}": "${schema.path}") >> `);
     return new Promise(async (resolve, reject) => {
@@ -62,34 +93,22 @@ class SysportService extends Service {
     });
   }
 
-  addToConfig(id, config) {
-    console.log(`SysportService: addToConfig() >> `);
+  remove(id) {
+    console.log(`SysportService: remove(${id}) >> `);
     return new Promise((resolve, reject) => {
-      this.configTranslator.validate(config)
-      .then((validateInfo) => {
-        if(validateInfo.errors && validateInfo.errors.length)
-          throw(new Errors.InvalidConfigSchema(validateInfo.errors));
-        else
-          return validateInfo;
-      })
-      .then((validateInfo) => this.configManager.addToConfig(config, `service-config.sysport-service.list.${id}`))
-      .then((res) => resolve(res))
+      this.removeFromConfig(id)
+      .then(() => this.removeFromService(id))
+      .then(() => resolve({}))
       .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
     });
   }
 
-  add(config) {
-    console.log(`SysportService: add() >> `);
+  removeFromConfig(id) {
+    console.log(`SysportService: removeFromConfig(${id}) >> `);
     return new Promise((resolve, reject) => {
-      let id = this.generateId();
-      this.addToConfig(id, config)
-      .then(() => this.addToService(id, config))
-      .then(() => {
-        let res = {};
-        res[id] = config;
-        resolve(res);
-      })
-      .catch((err) => reject(err));
+      this.configManager.deleteConfig(`service-config.sysport-service.list.${id}`)
+      .then(() => resolve())
+      .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
     });
   }
 
@@ -114,26 +133,49 @@ class SysportService extends Service {
     });
   }
 
-  removeFromConfig(id) {
-    console.log(`SysportService: removeFromConfig(${id}) >> `);
+  update(id, config) {
+    console.log(`SysportService: update(${id}) >> `);
     return new Promise((resolve, reject) => {
-      this.configManager.deleteConfig(`service-config.sysport-service.list.${id}`)
-      .then(() => resolve())
+      this.updateConfig(id, config)
+      .then(() => this.updateService(id, config))
+      .then(() => {
+        let res = {};
+        res[id] = config;
+        resolve(res);
+      })
+      .catch((err) => reject(err));
+    });
+  }
+
+  updateConfig(id, config) {
+    console.log(`SysportService: updateConfig(${id}) >> `);
+    return new Promise((resolve, reject) => {
+      this.configTranslator.validate(config)
+      .then((validateInfo) => {
+        if(validateInfo.errors && validateInfo.errors.length)
+          throw(new Errors.InvalidConfigSchema(validateInfo.errors));
+        else
+          return validateInfo;
+      })
+      .then((validateInfo) => this.configManager.updateConfig(config, `service-config.sysport-service.list.${id}`))
+      .then((res) => resolve(res))
       .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
     });
   }
 
-  remove(id) {
-    console.log(`SysportService: remove(${id}) >> `);
+  updateService(id, config) {
+    console.log(`SysportService: updateService(${id}) >> `);
     return new Promise((resolve, reject) => {
-      this.removeFromConfig(id)
-      .then(() => this.removeFromService(id))
-      .then(() => resolve({}))
-      .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
+      this.removeFromService(id)
+      .then(() => this.addToService(id, config))
+      .then(() => resolve())
+      .catch((err) => reject(err));
     });
   }
 
   get(id, options) {
+    options = (options) ? options : (typeof id == `object`) ? id : undefined;
+    id = (typeof id == `string`) ? id : (options && options.id) ? options.id : undefined;
     console.log(`SysportService: get(${(id) ? `"${id}"` : ``}) >> `);
     return new Promise(async (resolve, reject) => {
       if(options && options.object == true)
@@ -201,14 +243,6 @@ class SysportService extends Service {
     }
     return id;
   }
-
-  addSerialPort(schema) {
-    //  Add to database.
-
-    //  Add to this service.
-    
-  }
-
 }
 
 module.exports = SysportService;

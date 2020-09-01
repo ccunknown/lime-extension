@@ -189,8 +189,13 @@ export default class ExtensionApi {
         if(err && err.body && err.body.error && err.body.error.name) {
           let stack = null;
           if(err.body.error.message) {
-            let json = JSON.parse(err.body.error.message);
-            stack = (json.length) ? json[0].stack : stack;
+            try {
+              let json = JSON.parse(err.body.error.message);
+              stack = (json.length) ? json[0].stack : stack;
+            }
+            catch(e) {
+              stack = err.body.error.message;
+            }
           }
           this.extension.ui.toast.error(`${(err.status) ? `[${err.status}] ` : ``}${err.body.error.name}${(stack) ? `: ${stack}`: ``}`);
         }

@@ -134,7 +134,7 @@ class DevicesService extends Service {
     return new Promise(async (resolve, reject) => {
       let template = await this.getTemplate(config.template, {"deep": true});
       if(template) {
-        let id = this.generateId();
+        let id = await this.generateId();
         this.addToConfig(id, config)
         .then((res) => this.addToService(id, config))
         .then((res) => this.reloadConfig())
@@ -250,23 +250,27 @@ class DevicesService extends Service {
     return new Promise(async (resolve, reject) => {
       let engines = this.enginesService.getSchema().list;
       console.log(`DevicesService: getCompatibleEngine(): ${JSON.stringify(engines, null, 2)}`);
-      let result = this.jsonToArray(engines, `id`).filter((elem) => elem.engine == templateName);
-      result = result.map((elem) => elem.name);
+      let result = this.jsonToArray(engines, `id`).filter((elem) => elem.template == templateName);
+      result = result.map((elem) => elem.id);
       resolve(result);
     });
   }
 
   generateId() {
     console.log(`DevicesService: generateId() >> `);
-    let deviceList = this.getSchema({"renew": true}).list;
-    let id;
-    let maxIndex = 10000;
-    for(let i = 1;i < maxIndex;i++) {
-      id = `lime-device-${i}`;
-      if(!deviceList.hasOwnProperty(id))
-        break;
-    }
-    return id;
+    return new Promise(async (resolve, reject) => {
+      let deviceList = (await this.getSchema({"renew": true})).list;
+      console.log(deviceList);
+      console.log(`deviceList: ${JSON.stringify(deviceList, null, 2)}`);
+      let id;
+      let maxIndex = 10000;
+      for(let i = 1;i < maxIndex;i++) {
+        id = `lime-device-${i}`;
+        if(!(deviceList.hasOwnProperty(id)))
+          break;
+      }
+      resolve(id);
+    });
   }
 }
 

@@ -19,10 +19,6 @@ export default class PageEngines {
     return new Promise(async (resolve, reject) => {
       let id = this.ui.said(`content.engines.section`);
       this.console.log(`id : ${id}`);
-      //let config = await this.getConfig();
-      let schema = await this.getSchema();
-      //let engines = await this.getEngine();
-      //let templates = await this.getEngineTemplate();
 
       this.vue = new Vue({
         "el": `#${id}`,
@@ -31,33 +27,24 @@ export default class PageEngines {
           "loader": this.extension.schema,
           /** Resource **/
           "resource": {
-            "config": {"directory": null, "list": []},
-            "schema": schema,
-            "engines": [],
-            "templates": [],
-            "ports": {"list": []}
+            "systemEngine": {},
+            "configEngine": {},
+            "configSchema": {}
           },
           /** UI **/
           "ui": {
             "slider": {
               "hide": true,
               "ready": false,
-              "form": this.ui.generateData(this.ui.shortJsonElement(schema, `.+`)),
-              "formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `.+`))
+              "edit-id": null,
+              "form": {}
             },
             "base": {
               "ready": false
             }
           },
           /** Function **/
-          "fn": {
-            "add": () => {},
-            "edit": () => {},
-            "remove": () => {},
-            "save": () => {},
-            "renderBase": () => {},
-            "renderSlider": () => {}
-          }
+          "fn": {}
         },
         "methods": {}
       });
@@ -65,18 +52,56 @@ export default class PageEngines {
       //  Setup vue function.
       this.vue.fn = {
         "add": async () => {
+          this.vue.ui.slider[`edit-id`] = null;
           this.renderSlider();
         },
-        "edit": (name) => {
-          this.console.log(`edit(${name})`);
-          this.renderSlider(name);
+        "edit": (id) => {
+          this.console.log(`edit(${id})`);
+          this.vue.ui.slider[`edit-id`] = id;
+          this.renderSlider(id);
         },
-        "remove": (name) => {
-          this.console.log(`delete(${name})`);
+        "remove": (id) => {
+          this.console.log(`delete(${id})`);
+          return new Promise((resolve, reject) => {
+            let conf = confirm(`Are you sure to delete engine "${id}"!`);
+            if(conf) {
+              this.deleteConfig(id)
+              .then((res) => this.render())
+              .then(() => resolve())
+              .catch((err) => reject(err));
+            }
+            else
+              resolve();
+          });
         },
         "save": () => {
           this.console.log(`save()`);
           this.console.log(`save data: ${JSON.stringify(this.vue.ui.slider.form, null, 2)}`);
+          return new Promise((resolve, reject) => {
+            let id = this.vue.ui.slider[`edit-id`];
+            let config = this.vue.ui.slider.form;
+            ((id) ? this.editConfig(id, config) : this.addConfig(config))
+            .then((res) => this.render())
+            .then(() => resolve())
+            .catch((err) => reject(err));
+          });
+        },
+        "typeIdentify": (param) => {
+          let type = undefined;
+          if(param.attrs && param.attrs.type)
+            type = param.attrs.type;
+          else if(param.enum)
+            type = `select`;
+          else if(param.type == `string`)
+            type = `text`;
+          else if(param.type == `number`)
+            type = `number`;
+          else if(param.type == `boolean`)
+            type = `check`;
+          else if(param.type == `object`)
+            type = `object`;
+          // console.log(`type: ${type}`);
+          return type;
         },
         "renderBase": () => {
           this.render();
@@ -111,101 +136,234 @@ export default class PageEngines {
       this.vue.ui.base.ready = false;
       this.vue.ui.slider.hide = true;
 
-      let config = await this.getConfig();
-      this.vue.resource.config = config;
-      let engines = await this.getEngine();
-      this.vue.resource.engines = engines;
+      let systemEngine = await this.getSystemEngine();
+      this.vue.resource.systemEngine = systemEngine;
 
       this.vue.ui.base.ready = true;
       resolve();
     });
   }
 
-  renderSlider(name) {
+  renderSlider(id) {
     this.console.log(`renderSlider()`);
     return new Promise(async (resolve, reject) => {
       this.vue.ui.slider.ready = false;
       this.vue.ui.slider.hide = false;
 
-      this.console.log(`ui slider : ${JSON.stringify(this.vue.ui.slider, null, 2)}`);
-      await this.renderForm(name);
+      await this.renderForm(id);
 
       this.vue.ui.slider.ready = true;
       resolve();
     });
   }
 
-  renderForm(name) {
-    this.console.log(`PageEngines: renderVueAddForm() >> `);
+  renderForm(id) {
+    this.console.log(`PageEngines: renderForm(${(id) ? `${id}` : ``}) >> `);
     return new Promise((resolve, reject) => {
-      Promise.all([
-        this.getConfig(),
-        this.getPortConfig(),
-        this.getEngineTemplate()
-      ])
-      .then((promArr) => {
-        this.vue.resource.config = promArr[0];
-        this.vue.resource.ports = promArr[1].list;
-        this.vue.resource.templates = promArr[2];
-
-        //this.console.log(`add before short : ${JSON.stringify(schema, null, 2)}`);
-
-        let schema = this.ui.shortJsonElement(this.vue.resource.schema, `.+`);
-
-        if(name)
-          this.vue.ui.slider.form = this.vue.resource.config.list[name];
-        else
-          this.vue.ui.slider.form = this.ui.generateData(schema);
-
-        this.vue.ui.slider.formTemplate = this.ui.generateVueData(schema);
-        this.vue.ui.slider.formTemplate.engine.enum = this.vue.resource.templates;
-        this.vue.ui.slider.formTemplate.port.enum = this.vue.resource.ports;
-
-        this.console.log(`form : ${JSON.stringify(this.vue.ui.slider.form, null, 2)}`);
-        this.console.log(`form template : ${JSON.stringify(this.vue.ui.slider.formTemplate, null, 2)}`);
-
-        resolve();
-      });
+      if(id) {
+        this.getConfigEngine(id)
+        .then((conf) => {
+          this.vue.ui.slider.form = conf;
+          return this.generateConfigSchema(conf);
+        })
+        .then((schema) => {
+          this.vue.resource.configSchema = schema;
+          return ;
+        })
+        .then(() => resolve())
+        .catch((err) => reject(err));
+      }
+      else {
+        this.vue.resource.configSchema = {};
+        this.vue.ui.slider.form = {};
+        this.onAlternateChange()
+        .then(() => resolve())
+        .catch((err) => reject(err));
+      }
     });
   }
 
-  getConfig() {
-    this.console.log(`getConfig()`);
-    return new Promise((resolve, reject) => {
-      this.api.getConfig()
-      .then((config) => resolve(config[`service-config`][`engines-service`]));
+  onAlternateChange() {
+    this.console.log(`PageEngines: onAlternateChange() >> `);
+    return new Promise(async (resolve, reject) => {
+      let config = JSON.parse(JSON.stringify(this.vue.ui.slider.form));
+
+      this.console.log(`config: `, config);
+
+      let newSchema = await this.generateConfigSchema(config);
+      let oldSchema = JSON.parse(JSON.stringify(this.vue.resource.configSchema));
+      this.vue.resource.configSchema = JSON.parse(JSON.stringify(newSchema));
+
+      let newData = await this.ui.generateData(newSchema);
+      let oldData = JSON.parse(JSON.stringify(this.vue.ui.slider.form));
+      
+      this.console.log(`old schema: `, oldSchema);
+      this.console.log(`new schema: `, newSchema);
+      this.console.log(`old data: `, oldData);
+      this.console.log(`new data: `, newData);
+
+      let copySchema = this.jsonDiv((oldSchema.properties) ? oldSchema.properties : {}, newSchema.properties, {"level": 1});
+      let dataCopy = this.jsonCopyBySchema(oldData, newData, copySchema);
+
+      this.vue.ui.slider.form = oldData;
+
+      this.console.log(`Data copy: ${dataCopy}`);
+      if(dataCopy)
+        await this.onAlternateChange();
+
+      resolve();
     });
   }
 
-  getPortConfig() {
-    this.console.log(`getPortConfig()`);
+  jsonCopyBySchema(dst, src, schema) {
+    // console.log(`dst: `, dst);
+    src = JSON.parse(JSON.stringify(src));
+    let copyFlag = false;
+    for(let i in schema) {
+      if(schema[i] == true) {
+        dst[i] = ([`object`, `array`].includes(typeof src[i])) ? JSON.parse(JSON.stringify(src[i])) : src[i];
+        copyFlag = true;
+        // console.log(`jsonCopyBySchema[${i}]: `, dst[i]);
+      }
+      else if([`object`, `array`].includes(typeof schema[i]))
+        copyFlag = this.jsonCopyBySchema(dst[i], src[i], schema[i]) || copyFlag;
+    }
+    return copyFlag;
+  }
+
+  jsonDiv(dst, src, options) {
+    // console.log(`jsonDiv()`);
+    let result = {};
+    let opt = (options) ? JSON.parse(JSON.stringify(options)) : {};
+    if(opt.level)
+      opt.level = opt.level - 1;
+
+    for(let i in dst) {
+      result[i] = (!src.hasOwnProperty(i)) ? true :
+        ([`object`, `array`].includes(typeof src[i])) ? 
+        (JSON.stringify(dst[i]) == JSON.stringify(src[i])) ? false :
+        (opt.level == 0) ? true :
+        this.jsonDiv(dst[i], src[i], opt) :
+        (dst[i] == src[i]) ? false : true;
+    }
+    for(let i in src) {
+      if(!dst.hasOwnProperty(i))
+        result[i] = true;
+    }
+    return result;
+  };
+
+  // getConfig() {
+  //   this.console.log(`getConfig()`);
+  //   return new Promise((resolve, reject) => {
+  //     this.api.getConfig()
+  //     .then((config) => resolve(config[`service-config`][`engines-service`]));
+  //   });
+  // }
+
+  // getPortConfig() {
+  //   this.console.log(`getPortConfig()`);
+  //   return new Promise((resolve, reject) => {
+  //     this.api.getConfig()
+  //     .then((config) => resolve(config[`service-config`][`sysport-service`]));
+  //   });
+  // }
+
+  // getSchema() {
+  //   this.console.log(`getSchema()`);
+  //   return new Promise((resolve, reject) => {
+  //     this.api.getSchema()
+  //     .then((schema) => resolve(schema.properties[`service-config`].properties[`engines-service`]));
+  //   });
+  // }
+
+  // getEngine(name) {
+  //   this.console.log(`getEngine(${(name) ? name : ``})`);
+  //   return new Promise((resolve, reject) => {
+  //     let engines = this.api.restCall(`get`, `/api/service/engines${(name) ? `/${name}` : ``}`);
+  //     resolve(engines);
+  //   });
+  // }
+
+  // getEngineTemplate(name) {
+  //   this.console.log(`getEngineTemplate(${(name) ? name : ``})`);
+  //   return new Promise((resolve, reject) => {
+  //     let templates = this.api.restCall(`get`, `/api/service/engineTemplate${(name) ? `/${name}` : ``}`);
+  //     resolve(templates);
+  //   });
+  // }
+
+  getConfigEngine(id) {
+    this.console.log(`PageEngines: getConfigEngine() >> `);
     return new Promise((resolve, reject) => {
-      this.api.getConfig()
-      .then((config) => resolve(config[`service-config`][`sysport-service`]));
+      this.api.restCall(`get`, `/api/service/engines-service/config-engine${(id) ? `/${id}` : ``}`)
+      .then((res) => (res.error) ? reject(res.error) : resolve(res))
+      .catch((err) => reject(err));
     });
   }
 
-  getSchema() {
-    this.console.log(`getSchema()`);
+  getSystemEngine() {
+    this.console.log(`PageEngines: getSystemEngine() >> `);
     return new Promise((resolve, reject) => {
-      this.api.getSchema()
-      .then((schema) => resolve(schema.properties[`service-config`].properties[`engines-service`]));
+      this.api.restCall(`get`, `/api/service/engines-service/system-engine`)
+      .then((res) => (res.error) ? reject(res.error) : resolve(res))
+      .catch((err) => reject(err));
     });
   }
 
-  getEngine(name) {
-    this.console.log(`getEngine(${(name) ? name : ``})`);
+  addConfig(config) {
+    this.console.log(`PageEngines: addConfig() >> `);
     return new Promise((resolve, reject) => {
-      let engines = this.api.restCall(`get`, `/api/service/engines${(name) ? `/${name}` : ``}`);
-      resolve(engines);
+      let toast = this.ui.toast.info(`Adding new engine.`);
+      this.api.restCall(`post`, `/api/service/engines-service/config-engine`, config)
+      .then((res) => {
+        this.ui.toast.success(`Engine saving complete.`, {"icon": `fa-save`});
+        resolve(res);
+      })
+      .catch((err) => reject(err))
+      .finally(() => toast.remove());
     });
   }
 
-  getEngineTemplate(name) {
-    this.console.log(`getEngineTemplate(${(name) ? name : ``})`);
+  editConfig(id, config) {
+    this.console.log(`PageEngines: editConfig() >> `);
     return new Promise((resolve, reject) => {
-      let templates = this.api.restCall(`get`, `/api/service/engineTemplate${(name) ? `/${name}` : ``}`);
-      resolve(templates);
+      let toast = this.ui.toast.info(`Edit engine "${id}".`);
+      this.api.restCall(`put`, `/api/service/engines-service/config-engine/${id}`, config)
+      .then((res) => {
+        this.ui.toast.success(`Engine "${id}" edit complete.`, {"icon": `fa-save`});
+        resolve(res);
+      })
+      .catch((err) => reject(err))
+      .finally(() => toast.remove());
+    });
+  }
+
+  deleteConfig(id) {
+    this.console.log(`PageEngines: deleteConfig() >> `);
+    return new Promise((resolve, reject) => {
+      let toast = this.ui.toast.info(`Delete engine "${id}".`, {"icon": `fa-trash-alt`});
+      this.api.restCall(`delete`, `/api/service/engines-service/config-engine/${id}`)
+      .then((res) => {
+        this.ui.toast.success(`Engine "${id}" delete complete.`, {"icon": `fa-trash-alt`});
+        resolve(res);
+      })
+      .catch((err) => reject(err))
+      .finally(() => toast.remove());
+    });
+  }
+
+  generateConfigSchema(param) {
+    this.console.log(`PageSysport: generateConfigSchema() >> `);
+    return new Promise((resolve, reject) => {
+      // let toast = this.ui.toast.info(`Generate config schema.`);
+      this.api.restCall(`post`, `/api/service/engines-service/generateConfigSchema`, (param) ? param : undefined)
+      .then((res) => {
+        // this.ui.toast.success(`Config schema generated.`);
+        resolve(res);
+      })
+      .catch((err) => reject(err));
+      // .finally(() => toast.remove());
     });
   }
 }

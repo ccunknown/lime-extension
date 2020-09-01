@@ -51,8 +51,23 @@
           <div class="miso-badge-header-group align-items-end w-100">
             <label class="miso-label-badge badge-info font-size-inherit">General</label>
             <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
+
+              <template v-for="(param, index) in resource.configSchema.properties">
+                <div class="miso-badge-header-group grow-1">
+                  <label v-if="fn.typeIdentify(param) != 'object'" class="miso-label-badge badge-secondary">
+                    {{(param.title) ? param.title : index}}
+                  </label>
+                  <json-schema-form 
+                  v-bind:param="param"
+                  class="miso-badge-union border-secondary"
+                  v-bind:class="{'no-resize': param.attrs && param.attrs.type == 'textarea'}"
+                  v-model="ui.slider.form[index]"
+                  @change="param.alternate && fn.onAlternateChange()">
+                  </json-schema-form>
+                </div>
+              </template>
               
-              <div class="miso-badge-header-group grow-1">
+              <!-- <div class="miso-badge-header-group grow-1">
                 <label class="miso-label-badge badge-secondary">Name</label>
                 <input 
                 type="text" 
@@ -63,12 +78,12 @@
               <div class="miso-badge-header-group grow-1">
                 <label class="miso-label-badge badge-secondary">Description</label>
                 <textarea class="miso-badge-union border-secondary no-resize" rows="4" type="text"></textarea>
-              </div>
+              </div> -->
 
             </div>
           </div>
 
-          <div class="miso-badge-header-group align-items-end w-100">
+          <!-- <div class="miso-badge-header-group align-items-end w-100">
             <label class="miso-label-badge badge-info font-size-inherit">Config</label>
             <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
 
@@ -91,7 +106,7 @@
               </div>
 
             </div>
-          </div>
+          </div> -->
 
         </div>
 
@@ -139,45 +154,54 @@
           <!-- Items -->
           <div 
           class="card miso-grid-item" 
-          v-for="(item, index) in resource.engines">
+          v-for="(item, id) in resource.systemEngine">
             <!-- Item Header -->
             <div class="card-header d-flex justify-content-between bg-dark text-light">
               <!-- Icon & Title -->
               <div class="text-truncate">
-                {{item.schema.name}}
+                {{item.name}} [{{id}}]
               </div>
               <!-- Header Button -->
               <div class="miso-card-header-btn-box">
-                <button class="btn btn-warning" @click="fn.edit(item.schema.name)">
+                <button class="btn btn-warning" @click="fn.edit(id)">
                   <i class="fas fa-edit fa-lg"></i>
                 </button>
-                <button class="btn btn-danger" @click="fn.remove(item.schema.name)">
+                <button class="btn btn-danger" @click="fn.remove(id)">
                   <i class="fas fa-trash fa-lg"></i>
                 </button>
               </div>
             </div>
             <!-- Item Body -->
-            <div class="card-body bg-secondary">
-              <span class="header-item">
-                <span class="bg-dark text-light">engine</span>
-                <span class="bg-warning text-dark">
-                  {{item.schema.engine}}
+            <div class="card-body bg-secondary d-flex flex-column">
+              <p class="card-text text-light grow-1">
+                {{item.description}}
+              </p>
+              <div class="text-truncate d-flex mt-2">
+                <span class="header-item text-truncate mr-2">
+                  <span class="bg-dark text-light">status</span>
+                  <span 
+                  class="" 
+                  :class="{
+                    'bg-success text-light': item.state == 'running',
+                    'bg-warning text-dark': ['starting', 'restarting'].includes(item.state), 
+                    'bg-danger text-light': !['running', 'starting', 'restarting'].includes(item.state)
+                  }">
+                    {{item.state}}
+                  </span>
                 </span>
-              </span>
-              <span class="header-item">
-                <span class="bg-dark text-light">port</span>
-                <span class="bg-warning text-dark">
-                  {{item.schema.port}}
+                <span class="header-item text-truncate mr-2">
+                  <span class="bg-dark text-light">engine</span>
+                  <span class="bg-warning text-dark">
+                    {{item.template}}
+                  </span>
                 </span>
-              </span>
-              <span class="header-item">
-                <span class="bg-dark text-light">status</span>
-                <span 
-                class="text-dark" 
-                :class="{'bg-warning': item.state == 'running', 'bg-danger': item.state != 'running'}">
-                  {{item.state}}
+                <span class="header-item text-truncate">
+                  <span class="bg-dark text-light">port</span>
+                  <span class="bg-warning text-dark">
+                    {{item.port}}
+                  </span>
                 </span>
-              </span>
+              </div>
             </div>
           </div>
           <!-- Adder -->
@@ -199,13 +223,15 @@
     </div>
   </div>
 
-  <pre v-if="loader.extension.debug">
+  <div v-if="loader.extension.debug">
     <code class="text-light">
-      {{ui}}
+      <template v-for="(elem, index) in $data">
+        <div v-if="index != 'loader'">
+          <b>{{index}} :</b>
+          <pre class="text-light">{{elem}}</pre>
+        </div>
+      </template>
     </code>
-    <code class="text-light">
-      {{resource.scripts}}
-    </code>
-  </pre>
+  </div>
 
 </div>

@@ -39,32 +39,12 @@ var Defaults = {
     "service-config": {
       //  Port Service
       "sysport-service": {
-        "list": {
-          "port-1": {
-            "name": "port-1",
-            "path": "/dev/ttyS0",
-            //"path": "/dev/serial0",
-            "config": {
-              "baudRate": 9600,
-              "databits": 8,
-              "parity": 'none',
-              "stopbits": 1,
-              "flowControl": false,
-              "autoOpen": false
-            }
-          }
-        }
+        "list": {}
       },
       //  Engine Service
       "engines-service": {
         "directory": "/engines",
-        "list": {
-          "modbus-engine-001": {
-            "name": "modbus-engine-001",
-            "engine": "modbus-rtu",
-            "port": "port-1"
-          }
-        }
+        "list": {}
       },
       //  Script Service
       "scripts-service": {
@@ -74,30 +54,7 @@ var Defaults = {
       //  Device Service
       "devices-service": {
         "directory": "/devices",
-        "list": {
-          // "lime-device-1": {
-          //   "name": "SDM120CT Power Meter",
-          //   "description": "Power meter install at room 519 on Pakawat's table on DIN rail together with another devices including Raspberry Pi which is install Mozilla-iot Gateway.",
-          //   "template": "modbus-rtu",
-          //   "script": "sdm120ct",
-          //   "engine": "modbus-engine-001",
-          //   "address": 11,
-          //   "properties": {
-          //     "prop-01": {
-          //       "template": "default-property",
-          //       "table": "inputRegisters",
-          //       "address": "Apparent Power [Addr:12]",
-          //       "period": 5000
-          //     },
-          //     "prop-02": {
-          //       "template": "default-property",
-          //       "table": "inputRegisters",
-          //       "address": "Current [Addr:6]",
-          //       "period": 5000
-          //     }
-          //   }
-          // }
-        }
+        "list": {}
       }
     }
   },
@@ -153,64 +110,7 @@ var Defaults = {
                 "additionalProperties": false,
                 "patternProperties": {
                   ".+": {
-                    "type": "object",
-                    // "required": ["name", "path", "config"],
-                    // "additionalProperties": false,
-                    // "properties": {
-                    //   "name": {
-                    //     "type": "string",
-                    //   },
-                    //   "path": {
-                    //     "type": "string",
-                    //   },
-                    //   "config": {
-                    //     "type": "object",
-                    //     "required": [],
-                    //     "additionalProperties": false,
-                    //     "properties": {
-                    //       "baudRate": {
-                    //         "type": "number",
-                    //         "default": 9600,
-                    //         "enum": [
-                    //           1200,
-                    //           2400,
-                    //           4800,
-                    //           9600,
-                    //           19200,
-                    //           38400,
-                    //           57600,
-                    //           115200,
-                    //           230400,
-                    //           460800,
-                    //           921600
-                    //         ]
-                    //       },
-                    //       "databits": {
-                    //         "type": "number",
-                    //         "default": 8,
-                    //         "enum": [8, 7]
-                    //       },
-                    //       "parity": {
-                    //         "type": "string",
-                    //         "default": "none",
-                    //         "enum": ["none", "even", "odd", "mark", "space"]
-                    //       },
-                    //       "stopbits": {
-                    //         "type": "number",
-                    //         "default": 1,
-                    //         "enum": [1, 2]
-                    //       },
-                    //       "flowControl": {
-                    //         "type": "boolean",
-                    //         "default": false
-                    //       },
-                    //       "autoOpen": {
-                    //         "type": "boolean",
-                    //         "default": false
-                    //       }
-                    //     }
-                    //   }
-                    // }
+                    "type": "object"
                   }
                 }
               }
@@ -232,19 +132,19 @@ var Defaults = {
                 "patternProperties": {
                   ".+": {
                     "type": "object",
-                    "required": ["name", "engine", "port"],
-                    "additionalProperties": false,
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "engine": {
-                        "type": "string"
-                      },
-                      "port": {
-                        "type": "string"
-                      }
-                    }
+                    // "required": ["name", "engine", "port"],
+                    // "additionalProperties": false,
+                    // "properties": {
+                    //   "name": {
+                    //     "type": "string"
+                    //   },
+                    //   "engine": {
+                    //     "type": "string"
+                    //   },
+                    //   "port": {
+                    //     "type": "string"
+                    //   }
+                    // }
                   }
                 }
               }
