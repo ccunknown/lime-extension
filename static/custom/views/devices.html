@@ -12,7 +12,11 @@
           </div>
           <!-- Header Button -->
           <div class="">
-            <button v-if="ui.slider.edit" class="btn btn-success" @click="fn.save()">
+            <!-- <button v-if="ui.slider.edit" class="btn btn-success" @click="fn.save()">
+              <i class="fas fa-save fa-lg"></i>
+              <b>Save</b>
+            </button> -->
+            <button class="btn btn-success" @click="fn.save()">
               <i class="fas fa-save fa-lg"></i>
               <b>Save</b>
             </button>
@@ -146,7 +150,7 @@
           <!-- Items -->
           <div 
           class="card miso-grid-item" 
-          v-for="(item, index) in resource.config.list">
+          v-for="(item, index) in resource.config">
             <!-- Item Header -->
             <div class="card-header d-flex justify-content-between bg-dark text-light">
               <!-- Icon & Title -->
@@ -155,7 +159,7 @@
               </div>
               <!-- Header Button -->
               <div class="miso-card-header-btn-box">
-                <button class="btn btn-info" @click="fn.edit(item.name)">
+                <button class="btn btn-info" @click="fn.edit(index)">
                   <i class="fas fa-edit fa-lg"></i>
                 </button>
                 <button class="btn btn-danger" @click="fn.remove(index)">
@@ -240,14 +244,12 @@
 
   <div v-if="loader.extension.debug">
     <code class="text-light">
-      <b>deviceForm:</b>
-      <pre class="text-light">{{deviceForm}}</pre>
-      <b>propertyForm:</b>
-      <pre class="text-light">{{propertyForm}}</pre>
-      <b>resource:</b>
-      <pre class="text-light">{{resource}}</pre>
-      <b>ui:</b>
-      <pre class="text-light">{{ui}}</pre>
+      <template v-for="(elem, index) in $data">
+        <div v-if="index != 'loader'">
+          <b>{{index}} :</b>
+          <pre class="text-light">{{elem}}</pre>
+        </div>
+      </template>
     </code>
   </div>
 </div>

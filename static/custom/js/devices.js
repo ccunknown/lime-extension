@@ -50,6 +50,7 @@ export default class PageDevices {
               "hide": true,
               "ready": false,
               "edit": true,
+              "edit-id": null,
               "form": {},
               "formTemplate": {},
               "final": {
@@ -73,11 +74,13 @@ export default class PageDevices {
       //  Setup vue function.
       this.vue.fn = {
         "add": async () => {
+          this.vue.ui.slider[`edit-id`] = null;
           this.renderSlider();
         },
-        "edit": (name) => {
-          this.console.log(`edit(${name})`);
-          this.renderSlider(name);
+        "edit": (id) => {
+          this.console.log(`edit(${id})`);
+          this.vue.ui.slider[`edit-id`] = id;
+          this.renderSlider(id);
         },
         "remove": (id) => {
           this.console.log(`delete(${id})`);
@@ -95,7 +98,10 @@ export default class PageDevices {
             //  Build final.
             this.vue.ui.slider.final.device = JSON.parse(JSON.stringify(this.vue.deviceForm));
             this.vue.ui.slider.final.device.properties = JSON.parse(JSON.stringify(this.vue.ui.slider.final.properties));
-            await this.api.restCall(`put`, `/api/service/devices`, this.vue.ui.slider.final.device);
+            if(this.vue.ui.slider[`edit-id`])
+              await this.updateConfigDevice(this.vue.ui.slider[`edit-id`], this.vue.ui.slider.final.device);
+            else
+              await this.api.restCall(`put`, `/api/service/devices`, this.vue.ui.slider.final.device);
             await this.render();
             resolve();
           });
@@ -168,18 +174,32 @@ export default class PageDevices {
           else
             return false;
         },
-        "addProperty": () => {
+        "addProperty": (id) => {
           this.console.log(`addProperty()`);
           this.console.log(`properties: ${JSON.stringify(this.vue.propertyForm, null ,2)}`);
 
           let params = JSON.parse(JSON.stringify(this.vue.deviceForm));
           params.properties = JSON.parse(JSON.stringify(this.vue.propertyForm));
-          this.generatePropertyId(params)
-          .then((id) => {
+
+          if(id){
             let finalProp = JSON.parse(JSON.stringify(this.vue.ui.slider.final.properties));
             finalProp[id] = params.properties;
             this.vue.ui.slider.final.properties = finalProp;
-          });
+            return id;
+          }
+          else {
+            return new Promise((resolve, reject) => {
+              this.generatePropertyId(params)
+              .then((id) => {
+                let finalProp = JSON.parse(JSON.stringify(this.vue.ui.slider.final.properties));
+                finalProp[id] = params.properties;
+                this.vue.ui.slider.final.properties = finalProp;
+                return id;
+              })
+              .then((id) => resolve(id))
+              .catch((err) => reject(err));
+            });
+          }
         },
         "removeProperty": (id) => {
           this.console.log(`removeProperty(${id})`);
@@ -244,28 +264,42 @@ export default class PageDevices {
     });
   }
 
-  renderForm(name) {
-    this.console.log(`PageDevices: renderForm(${(name) ? `${name}` : ``}) >> `);
+  renderForm(id) {
+    this.console.log(`PageDevices: renderForm(${(id) ? `${id}` : ``}) >> `);
     return new Promise(async (resolve, reject) => {
       //this.vue.resource.deviceTemplate = await this.getDeviceTemplate();
-      if(name) {
+      if(id) {
         this.vue.ui.slider.edit = false;
         Promise.all([
-          this.getConfig(),
-          this.getScript(name)
+          this.getConfig(id)
         ])
         .then((promArr) => {
-          this.vue.resource.config = promArr[0];
-          let script = promArr[1];
-          let tags = (script.meta && script.meta.tags) ? script.meta.tags : [];
-          //script.tag = [];
+          let config = promArr[0];
+          this.console.log(`config: ${JSON.stringify(config, null, 2)}`);
+          //  Pre-set form (Cleaning).
+          this.vue.resource.deviceConfigSchema = {};
+          this.vue.ui.slider.final.device = {};
+          this.vue.ui.slider.final.properties = {};
 
-          this.vue.ui.slider.form = script;
-          this.vue.fn.clearTag();
-          tags.forEach((tag) => this.vue.fn.addTag(tag));
-
-          resolve();
-        });
+          this.vue.deviceForm = config;
+          // this.vue.propertyForm = config.properties;
+          return config;
+        })
+        .then((config) => this.generateDeviceConfigSchema(config))
+        .then((schema) => {
+          this.vue.resource.deviceConfigSchema = schema;
+          return ;
+        })
+        .then(() => {
+          for(let i in this.vue.deviceForm.properties) {
+            this.vue.propertyForm = JSON.parse(JSON.stringify(this.vue.deviceForm.properties[i]));
+            this.vue.fn.addProperty(i);
+          }
+          return ;
+        })
+        .then(() => this.onAlternateChange())
+        .then(() => resolve())
+        .catch((err) => reject(err));
       }
       else {
         //  Pre-set form (Cleaning).
@@ -398,11 +432,28 @@ export default class PageDevices {
     return result;
   };
 
-  getConfig() {
-    this.console.log(`getConfig()`);
+  // getConfig() {
+  //   this.console.log(`getConfig()`);
+  //   return new Promise((resolve, reject) => {
+  //     this.api.getConfig()
+  //     .then((config) => resolve(config[`service-config`][`devices-service`]));
+  //   });
+  // }
+  getConfig(id) {
+    this.console.log(`getConfig(${(id) ? `${id}` : ``}) >> `);
     return new Promise((resolve, reject) => {
-      this.api.getConfig()
-      .then((config) => resolve(config[`service-config`][`devices-service`]));
+      this.api.restCall(`get`, `/api/service/devices-service/config-device${(id) ? `/${id}` : ``}`)
+      .then((res) => (res.error) ? reject(res.error) : resolve(res))
+      .catch((err) => reject(err));
+    });
+  }
+
+  updateConfigDevice(id, config) {
+    this.console.log(`updateConfigDevice(${(id) ? `${id}` : ``}) >> `);
+    return new Promise((resolve, reject) => {
+      this.api.restCall(`put`, `/api/service/devices-service/config-device${(id) ? `/${id}` : ``}`, config)
+      .then((res) => (res.error) ? reject(res.error) : resolve(res))
+      .catch((err) => reject(err));
     });
   }
 

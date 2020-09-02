@@ -141,100 +141,100 @@ class RoutesManager extends APIHandler{
         }
       },
 
-      /***  Resource : /service/devices  ***/
-      {
-        "resource": /\/service\/devices/,
-        "method": {
-          "GET": (req) => {
-            return new Promise((resolve, reject) => {
-              this.laborsManager.getService(`devices-service`).obj.get(null, {"deep":true})
-              .then((json) => {
-                //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
-                resolve(this.makeJsonRespond(JSON.stringify(json)));
-              })
-              .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          },
-          "PUT": (req) => {
-            return new Promise((resolve, reject) => {
-              this.laborsManager.getService(`devices-service`).obj.add(req.body)
-              .then((json) => resolve(this.makeJsonRespond(JSON.stringify(json))))
-              .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          }
-        }
-      },
+      // /***  Resource : /service/devices  ***/
+      // {
+      //   "resource": /\/service\/devices/,
+      //   "method": {
+      //     "GET": (req) => {
+      //       return new Promise((resolve, reject) => {
+      //         this.laborsManager.getService(`devices-service`).obj.get(null, {"deep":true})
+      //         .then((json) => {
+      //           //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
+      //           resolve(this.makeJsonRespond(JSON.stringify(json)));
+      //         })
+      //         .catch((err) => resolve(this.catchErrorRespond(err)));
+      //       });
+      //     },
+      //     "PUT": (req) => {
+      //       return new Promise((resolve, reject) => {
+      //         this.laborsManager.getService(`devices-service`).obj.add(req.body)
+      //         .then((json) => resolve(this.makeJsonRespond(JSON.stringify(json))))
+      //         .catch((err) => resolve(this.catchErrorRespond(err)));
+      //       });
+      //     }
+      //   }
+      // },
 
-      /***  Resource : /service/devices/{name}  ***/
-      {
-        "resource": /\/service\/devices\/[^/]+/,
-        "method": {
-          "GET": (req) => {
-            return new Promise((resolve, reject) => {
-              this.laborsManager.getService(`devices-service`).obj.get(req.path.split(`/`).pop(), {"base64": true, "deep":true})
-              .then((json) => {
-                //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
-                resolve(this.makeJsonRespond(JSON.stringify(json)));
-              })
-              .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          }
-        }
-      },
+      // /***  Resource : /service/devices/{name}  ***/
+      // {
+      //   "resource": /\/service\/devices\/[^/]+/,
+      //   "method": {
+      //     "GET": (req) => {
+      //       return new Promise((resolve, reject) => {
+      //         this.laborsManager.getService(`devices-service`).obj.get(req.path.split(`/`).pop(), {"base64": true, "deep":true})
+      //         .then((json) => {
+      //           //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
+      //           resolve(this.makeJsonRespond(JSON.stringify(json)));
+      //         })
+      //         .catch((err) => resolve(this.catchErrorRespond(err)));
+      //       });
+      //     }
+      //   }
+      // },
 
-      /***  Resource : /service/devicesTemplate  ***/
-      {
-        "resource": /\/service\/deviceTemplate/,
-        "method": {
-          "GET": (req) => {
-            return new Promise((resolve, reject) => {
-              this.laborsManager.getService(`devices-service`).obj.getTemplate(null, {"deep": true})
-              .then((json) => {
-                //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
-                resolve(this.makeJsonRespond(JSON.stringify(json)));
-              })
-              .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          }
-        }
-      },
+      // /***  Resource : /service/devicesTemplate  ***/
+      // {
+      //   "resource": /\/service\/deviceTemplate/,
+      //   "method": {
+      //     "GET": (req) => {
+      //       return new Promise((resolve, reject) => {
+      //         this.laborsManager.getService(`devices-service`).obj.getTemplate(null, {"deep": true})
+      //         .then((json) => {
+      //           //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
+      //           resolve(this.makeJsonRespond(JSON.stringify(json)));
+      //         })
+      //         .catch((err) => resolve(this.catchErrorRespond(err)));
+      //       });
+      //     }
+      //   }
+      // },
 
-      /***  Resource : /service/devicesConfigSchema  ***/
-      {
-        "resource": /\/service\/deviceConfigSchema/,
-        "method": {
-          "GET": (req) => {
-            return new Promise((resolve, reject) => {
-              this.laborsManager.getService(`devices-service`).obj.getConfigSchema(this.getParameters(req))
-              .then((json) => {
-                //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
-                resolve(this.makeJsonRespond(JSON.stringify(json)));
-              })
-              .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          }
-        }
-      },
+      // /***  Resource : /service/devicesConfigSchema  ***/
+      // {
+      //   "resource": /\/service\/deviceConfigSchema/,
+      //   "method": {
+      //     "GET": (req) => {
+      //       return new Promise((resolve, reject) => {
+      //         this.laborsManager.getService(`devices-service`).obj.getConfigSchema(this.getParameters(req))
+      //         .then((json) => {
+      //           //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
+      //           resolve(this.makeJsonRespond(JSON.stringify(json)));
+      //         })
+      //         .catch((err) => resolve(this.catchErrorRespond(err)));
+      //       });
+      //     }
+      //   }
+      // },
 
-      /***  Resource : /service/devicesSconfigSchema/name  ***/
-      {
-        "resource": /\/service\/deviceConfigSchema\/[^/]+/,
-        "method": {
-          "GET": (req) => {
-            return new Promise((resolve, reject) => {
-              let params = this.getParameters(req);
-              params.device = (params.device) ? params.device : {};
-              params.device.device = req.path.split(`/`).pop();
-              this.laborsManager.getService(`devices-service`).obj.getConfigSchema(params)
-              .then((json) => {
-                //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
-                resolve(this.makeJsonRespond(JSON.stringify(json)));
-              })
-              .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          }
-        }
-      },
+      // /***  Resource : /service/devicesSconfigSchema/name  ***/
+      // {
+      //   "resource": /\/service\/deviceConfigSchema\/[^/]+/,
+      //   "method": {
+      //     "GET": (req) => {
+      //       return new Promise((resolve, reject) => {
+      //         let params = this.getParameters(req);
+      //         params.device = (params.device) ? params.device : {};
+      //         params.device.device = req.path.split(`/`).pop();
+      //         this.laborsManager.getService(`devices-service`).obj.getConfigSchema(params)
+      //         .then((json) => {
+      //           //console.log(`device list : ${JSON.stringify(json, null, 2)}`);
+      //           resolve(this.makeJsonRespond(JSON.stringify(json)));
+      //         })
+      //         .catch((err) => resolve(this.catchErrorRespond(err)));
+      //       });
+      //     }
+      //   }
+      // },
 
       /***  Resource : /service/devices-service/devicesConfigSchema  ***/
       {
@@ -287,11 +287,18 @@ class RoutesManager extends APIHandler{
         }
       },
 
-      /***  Resource : /service/devices-service/devices  ***/
+      /***  Resource : /service/devices-service/config-device  ***/
       {
-        "resource": /\/service\/devices-service\/devices/,
+        "resource": /\/service\/devices-service\/config-device/,
         "method": {
-          "PUT": (req) => {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`devices-service`).obj.getConfigDevice()
+              .then((devices) => resolve(this.makeJsonRespond(JSON.stringify(devices))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          "POST": (req) => {
             return new Promise((resolve, reject) => {
               this.laborsManager.getService(`devices-service`).obj.add(req.body)
               .then((json) => resolve(this.makeJsonRespond(JSON.stringify(json))))
@@ -301,10 +308,26 @@ class RoutesManager extends APIHandler{
         }
       },
 
-      /***  Resource : /service/devices-service/translate  ***/
+      /***  Resource : /service/devices-service/config-device  ***/
       {
-        "resource": /\/service\/devices-service\/devices\/[^/]+/,
+        "resource": /\/service\/devices-service\/config-device\/[^/]+/,
         "method": {
+          "GET": (req) => {
+            let id = req.path.split(`/`).pop();
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`devices-service`).obj.getConfigDevice(id)
+              .then((device) => resolve(this.makeJsonRespond(JSON.stringify(device))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          "PUT": (req) => {
+            let id = req.path.split(`/`).pop();
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`devices-service`).obj.update(id, req.body)
+              .then((json) => resolve(this.makeJsonRespond(JSON.stringify(json))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
           "DELETE": (req) => {
             return new Promise((resolve, reject) => {
               let id = req.path.split(`/`).pop();

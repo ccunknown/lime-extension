@@ -166,7 +166,7 @@ class ModbusRtu {
         console.log(`>>>>>> error time: ${timestamp}/${timeerr}`);
         console.log(`cmd`, JSON.stringify(cmd, null, 2));
         reject(`Engine command timeout.`);
-      }, 3000);
+      }, 200);
       if(this.state != `running`) {
         reject(new Error(`Port currently "${this.state}".`));
       }

@@ -89,6 +89,25 @@ class DevicesService extends Service {
     });
   }
 
+  add(config) {
+    console.log(`DevicesService: add() >> `);
+    console.log(`config: ${JSON.stringify(config, null, 2)}`);
+    return new Promise(async (resolve, reject) => {
+      let template = await this.getTemplate(config.template, {"deep": true});
+      if(template) {
+        let id = await this.generateId();
+        this.addToConfig(id, config)
+        .then((res) => this.addToService(id, config))
+        .then((res) => this.reloadConfig())
+        .then((res) => resolve(res))
+        .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
+      }
+      else {
+        reject(new Error(`Template '${config.template}' not found!!!`));
+      }
+    });
+  }
+
   addToService(id, config) {
     console.log(`DevicesService: addToService(${id}) >> `);
     return new Promise(async (resolve, reject) => {
@@ -128,22 +147,32 @@ class DevicesService extends Service {
     });
   }
 
-  add(config) {
-    console.log(`DevicesService: add() >> `);
-    console.log(`config: ${JSON.stringify(config, null, 2)}`);
+  remove(id) {
+    console.log(`DevicesService: removeDevice() >> `);
     return new Promise(async (resolve, reject) => {
-      let template = await this.getTemplate(config.template, {"deep": true});
-      if(template) {
-        let id = await this.generateId();
-        this.addToConfig(id, config)
-        .then((res) => this.addToService(id, config))
-        .then((res) => this.reloadConfig())
-        .then((res) => resolve(res))
-        .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
+      let device = this.adapter.getDevice(id);
+      if(device) {
+        await device.disableProperties();
+        //  Delete from adapter.
+        this.adapter.handleDeviceRemoved(device);
+        //  Delete from config.
+        await this.configManager.deleteConfig(`service-config.devices-service.list.${id}`);
       }
       else {
-        reject(new Error(`Template '${config.template}' not found!!!`));
+        console.warn(`Device "${id}" not found in list!!!`);
+        await this.configManager.deleteConfig(`service-config.devices-service.list.${id}`);
       }
+      resolve({});
+    });
+  }
+
+  update(id, config) {
+    console.log(`DevicesService: update(${(id) ? `${id}` : ``}) >> `);
+    return new Promise((resolve, reject) => {
+      this.remove(id)
+      .then(() => this.add(config))
+      .then(() => resolve({}))
+      .catch((err) => reject(err));
     });
   }
 
@@ -162,6 +191,19 @@ class DevicesService extends Service {
           json.push(deviceList[i].asThing());
         resolve(JSON.parse(JSON.stringify(json)));
       }
+    });
+  }
+
+  getConfigDevice(id) {
+    console.log(`DevicesService: getConfig(${(id) ? `${id}` : ``})`);
+    return new Promise((resolve, reject) => {
+      this.getSchema({"renew": true})
+      .then((conf) => {
+        console.log(`getSchema(): ${JSON.stringify(conf, null, 2)}`);
+        let list = conf.list;
+        resolve((id) ? (list.hasOwnProperty(id)) ? list[id] : {} : list);
+      })
+      .catch((err) => reject(err));
     });
   }
 
@@ -186,25 +228,6 @@ class DevicesService extends Service {
     return new Promise(async (resolve, reject) => {
       let translated = await this.configTranslator.translate(config);
       resolve(translated);
-    });
-  }
-
-  remove(id) {
-    console.log(`DevicesService: removeDevice() >> `);
-    return new Promise(async (resolve, reject) => {
-      let device = this.adapter.getDevice(id);
-      if(device) {
-        await device.disableProperties();
-        //  Delete from adapter.
-        this.adapter.handleDeviceRemoved(device);
-        //  Delete from config.
-        await this.configManager.deleteConfig(`service-config.devices-service.list.${id}`);
-      }
-      else {
-        console.warn(`Device "${id}" not found in list!!!`);
-        await this.configManager.deleteConfig(`service-config.devices-service.list.${id}`);
-      }
-      resolve({});
     });
   }
 
