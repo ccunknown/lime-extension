@@ -271,8 +271,11 @@ class DevicesService extends Service {
   getCompatibleEngine(templateName) {
     console.log(`DevicesService: getCompatibleEngine(${templateName}) >> `);
     return new Promise(async (resolve, reject) => {
-      let engines = this.enginesService.getSchema().list;
-      console.log(`DevicesService: getCompatibleEngine(): ${JSON.stringify(engines, null, 2)}`);
+      let schema = await this.enginesService.getSchema({"renew": true});
+      let engines = schema.list;
+      // console.log(`DevicesService: getCompatibleEngine(): getSchema(): ${JSON.stringify(schema, null, 2)}`);
+      // let engines = this.enginesService.getSchema().list;
+      // console.log(`DevicesService: getCompatibleEngine(): ${JSON.stringify(engines, null, 2)}`);
       let result = this.jsonToArray(engines, `id`).filter((elem) => elem.template == templateName);
       result = result.map((elem) => elem.id);
       resolve(result);

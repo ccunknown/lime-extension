@@ -98,12 +98,13 @@ export default class PageDevices {
             //  Build final.
             this.vue.ui.slider.final.device = JSON.parse(JSON.stringify(this.vue.deviceForm));
             this.vue.ui.slider.final.device.properties = JSON.parse(JSON.stringify(this.vue.ui.slider.final.properties));
-            if(this.vue.ui.slider[`edit-id`])
-              await this.updateConfigDevice(this.vue.ui.slider[`edit-id`], this.vue.ui.slider.final.device);
-            else
-              await this.api.restCall(`put`, `/api/service/devices`, this.vue.ui.slider.final.device);
-            await this.render();
-            resolve();
+
+            let id = this.vue.ui.slider[`edit-id`];
+            let config = this.vue.ui.slider.final.device;
+            ((id) ? this.editConfig(id, config) : this.addConfig(config))
+            .then(() => this.render())
+            .then(() => resolve())
+            .catch((err) => reject(err));
           });
         },
         "renderBase": () => {
@@ -448,10 +449,19 @@ export default class PageDevices {
     });
   }
 
-  updateConfigDevice(id, config) {
-    this.console.log(`updateConfigDevice(${(id) ? `${id}` : ``}) >> `);
+  addConfig(config) {
+    this.console.log(`addConfig() >> `);
     return new Promise((resolve, reject) => {
-      this.api.restCall(`put`, `/api/service/devices-service/config-device${(id) ? `/${id}` : ``}`, config)
+      this.api.restCall(`post`, `/api/service/devices-service/config-device`, config)
+      .then((res) => (res.error) ? reject(res.error) : resolve(res))
+      .catch((err) => reject(err));
+    });
+  }
+
+  editConfig(id, config) {
+    this.console.log(`editConfig(${id}) >> `);
+    return new Promise((resolve, reject) => {
+      this.api.restCall(`put`, `/api/service/devices-service/config-device/${id}`, config)
       .then((res) => (res.error) ? reject(res.error) : resolve(res))
       .catch((err) => reject(err));
     });
