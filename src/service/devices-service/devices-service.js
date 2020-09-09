@@ -89,6 +89,34 @@ class DevicesService extends Service {
     });
   }
 
+  startDevice(id) {
+    console.log(`DevicesService: startDevice(${id})`);
+    return new Promise((resolve, reject) => {
+      let device = this.adapter.getDevice(id);
+      if(!device)
+        reject(new Errors.ObjectNotFound(`${id}`));
+      else {
+        device.start()
+        .then(() => resolve())
+        .catch((err) => reject(err));
+      }
+    });
+  }
+
+  stopDevice(id) {
+    console.log(`DevicesService: stopDevice(${id})`);
+    return new Promise((resolve, reject) => {
+      let device = this.adapter.getDevice(id);
+      if(!device)
+        reject(new Errors.ObjectNotFound(`${id}`));
+      else {
+        device.stop()
+        .then(() => resolve())
+        .catch((err) => reject(err));
+      }
+    });
+  }
+
   add(config) {
     console.log(`DevicesService: add() >> `);
     console.log(`config: ${JSON.stringify(config, null, 2)}`);
@@ -195,7 +223,7 @@ class DevicesService extends Service {
   }
 
   getConfigDevice(id) {
-    console.log(`DevicesService: getConfig(${(id) ? `${id}` : ``})`);
+    console.log(`DevicesService: getConfigDevice(${(id) ? `${id}` : ``})`);
     return new Promise((resolve, reject) => {
       this.getSchema({"renew": true})
       .then((conf) => {
@@ -204,6 +232,34 @@ class DevicesService extends Service {
         resolve((id) ? (list.hasOwnProperty(id)) ? list[id] : {} : list);
       })
       .catch((err) => reject(err));
+    });
+  }
+
+  getServiceDevice(id) {
+    console.log(`DevicesService: getServiceDevice(${(id) ? `${id}`: ``})`);
+    return new Promise(async (resolve, reject) => {
+      if(id) {
+        let device = this.adapter.getDevice(id);
+        let schema = JSON.parse(JSON.stringify(device.exConf.config));
+        device.getState()
+        .then((state) => {
+          schema.state = state;
+          resolve(schema);
+        })
+        .catch((err) => reject(err));
+      }
+      else {
+        let devices = this.adapter.getDevices();
+        let schemas = {};
+        let promArr = [];
+        try {
+          for(let i in devices)
+            schemas[i] = await this.getServiceDevice(i);
+          resolve(schemas);
+        } catch(err) {
+          reject(err);
+        }
+      }
     });
   }
 

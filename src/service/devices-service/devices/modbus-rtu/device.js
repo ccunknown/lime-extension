@@ -101,6 +101,33 @@ class ModbusDevice extends Device {
     return this.exConf.script;
   }
 
+  start() {
+    console.log(`ModbusDevice: start() >> `);
+    return new Promise((resolve, reject) => {
+      this.enableProperties()
+      .then(() => {
+        resolve()
+      })
+      .catch((err) => {
+        this.error = err;
+        reject(err);
+      });
+    });
+  }
+
+  stop() {
+    console.log(`ModbusDevice: start() >> `);
+    return new Promise((resolve, reject) => {
+      this.disableProperties()
+      .then(() => resolve())
+      .catch((err) => {
+        this.state = `error`;
+        this.error = err;
+        reject(err);
+      });
+    });
+  }
+
   initProperty() {
     console.log(`ModbusDevice: initProperty() >> `);
     return new Promise(async (resolve, reject) => {
@@ -128,24 +155,58 @@ class ModbusDevice extends Device {
     });
   }
 
+  getState() {
+    console.log(`ModbusDevice: getState() >> `);
+    return new Promise((resolve, reject) => {
+      let props = this.getPropertyDescriptions();
+      let hasRunningProp = false;
+      let hasStoppedProp = false;
+      for(let i in props) {
+        let prop = this.findProperty(i);
+        console.log(`${i} period: ${prop.period && true}`);
+        if(prop.period && true)
+          hasRunningProp = true;
+        else
+          hasStoppedProp = true;
+      }
+      let state = (hasRunningProp && hasStoppedProp) ? `semi-running` :
+        (hasRunningProp) ? `running` :
+        (hasStoppedProp) ? `stopped` :
+        `no-property`;
+      resolve(state);
+    });
+  }
+
   enableProperties() {
     console.log(`ModbusDevice: enableProperties() >> `);
-    let props = this.getPropertyDescriptions();
-    console.log(`Properties : ${JSON.stringify(props, null, 2)}`);
-    for(let i in props) {
-      let prop = this.findProperty(i);
-      prop.start();
-    }
+    return new Promise((resolve, reject) => {
+      let promArr = [];
+      let props = this.getPropertyDescriptions();
+      console.log(`Properties : ${JSON.stringify(props, null, 2)}`);
+      for(let i in props) {
+        let prop = this.findProperty(i);
+        promArr.push(prop.start());
+      }
+      Promise.all(promArr)
+      .then(() => resolve())
+      .catch((err) => reject(err));
+    });
   }
 
   disableProperties() {
     console.log(`ModbusDevice: disableProperties() >> `);
-    let props = this.getPropertyDescriptions();
-    console.log(`Properties : ${JSON.stringify(props, null, 2)}`);
-    for(let i in props) {
-      let prop = this.findProperty(i);
-      prop.stop();
-    }
+    return new Promise((resolve, reject) => {
+      let promArr = [];
+      let props = this.getPropertyDescriptions();
+      console.log(`Properties : ${JSON.stringify(props, null, 2)}`);
+      for(let i in props) {
+        let prop = this.findProperty(i);
+        promArr.push(prop.stop());
+      }
+      Promise.all(promArr)
+      .then(() => resolve())
+      .catch((err) => reject(err));
+    });
   }
 }
 
