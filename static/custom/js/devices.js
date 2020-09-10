@@ -370,25 +370,6 @@ export default class PageDevices {
     });
   }
 
-  generateDeviceConfigSchema(params) {
-    this.console.log(`generateDeviceConfigSchema() >> `);
-    return new Promise(async (resolve, reject) => {
-      params = (params) ? params : {};
-      // let res = await this.api.restCall(`post`, `/api/service/devices-service/generateConfigSchema`, params);
-      let res = await this.api.restCall(`post`, `/api/service/devices-service/config/generate-schema`, params);
-      resolve(res);
-    });
-  }
-
-  generatePropertyId(params) {
-    this.console.log(`generatePropertyId() >> `);
-    return new Promise(async (resolve, reject) => {
-      // let res = await this.api.restCall(`post`, `/api/service/devices-service/generatePropertyId`, params);
-      let res = await this.api.restCall(`post`, `/api/service/devices-service/generate-property-id`, params);
-      resolve((res.id) ? res.id : null);
-    });
-  }
-
   jsonCopyBySchema(dst, src, schema) {
     // console.log(`dst: `, dst);
     src = JSON.parse(JSON.stringify(src));
@@ -476,6 +457,25 @@ export default class PageDevices {
     return new Promise((resolve, reject) => {
       this.api.getSchema()
       .then((schema) => resolve(schema.properties[`service-config`].properties[`devices-service`]));
+    });
+  }
+
+  generateDeviceConfigSchema(params) {
+    this.console.log(`generateDeviceConfigSchema() >> `);
+    return new Promise(async (resolve, reject) => {
+      params = (params) ? params : {};
+      // let res = await this.api.restCall(`post`, `/api/service/devices-service/generateConfigSchema`, params);
+      let res = await this.api.restCall(`post`, `/api/service/devices-service/config/generate-schema`, params);
+      resolve(res);
+    });
+  }
+
+  generatePropertyId(params) {
+    this.console.log(`generatePropertyId() >> `);
+    return new Promise(async (resolve, reject) => {
+      // let res = await this.api.restCall(`post`, `/api/service/devices-service/generatePropertyId`, params);
+      let res = await this.api.restCall(`post`, `/api/service/devices-service/config/generate-property-id`, params);
+      resolve((res.id) ? res.id : null);
     });
   }
 }
