@@ -253,46 +253,6 @@ export default class PageEngines {
     return result;
   };
 
-  // getConfig() {
-  //   this.console.log(`getConfig()`);
-  //   return new Promise((resolve, reject) => {
-  //     this.api.getConfig()
-  //     .then((config) => resolve(config[`service-config`][`engines-service`]));
-  //   });
-  // }
-
-  // getPortConfig() {
-  //   this.console.log(`getPortConfig()`);
-  //   return new Promise((resolve, reject) => {
-  //     this.api.getConfig()
-  //     .then((config) => resolve(config[`service-config`][`sysport-service`]));
-  //   });
-  // }
-
-  // getSchema() {
-  //   this.console.log(`getSchema()`);
-  //   return new Promise((resolve, reject) => {
-  //     this.api.getSchema()
-  //     .then((schema) => resolve(schema.properties[`service-config`].properties[`engines-service`]));
-  //   });
-  // }
-
-  // getEngine(name) {
-  //   this.console.log(`getEngine(${(name) ? name : ``})`);
-  //   return new Promise((resolve, reject) => {
-  //     let engines = this.api.restCall(`get`, `/api/service/engines${(name) ? `/${name}` : ``}`);
-  //     resolve(engines);
-  //   });
-  // }
-
-  // getEngineTemplate(name) {
-  //   this.console.log(`getEngineTemplate(${(name) ? name : ``})`);
-  //   return new Promise((resolve, reject) => {
-  //     let templates = this.api.restCall(`get`, `/api/service/engineTemplate${(name) ? `/${name}` : ``}`);
-  //     resolve(templates);
-  //   });
-  // }
-
   getConfigEngine(id) {
     this.console.log(`PageEngines: getConfigEngine() >> `);
     return new Promise((resolve, reject) => {
@@ -356,14 +316,9 @@ export default class PageEngines {
   generateConfigSchema(param) {
     this.console.log(`PageSysport: generateConfigSchema() >> `);
     return new Promise((resolve, reject) => {
-      // let toast = this.ui.toast.info(`Generate config schema.`);
       this.api.restCall(`post`, `/api/service/engines-service/generateConfigSchema`, (param) ? param : undefined)
-      .then((res) => {
-        // this.ui.toast.success(`Config schema generated.`);
-        resolve(res);
-      })
+      .then((res) => resolve(res))
       .catch((err) => reject(err));
-      // .finally(() => toast.remove());
     });
   }
 }

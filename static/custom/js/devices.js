@@ -85,9 +85,10 @@ export default class PageDevices {
         "remove": (id) => {
           this.console.log(`delete(${id})`);
           return new Promise(async (resolve, reject) => {
-            let res = await this.deleteDevice(id);
-            this.render();
-            resolve();
+            this.deleteConfigDevice(id)
+            .then(() => this.render())
+            .then(() => resolve())
+            .catch((err) => reject(err));
           });
         },
         "save": () => {
@@ -101,7 +102,25 @@ export default class PageDevices {
 
             let id = this.vue.ui.slider[`edit-id`];
             let config = this.vue.ui.slider.final.device;
-            ((id) ? this.editConfig(id, config) : this.addConfig(config))
+            ((id) ? this.editConfigDevice(id, config) : this.addConfigDevice(config))
+            .then(() => this.render())
+            .then(() => resolve())
+            .catch((err) => reject(err));
+          });
+        },
+        "start": (id) => {
+          this.console.log(`start(${id})`);
+          return new Promise((resolve, reject) => {
+            this.startServiceDevice(id)
+            .then(() => this.render())
+            .then(() => resolve())
+            .catch((err) => reject(err));
+          });
+        },
+        "stop": (id) => {
+          this.console.log(`stop(${id})`);
+          return new Promise((resolve, reject) => {
+            this.stopServiceDevice(id)
             .then(() => this.render())
             .then(() => resolve())
             .catch((err) => reject(err));
@@ -243,7 +262,8 @@ export default class PageDevices {
       this.vue.ui.base.ready = false;
       this.vue.ui.slider.hide = true;
 
-      let config = await this.getConfig();
+      // let config = await this.getConfigDevice();
+      let config = await this.getServiceDevice();
       this.vue.resource.config = config;
       
       this.vue.ui.base.ready = true;
@@ -272,7 +292,7 @@ export default class PageDevices {
       if(id) {
         this.vue.ui.slider.edit = false;
         Promise.all([
-          this.getConfig(id)
+          this.getConfigDevice(id)
         ])
         .then((promArr) => {
           let config = promArr[0];
@@ -286,7 +306,7 @@ export default class PageDevices {
           // this.vue.propertyForm = config.properties;
           return config;
         })
-        .then((config) => this.generateDeviceConfigSchema(config))
+        .then((config) => this.generateConfigSchema(config))
         .then((schema) => {
           this.vue.resource.deviceConfigSchema = schema;
           return ;
@@ -323,7 +343,7 @@ export default class PageDevices {
       let config = JSON.parse(JSON.stringify(this.vue.deviceForm));
       config.properties = JSON.parse(JSON.stringify(this.vue.propertyForm));
 
-      let schema = await this.generateDeviceConfigSchema(config);
+      let schema = await this.generateConfigSchema(config);
       let oldSchema = JSON.parse(JSON.stringify(this.vue.resource.deviceConfigSchema));
       this.vue.resource.deviceConfigSchema = JSON.parse(JSON.stringify(schema));
 
@@ -408,15 +428,8 @@ export default class PageDevices {
     return result;
   };
 
-  // getConfig() {
-  //   this.console.log(`getConfig()`);
-  //   return new Promise((resolve, reject) => {
-  //     this.api.getConfig()
-  //     .then((config) => resolve(config[`service-config`][`devices-service`]));
-  //   });
-  // }
-  getConfig(id) {
-    this.console.log(`getConfig(${(id) ? `${id}` : ``}) >> `);
+  getConfigDevice(id) {
+    this.console.log(`getConfigDevice(${(id) ? `${id}` : ``}) >> `);
     return new Promise((resolve, reject) => {
       this.api.restCall(`get`, `/api/service/devices-service/config-device${(id) ? `/${id}` : ``}`)
       .then((res) => (res.error) ? reject(res.error) : resolve(res))
@@ -424,31 +437,82 @@ export default class PageDevices {
     });
   }
 
-  addConfig(config) {
-    this.console.log(`addConfig() >> `);
+  getServiceDevice(id) {
+    this.console.log(`getServiceDevice(${(id) ? `${id}` : ``}) >> `);
     return new Promise((resolve, reject) => {
+      this.api.restCall(`get`, `/api/service/devices-service/service-device${(id) ? `/${id}` : ``}`)
+      .then((res) => (res.error) ? reject(res.error) : resolve(res))
+      .catch((err) => reject(err));
+    });
+  }
+
+  startServiceDevice(id) {
+    this.console.log(`startServiceDevice(${id})`);
+    return new Promise((resolve, reject) => {
+      let toast = this.ui.toast.info(`Starting device "${id}".`);
+      this.api.restCall(`get`, `/api/service/devices-service/service-device/${id}/start`)
+      .then((res) => {
+        this.ui.toast.success(`Device "${id}" is running.`, {"icon": `fa-save`});
+        resolve(res);
+      })
+      .catch((err) => reject(err))
+      .finally(() => toast.remove());
+    });
+  }
+
+  stopServiceDevice(id) {
+    this.console.log(`stopServiceDevice(${id})`);
+    return new Promise((resolve, reject) => {
+      let toast = this.ui.toast.info(`Stopping device "${id}".`);
+      this.api.restCall(`get`, `/api/service/devices-service/service-device/${id}/stop`)
+      .then((res) => {
+        this.ui.toast.success(`Device "${id}" stoped.`, {"icon": `fa-save`});
+        resolve(res);
+      })
+      .catch((err) => reject(err))
+      .finally(() => toast.remove());
+    });
+  }
+
+  addConfigDevice(config) {
+    this.console.log(`addConfigDevice() >> `);
+    return new Promise((resolve, reject) => {
+      let toast = this.ui.toast.info(`Adding new device.`);
       this.api.restCall(`post`, `/api/service/devices-service/config-device`, config)
-      .then((res) => (res.error) ? reject(res.error) : resolve(res))
-      .catch((err) => reject(err));
+      .then((res) => {
+        this.ui.toast.success(`Device saving complete.`, {"icon": `fa-save`});
+        resolve(res);
+      })
+      .catch((err) => reject(err))
+      .finally(() => toast.remove());
     });
   }
 
-  editConfig(id, config) {
-    this.console.log(`editConfig(${id}) >> `);
+  editConfigDevice(id, config) {
+    this.console.log(`editConfigDevice(${id}) >> `);
     return new Promise((resolve, reject) => {
+      let toast = this.ui.toast.info(`Edit device "${id}".`);
       this.api.restCall(`put`, `/api/service/devices-service/config-device/${id}`, config)
-      .then((res) => (res.error) ? reject(res.error) : resolve(res))
-      .catch((err) => reject(err));
+      .then((res) => {
+        this.ui.toast.success(`Device "${id}" edit complete.`, {"icon": `fa-save`});
+        resolve(res);
+      })
+      .catch((err) => reject(err))
+      .finally(() => toast.remove());
     });
   }
 
-  deleteDevice(id) {
-    this.console.log(`deleteDevice(${id}) >> `);
+  deleteConfigDevice(id) {
+    this.console.log(`deleteConfigDevice(${id}) >> `);
     return new Promise(async (resolve, reject) => {
-      // let res = await this.api.restCall(`delete`, `/api/service/devices-service/devices/${id}`);
+      let toast = this.ui.toast.info(`Delete device "${id}".`, {"icon": `fa-trash-alt`});
       this.api.restCall(`delete`, `/api/service/devices-service/config-device/${id}`)
-      .then((res) => (res.error) ? reject(res.error) : resolve(res))
-      .catch((err) => reject(err));
+      .then((res) => {
+        this.ui.toast.success(`Device "${id}" delete complete.`, {"icon": `fa-trash-alt`});
+        resolve(res);
+      })
+      .catch((err) => reject(err))
+      .finally(() => toast.remove());
     });
   }
 
@@ -460,8 +524,8 @@ export default class PageDevices {
     });
   }
 
-  generateDeviceConfigSchema(params) {
-    this.console.log(`generateDeviceConfigSchema() >> `);
+  generateConfigSchema(params) {
+    this.console.log(`generateConfigSchema() >> `);
     return new Promise(async (resolve, reject) => {
       params = (params) ? params : {};
       // let res = await this.api.restCall(`post`, `/api/service/devices-service/generateConfigSchema`, params);
