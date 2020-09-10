@@ -374,7 +374,8 @@ export default class PageDevices {
     this.console.log(`generateDeviceConfigSchema() >> `);
     return new Promise(async (resolve, reject) => {
       params = (params) ? params : {};
-      let res = await this.api.restCall(`post`, `/api/service/devices-service/generateConfigSchema`, params);
+      // let res = await this.api.restCall(`post`, `/api/service/devices-service/generateConfigSchema`, params);
+      let res = await this.api.restCall(`post`, `/api/service/devices-service/config/generate-schema`, params);
       resolve(res);
     });
   }
@@ -382,16 +383,9 @@ export default class PageDevices {
   generatePropertyId(params) {
     this.console.log(`generatePropertyId() >> `);
     return new Promise(async (resolve, reject) => {
-      let res = await this.api.restCall(`post`, `/api/service/devices-service/generatePropertyId`, params);
+      // let res = await this.api.restCall(`post`, `/api/service/devices-service/generatePropertyId`, params);
+      let res = await this.api.restCall(`post`, `/api/service/devices-service/generate-property-id`, params);
       resolve((res.id) ? res.id : null);
-    });
-  }
-
-  deleteDevice(id) {
-    this.console.log(`deleteDevice(${id}) >> `);
-    return new Promise(async (resolve, reject) => {
-      let res = await this.api.restCall(`delete`, `/api/service/devices-service/devices/${id}`);
-      resolve(res);
     });
   }
 
@@ -462,6 +456,16 @@ export default class PageDevices {
     this.console.log(`editConfig(${id}) >> `);
     return new Promise((resolve, reject) => {
       this.api.restCall(`put`, `/api/service/devices-service/config-device/${id}`, config)
+      .then((res) => (res.error) ? reject(res.error) : resolve(res))
+      .catch((err) => reject(err));
+    });
+  }
+
+  deleteDevice(id) {
+    this.console.log(`deleteDevice(${id}) >> `);
+    return new Promise(async (resolve, reject) => {
+      // let res = await this.api.restCall(`delete`, `/api/service/devices-service/devices/${id}`);
+      this.api.restCall(`delete`, `/api/service/devices-service/config-device/${id}`)
       .then((res) => (res.error) ? reject(res.error) : resolve(res))
       .catch((err) => reject(err));
     });

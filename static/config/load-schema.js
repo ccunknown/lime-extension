@@ -122,35 +122,35 @@
 
       "jquery": {
         "type": "script",
-        "path": "/js/jquery.min.js"
+        "path": "/resource/js/jquery.min.js"
       },
       "mustache": {
         "type": "script",
-        "path": "/js/mustache.js"
+        "path": "/resource/js/mustache.js"
       },
       "vue": {
         "type": "script",
-        "path": "/js/vue.js"
+        "path": "/resource/js/vue.js"
       },
       "vue-multiselect": {
         "type": "script",
-        "path": "/js/vue-multiselect.min.js"
+        "path": "/resource/js/vue-multiselect.min.js"
       },
       "vue-tags-input": {
         "type": "script",
-        "path": "/js/vue-tags-input.js"
+        "path": "/resource/js/vue-tags-input.js"
       },
       "vue-toasted": {
         "type": "script",
-        "path": "/js/vue-toasted.js"
+        "path": "/resource/js/vue-toasted.js"
       },
       "popper": {
         "type": "script",
-        "path": "/js/popper.min.js"
+        "path": "/resource/js/popper.min.js"
       },
       "bootstrap": {
         "type": "script",
-        "path": "/js/bootstrap.min.js"
+        "path": "/resource/js/bootstrap.min.js"
       },
 
       "vue-component-json-schema-template": {
