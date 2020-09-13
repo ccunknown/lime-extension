@@ -3,6 +3,10 @@ const ValidateConfigSchema = {
   "required": ["table", "address", "period"],
   "additionalProperties": true,
   "properties": {
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
     "table": {
       "type": "string",
       "title": "Register table",

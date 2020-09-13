@@ -165,9 +165,9 @@ class RoutesManager extends APIHandler{
           "POST": (req) => {
             return new Promise((resolve, reject) => {
               this.laborsManager.getService(`devices-service`).obj.generatePropertyId(req.body)
-              .then((propId) => {
-                console.log(`propId: ${propId}`);
-                resolve(this.makeJsonRespond(JSON.stringify({"id": `${propId}`})));
+              .then((res) => {
+                console.log(`propId: ${JSON.stringify(res, null, 2)}`);
+                resolve(this.makeJsonRespond(JSON.stringify(res)));
               })
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });

@@ -59,6 +59,15 @@ class PropertyConfigTranslator {
             "title": `${addrList[i].name} [Addr:${Number(i).toString(16)}]`
           };
         }
+
+        //  Initial 'title' property.
+        console.log(`address: ${params.properties.address}`);
+        if(params.properties.hasOwnProperty(`address`)) {
+          console.log(`address: ${params.properties.address}`);
+          console.log(`readmap: ${JSON.stringify(readMap[params.properties.table], null, 2)}`);
+          if(readMap[params.properties.table][params.properties.address])
+            config.properties.title.const = readMap[params.properties.table][params.properties.address].name;
+        }
       }
 
       resolve(config);
@@ -67,12 +76,23 @@ class PropertyConfigTranslator {
 
   generateId(params) {
     console.log(`PropertyConfigTranslator: generateId() >> `);
-    return new Promise(async (resolve, reject) => {
-      // let script = await this.scriptsService.get(params.script, {"object": true, "deep": true});
+    return new Promise((resolve, reject) => {
+      let id = `${params.properties.table}-addr-${Number(params.properties.address).toString(16)}`;
+      this.scriptsService.get(params.script, {"object": true, "deep": true})
+      .then((script) => script.children.find((elem) => elem.name == `readMap.js`).object.map)
+      .then((readMap) => readMap[params.properties.table][params.properties.address])
+      .then((prop) => {
+        let result = {
+          "id": id,
+          "title": prop.name
+        }
+        console.log(`prop id gen result: ${JSON.stringify(result, null, 2)}`);
+        resolve(result);
+      })
       // let readMap = script.children.find((elem) => elem.name == `readMap.js`).object.map;
       // let elem = readMap[params.properties.table][params.properties.address];
-      let id = `${params.properties.table}-addr-${Number(params.properties.address).toString(16)}`;
-      resolve(id);
+      
+      // resolve(id);
     });
   }
 

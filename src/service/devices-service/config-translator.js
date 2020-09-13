@@ -50,12 +50,12 @@ class ServiceConfigTranslator {
 
   generatePropertyId(params) {
     console.log(`ServiceConfigTranslator: generatePropertyId() >> `);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let DeviceConfigTranslator = require(`./devices/${params.template}/config-translator.js`);
       let devConfTrans = new DeviceConfigTranslator(this.devicesService);
-      let propId = await devConfTrans.generatePropertyId(params);
-      // console.log(`Property Id: ${propId}`);
-      resolve(propId);
+      devConfTrans.generatePropertyId(params)
+      .then((result) => resolve(result))
+      .catch((err) => reject(err));
     });
   }
 

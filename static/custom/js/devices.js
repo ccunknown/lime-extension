@@ -85,10 +85,15 @@ export default class PageDevices {
         "remove": (id) => {
           this.console.log(`delete(${id})`);
           return new Promise(async (resolve, reject) => {
-            this.deleteConfigDevice(id)
-            .then(() => this.render())
-            .then(() => resolve())
-            .catch((err) => reject(err));
+            let conf = confirm(`Are you sure to delete device "${id}"!`);
+            if(conf) {
+              this.deleteConfigDevice(id)
+              .then(() => this.render())
+              .then(() => resolve())
+              .catch((err) => reject(err));
+            }
+            else
+              resolve();
           });
         },
         "save": () => {
@@ -210,9 +215,11 @@ export default class PageDevices {
           else {
             return new Promise((resolve, reject) => {
               this.generatePropertyId(params)
-              .then((id) => {
+              .then((res) => {
+                let id = res.id;
                 let finalProp = JSON.parse(JSON.stringify(this.vue.ui.slider.final.properties));
                 finalProp[id] = params.properties;
+                finalProp[id].title = res.title;
                 this.vue.ui.slider.final.properties = finalProp;
                 return id;
               })
@@ -539,7 +546,7 @@ export default class PageDevices {
     return new Promise(async (resolve, reject) => {
       // let res = await this.api.restCall(`post`, `/api/service/devices-service/generatePropertyId`, params);
       let res = await this.api.restCall(`post`, `/api/service/devices-service/config/generate-property-id`, params);
-      resolve((res.id) ? res.id : null);
+      resolve(res);
     });
   }
 }

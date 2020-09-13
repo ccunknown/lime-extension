@@ -273,9 +273,10 @@ class DevicesService extends Service {
 
   generatePropertyId(params) {
     console.log(`DevicesService: generatePropertyId() >> `);
-    return new Promise(async (resolve, reject) => {
-      let id = await this.configTranslator.generatePropertyId(params);
-      resolve(id);
+    return new Promise((resolve, reject) => {
+      this.configTranslator.generatePropertyId(params)
+      .then((result) => resolve(result))
+      .catch((err) => reject(err));
     });
   }
 
