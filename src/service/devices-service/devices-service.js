@@ -144,9 +144,12 @@ class DevicesService extends Service {
       //  Check duplicate.
       let device = this.adapter.getDevice(id);
       if(device) {
-        console.warn(`Device id "${id}" already exist. Remove old and add new!!!`);
-        await this.remove(id);
+        console.warn(`Device id "${id}" already in service. Remove old and add new!!!`);
+        await this.removeFromService(id);
       }
+
+      if(!config)
+        config = await this.getConfigDevice(id);
 
       //  Initial and Add device to adapter.
       let template = await this.getTemplate(config.template, {"deep": true});
@@ -178,19 +181,36 @@ class DevicesService extends Service {
   remove(id) {
     console.log(`DevicesService: removeDevice() >> `);
     return new Promise(async (resolve, reject) => {
-      let device = this.adapter.getDevice(id);
+      this.removeFromConfig(id)
+      .then(() => this.removeFromService(id))
+      .then(() => resolve({}))
+      .catch((err) => reject(err));
+    });
+  }
+
+  removeFromConfig(id) {
+    console.log(`DevicesService: removeFromConfig(${id}) >> `);
+    return new Promise((resolve, reject) => {
+      this.configManager.deleteConfig(`service-config.devices-service.list.${id}`)
+      .then(() => resolve({}))
+      .catch((err) => reject(err));
+    });
+  }
+
+  removeFromService(id) {
+    console.log(`DevicesService: removeFromConfig(${id}) >> `);
+    return new Promise((resolve, reject) => {
+      let device =this.adapter.getDevice(id);
       if(device) {
-        await device.disableProperties();
-        //  Delete from adapter.
-        this.adapter.handleDeviceRemoved(device);
-        //  Delete from config.
-        await this.configManager.deleteConfig(`service-config.devices-service.list.${id}`);
+        device.disableProperties()
+        .then(() => this.adapter.handleDeviceRemoved(device))
+        .then(() => resolve({}))
+        .catch((err) => reject(err));
       }
       else {
-        console.warn(`Device "${id}" not found in list!!!`);
-        await this.configManager.deleteConfig(`service-config.devices-service.list.${id}`);
+        console.warn(`Device "${id}" not in service!!!`);
+        resolve({});
       }
-      resolve({});
     });
   }
 
@@ -227,7 +247,7 @@ class DevicesService extends Service {
     return new Promise((resolve, reject) => {
       this.getSchema({"renew": true})
       .then((conf) => {
-        console.log(`getSchema(): ${JSON.stringify(conf, null, 2)}`);
+        // console.log(`getSchema(): ${JSON.stringify(conf, null, 2)}`);
         let list = conf.list;
         resolve((id) ? (list.hasOwnProperty(id)) ? list[id] : {} : list);
       })
@@ -236,7 +256,35 @@ class DevicesService extends Service {
   }
 
   getServiceDevice(id) {
-    console.log(`DevicesService: getServiceDevice(${(id) ? `${id}`: ``})`);
+    console.log(`DevicesService: getServiceDevice(${(id) ? `${id}` : ``})`);
+    return new Promise((resolve, reject) => {
+      let config = null;
+      let service = null;
+      this.getConfigDevice(id)
+      .then((conf) => {
+        config = conf;
+        return this.getDeviceConfigWithState(id);
+      })
+      .then((serv) => {
+        service = serv;
+        return ;
+      })
+      .then(() => {
+        let result = JSON.parse(JSON.stringify(config));
+        for(let i in result)
+          if(service.hasOwnProperty(i))
+            result[i].state = service[i].state;
+          else
+            result[i].state = `not in service`;
+        return result;
+      })
+      .then((res) => resolve(res))
+      .catch((err) => reject(err));
+    });
+  }
+
+  getDeviceConfigWithState(id) {
+    console.log(`DevicesService: getDeviceConfigWithState(${(id) ? `${id}`: ``})`);
     return new Promise(async (resolve, reject) => {
       if(id) {
         let device = this.adapter.getDevice(id);
@@ -254,7 +302,7 @@ class DevicesService extends Service {
         let promArr = [];
         try {
           for(let i in devices)
-            schemas[i] = await this.getServiceDevice(i);
+            schemas[i] = await this.getDeviceConfigWithState(i);
           resolve(schemas);
         } catch(err) {
           reject(err);

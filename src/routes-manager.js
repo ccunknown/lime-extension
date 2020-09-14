@@ -192,6 +192,20 @@ class RoutesManager extends APIHandler{
         }
       },
 
+      // /***  Resource : /service/devices-service/device  ***/
+      // {
+      //   "resource": /\/service\/devices-service\/device/,
+      //   "method": {
+      //     "GET": (req) => {
+      //       return new Promise((resolve, reject) => {
+      //         this.laborsManager.getService(`devices-service`).obj.getDevice()
+      //         .then((devices) => resolve(this.makeJsonRespond(JSON.stringify(devices))))
+      //         .catch((err) => resolve(this.catchErrorRespond(err)));
+      //       });
+      //     }
+      //   }
+      // },
+
       /***  Resource : /service/devices-service/service-device  ***/
       {
         "resource": /\/service\/devices-service\/service-device/,
@@ -238,6 +252,16 @@ class RoutesManager extends APIHandler{
               else if(cmd == `stop`) {
                 this.laborsManager.getService(`devices-service`).obj.stopDevice(id)
                 .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+              }
+              else if(cmd == `add-to-service`) {
+                this.laborsManager.getService(`devices-service`).obj.addToService(id)
+                .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+              }
+              else if(cmd == `remove-from-service`) {
+                this.laborsManager.getService(`devices-service`).obj.removeFromService(id)
+                .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
               else

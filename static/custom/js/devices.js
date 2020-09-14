@@ -131,6 +131,24 @@ export default class PageDevices {
             .catch((err) => reject(err));
           });
         },
+        "addToService": (id) => {
+          this.console.log(`addToService(${id})`);
+          return new Promise((resolve, reject) => {
+            this.addToService(id)
+            .then(() => this.render())
+            .then(() => resolve())
+            .catch((err) => reject(err));
+          });
+        },
+        "removeFromService": (id) => {
+          this.console.log(`removeFromService(${id})`);
+          return new Promise((resolve, reject) => {
+            this.removeFromService(id)
+            .then(() => this.render())
+            .then(() => resolve())
+            .catch((err) => reject(err));
+          });
+        },
         "renderBase": () => {
           this.render();
         },
@@ -454,12 +472,12 @@ export default class PageDevices {
   }
 
   startServiceDevice(id) {
-    this.console.log(`startServiceDevice(${id})`);
+    this.console.log(`startServiceDevice(${id}) >> `);
     return new Promise((resolve, reject) => {
       let toast = this.ui.toast.info(`Starting device "${id}".`);
       this.api.restCall(`get`, `/api/service/devices-service/service-device/${id}/start`)
       .then((res) => {
-        this.ui.toast.success(`Device "${id}" is running.`, {"icon": `fa-save`});
+        this.ui.toast.success(`Device "${id}" is running.`, {"icon": `fa-play`});
         resolve(res);
       })
       .catch((err) => reject(err))
@@ -468,12 +486,40 @@ export default class PageDevices {
   }
 
   stopServiceDevice(id) {
-    this.console.log(`stopServiceDevice(${id})`);
+    this.console.log(`stopServiceDevice(${id}) >> `);
     return new Promise((resolve, reject) => {
       let toast = this.ui.toast.info(`Stopping device "${id}".`);
       this.api.restCall(`get`, `/api/service/devices-service/service-device/${id}/stop`)
       .then((res) => {
-        this.ui.toast.success(`Device "${id}" stoped.`, {"icon": `fa-save`});
+        this.ui.toast.success(`Device "${id}" stoped.`, {"icon": `fa-stop`});
+        resolve(res);
+      })
+      .catch((err) => reject(err))
+      .finally(() => toast.remove());
+    });
+  }
+
+  addToService(id) {
+    this.console.log(`addToService(${id}) >> `);
+    return new Promise((resolve, reject) => {
+      let toast = this.ui.toast.info(`Add device "${id}" to service.`);
+      this.api.restCall(`get`, `/api/service/devices-service/service-device/${id}/add-to-service`)
+      .then((res) => {
+        this.ui.toast.success(`Device "${id}" serviced.`, {"icon": `fa-history`});
+        resolve(res);
+      })
+      .catch((err) => reject(err))
+      .finally(() => toast.remove());
+    });
+  }
+
+  removeFromService(id) {
+    this.console.log(`removeFromService(${id}) >> `);
+    return new Promise((resolve, reject) => {
+      let toast = this.ui.toast.info(`Add device "${id}" to service.`);
+      this.api.restCall(`get`, `/api/service/devices-service/service-device/${id}/remove-from-service`)
+      .then((res) => {
+        this.ui.toast.success(`Device "${id}" serviced.`, {"icon": `fa-caret-down`});
         resolve(res);
       })
       .catch((err) => reject(err))

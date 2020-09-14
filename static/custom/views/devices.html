@@ -151,12 +151,12 @@
           <!-- Items -->
           <div 
           class="card miso-grid-item" 
-          v-for="(item, index) in resource.config">
+          v-for="(item, id) in resource.config">
             <!-- Item Header -->
             <div class="card-header d-flex justify-content-between bg-dark text-light">
               <!-- Icon & Title -->
               <div class="text-truncate">
-                {{item.name}} [{{index}}]
+                {{item.name}} [{{id}}]
               </div>
               <!-- Header Button -->
               <div class="miso-card-header-btn-box">
@@ -165,25 +165,37 @@
                     <i class="fas fa-bars fa-lg"></i>
                   </button>
                   <div class="dropdown-menu bg-dark text-light">
-                    <a v-if="item.state != 'running'" @click="fn.start(index)" class="dropdown-item d-flex text-light" href="#">
+                    <a v-if="['stopped', 'semi-running'].includes(item.state)" @click="fn.start(id)" class="dropdown-item d-flex text-light" href="#">
                       <div class="miso-icon-box-16">
                         <i class="fas fa-play fa-lg"></i>
                       </div>
                       <span>Start</span>
                     </a>
-                    <a v-if="item.state == 'running'" @click="fn.stop(index)" class="dropdown-item d-flex text-light" href="#">
+                    <a v-if="['running'].includes(item.state)" @click="fn.stop(id)" class="dropdown-item d-flex text-light" href="#">
                       <div class="miso-icon-box-16">
                         <i class="fas fa-stop fa-lg"></i>
                       </div>
                       <span>Stop</span>
                     </a>
-                    <a @click="fn.edit(index)" class="dropdown-item d-flex text-light" href="#">
+                    <a v-if="['not in service'].includes(item.state)" @click="fn.addToService(id)" class="dropdown-item d-flex text-light" href="#">
+                      <div class="miso-icon-box-16">
+                        <i class="fas fa-history fa-lg"></i>
+                      </div>
+                      <span>Add to Service</span>
+                    </a>
+                    <a v-if="!['not in service'].includes(item.state)" @click="fn.removeFromService(id)" class="dropdown-item d-flex text-light" href="#">
+                      <div class="miso-icon-box-16">
+                        <i class="fas fa-caret-down fa-lg"></i>
+                      </div>
+                      <span>Remove from Service</span>
+                    </a>
+                    <a @click="fn.edit(id)" class="dropdown-item d-flex text-light" href="#">
                       <div class="miso-icon-box-16">
                         <i class="fas fa-edit fa-lg"></i>
                       </div>
                       <span>Edit</span>
                     </a>
-                    <a @click="fn.remove(index)" class="dropdown-item d-flex text-light" href="#">
+                    <a @click="fn.remove(id)" class="dropdown-item d-flex text-light" href="#">
                       <div class="miso-icon-box-16">
                         <i class="fas fa-trash fa-lg"></i>
                       </div>
@@ -192,20 +204,6 @@
                   </div>
                 </div>
               </div>
-              <!-- <div class="miso-card-header-btn-box">
-                <button v-if="item.state != 'running'" class="btn btn-success" @click="fn.start(index)">
-                  <i class="fas fa-play fa-lg"></i>
-                </button>
-                <button v-if="item.state == 'running'" class="btn btn-danger" @click="fn.stop(index)">
-                  <i class="fas fa-stop fa-lg"></i>
-                </button>
-                <button class="btn btn-info" @click="fn.edit(index)">
-                  <i class="fas fa-edit fa-lg"></i>
-                </button>
-                <button class="btn btn-danger" @click="fn.remove(index)">
-                  <i class="fas fa-trash fa-lg"></i>
-                </button>
-              </div> -->
             </div>
             <!-- Item Body -->
             <div class="card-body bg-secondary d-flex flex-column justify-content-between">
