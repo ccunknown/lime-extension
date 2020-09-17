@@ -14,7 +14,7 @@ class PropertyConfigTranslator {
     this.validator = new Validator();
 
     let rootDir = this.devicesService.getRootDirectory();
-    console.log(`Root Directory: ${rootDir}`);
+    // console.log(`>> Root Directory: ${rootDir}`);
     this.Errors = require(`${rootDir}/constants/errors.js`);
   }
 
@@ -63,8 +63,8 @@ class PropertyConfigTranslator {
         //  Initial 'title' property.
         console.log(`address: ${params.properties.address}`);
         if(params.properties.hasOwnProperty(`address`)) {
-          console.log(`address: ${params.properties.address}`);
-          console.log(`readmap: ${JSON.stringify(readMap[params.properties.table], null, 2)}`);
+          console.log(`>> address: ${params.properties.address}`);
+          // console.log(`readmap: ${JSON.stringify(readMap[params.properties.table], null, 2)}`);
           if(readMap[params.properties.table][params.properties.address])
             config.properties.title.const = readMap[params.properties.table][params.properties.address].name;
         }
@@ -86,7 +86,7 @@ class PropertyConfigTranslator {
           "id": id,
           "title": prop.name
         }
-        console.log(`prop id gen result: ${JSON.stringify(result, null, 2)}`);
+        console.log(`>> prop id gen result: ${JSON.stringify(result, null, 2)}`);
         resolve(result);
       })
       // let readMap = script.children.find((elem) => elem.name == `readMap.js`).object.map;
@@ -104,7 +104,7 @@ class PropertyConfigTranslator {
         reject(new this.Errors.InvalidConfigSchema(validateInfo.errors));
 
       let modbusRegister = fullMap.map[config.table][`${config.address}`];
-      console.log(`FullMap: ${JSON.stringify(fullMap.map[config.table], null, 2)}`);
+      // console.log(`>> FullMap: ${JSON.stringify(fullMap.map[config.table], null, 2)}`);
       let schema = {
         "title": modbusRegister.name,
         "type": modbusRegister.type,

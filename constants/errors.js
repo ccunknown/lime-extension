@@ -137,6 +137,16 @@ const errDef = [
     }
   },
   {
+    "name": "IncorrectParameter",
+    "extends": Error,
+    "super": (arg) => `Incorrect parameter, found '${arg[0]}'.`,
+    "httpResponse": {
+      "status": 400,
+      "contentType": "application/json",
+      "contentIndex": "message"
+    }
+  },
+  {
     "name": "ObjectPathNameMismatch",
     "extends": Error,
     "super": (arg) => `Object url path mismatch to payload (found '${arg}').`,

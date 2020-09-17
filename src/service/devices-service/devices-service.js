@@ -48,7 +48,8 @@ class DevicesService extends Service {
 
   initAdapter() {
     console.log(`DevicesService: initAdapter() >> `);
-    this.adapter = new vAdapter(this.addonManager, this.manifest.name, this.manifest.id);
+    this.adapter = new vAdapter(this.addonManager, this.manifest.id, this.manifest.name, this);
+    this.adapter.extEventEmitter.removeAllListeners(`remove`);
     this.adapter.extEventEmitter.on(`remove`, (device) => this.onAdapterDeviceRemove(device));
   }
 
@@ -85,7 +86,14 @@ class DevicesService extends Service {
   stop() {
     console.log(`DevicesService: stop() >> `);
     return new Promise((resolve, reject) => {
-      resolve();
+      this.getServiceDevice()
+      .then(async (services) => {
+        for(let i in services)
+          await this.stopDevice(i);
+        return ;
+      })
+      .then(() => resolve({}))
+      .catch((err) => reject(err));
     });
   }
 
@@ -119,7 +127,7 @@ class DevicesService extends Service {
 
   add(config) {
     console.log(`DevicesService: add() >> `);
-    console.log(`config: ${JSON.stringify(config, null, 2)}`);
+    // console.log(`config: ${JSON.stringify(config, null, 2)}`);
     return new Promise(async (resolve, reject) => {
       let template = await this.getTemplate(config.template, {"deep": true});
       if(template) {
@@ -139,12 +147,12 @@ class DevicesService extends Service {
   addToService(id, config) {
     console.log(`DevicesService: addToService(${id}) >> `);
     return new Promise(async (resolve, reject) => {
-      console.log(`add: ${JSON.stringify(config, null, 2)}`);
+      // console.log(`add: ${JSON.stringify(config, null, 2)}`);
 
       //  Check duplicate.
       let device = this.adapter.getDevice(id);
       if(device) {
-        console.warn(`Device id "${id}" already in service. Remove old and add new!!!`);
+        console.warn(`>> Device id "${id}" already in service. Remove old and add new!!!`);
         await this.removeFromService(id);
       }
 
@@ -156,7 +164,7 @@ class DevicesService extends Service {
       if(template) {
         // console.log(`template: ${JSON.stringify(template, null, 2)}`);
         let path = Path.join(__dirname, `${template.path}`, `device.js`);
-        console.log(`path: ${path}`);
+        console.log(`>> path: ${path}`);
         let Obj = require(path);
         device = new Obj(this, this.adapter, id, config);
         await device.init();
@@ -198,7 +206,7 @@ class DevicesService extends Service {
   }
 
   removeFromService(id) {
-    console.log(`DevicesService: removeFromConfig(${id}) >> `);
+    console.log(`DevicesService: removeFromService(${id}) >> `);
     return new Promise((resolve, reject) => {
       let device =this.adapter.getDevice(id);
       if(device) {
@@ -208,7 +216,7 @@ class DevicesService extends Service {
         .catch((err) => reject(err));
       }
       else {
-        console.warn(`Device "${id}" not in service!!!`);
+        console.warn(`>> Device "${id}" not in service!!!`);
         resolve({});
       }
     });
@@ -242,12 +250,27 @@ class DevicesService extends Service {
     });
   }
 
+  getByConfigAttribute(attr, value) {
+    console.log(`DevicesService: getByConfigAttribute(${attr}, ${value})`);
+    return new Promise((resolve, reject) => {
+      let devices = this.adapter.getDevices();
+
+      let result = {};
+      for(let i in devices) {
+        console.log(`>> exConf: ${JSON.stringify(devices[i].exConf.config, null, 2)}`);
+        if(devices[i].exConf.config.hasOwnProperty(attr) && devices[i].exConf.config[attr] == value)
+          result[i] = devices[i];
+      }
+      resolve(result);
+    });
+  }
+
   getConfigDevice(id) {
     console.log(`DevicesService: getConfigDevice(${(id) ? `${id}` : ``})`);
     return new Promise((resolve, reject) => {
       this.getSchema({"renew": true})
       .then((conf) => {
-        // console.log(`getSchema(): ${JSON.stringify(conf, null, 2)}`);
+        // console.log(`>> getSchema(): ${JSON.stringify(conf, null, 2)}`);
         let list = conf.list;
         resolve((id) ? (list.hasOwnProperty(id)) ? list[id] : {} : list);
       })
@@ -308,6 +331,22 @@ class DevicesService extends Service {
           reject(err);
         }
       }
+    });
+  }
+
+  getConfigDeviceByAttribute(attr, val) {
+    console.log(`DevicesService: getConfigDeviceByAttribute(${attr}, ${val}) >> `);
+    return new Promise((resolve, reject) => {
+      this.getConfigDevice()
+      .then((config) => {
+        let result = {};
+        for(let i in config)
+          if(config[i].hasOwnProperty(attr) && config[i][attr] == val)
+            result[i] = JSON.parse(JSON.stringify(config[i]));
+        return result;
+      })
+      .then((res) => resolve(res))
+      .catch((err) => reject(err));
     });
   }
 
@@ -391,8 +430,8 @@ class DevicesService extends Service {
     console.log(`DevicesService: generateId() >> `);
     return new Promise(async (resolve, reject) => {
       let deviceList = (await this.getSchema({"renew": true})).list;
-      console.log(deviceList);
-      console.log(`deviceList: ${JSON.stringify(deviceList, null, 2)}`);
+      // console.log(deviceList);
+      // console.log(`deviceList: ${JSON.stringify(deviceList, null, 2)}`);
       let id;
       let maxIndex = 10000;
       for(let i = 1;i < maxIndex;i++) {
@@ -406,10 +445,11 @@ class DevicesService extends Service {
 }
 
 class vAdapter extends Adapter {
-  constructor(addonManager, packageName) {
-    super(addonManager, 'LimeAdapter', packageName);
+  constructor(addonManager, packageId, packageName, devicesService) {
+    super(addonManager, packageId, packageName);
     addonManager.addAdapter(this);
     const events = require(`events`);
+    this.devicesService = devicesService;
     this.extEventEmitter = new events.EventEmitter();
   }
 
@@ -439,15 +479,25 @@ class vAdapter extends Adapter {
     this.extEventEmitter.emit(`remove`, device.id);
 
     this.removeDevice(device.id)
-    .then(() => console.log('ExampleAdapter: device:', device.id, 'was unpaired.'))
+    .then(() => console.log('>> ExampleAdapter: device:', device.id, 'was unpaired.'))
     .catch((err) => {
-      console.error('ExampleAdapter: unpairing', device.id, 'failed');
+      console.error('>> ExampleAdapter: unpairing', device.id, 'failed');
       console.error(err);
     });
   }
 
   cancelRemoveThing(device) {
-    console.log('ExampleAdapter:', this.name, 'id', this.id, 'cancelRemoveThing(', device.id, ')');
+    console.log('>> ExampleAdapter:', this.name, 'id', this.id, 'cancelRemoveThing(', device.id, ')');
+  }
+
+  unload() {
+    console.log(`vAdapter: unload() >> `);
+    return new Promise((resolve, reject) => {
+      this.devicesService.stop()
+      .then(() => console.log(`>> devices-service stopped.`))
+      .then(() => resolve())
+      .catch((err) => reject(err));
+    });
   }
 }
 

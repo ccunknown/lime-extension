@@ -37,7 +37,7 @@ class ServiceConfigTranslator {
         let DeviceConfigTranslator = require(`./devices/${params.template}/config-translator.js`);
         let devConfTrans = new DeviceConfigTranslator(this.devicesService);
         let devConf = await devConfTrans.generateConfigSchema(params);
-        console.log(`devConf: ${JSON.stringify(devConf, null, 2)}`);
+        console.log(`>> devConf: ${JSON.stringify(devConf, null, 2)}`);
         for(let i in devConf.properties) {
           config.properties[i] = devConf.properties[i];
         }

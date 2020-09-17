@@ -124,15 +124,12 @@ class RoutesManager extends APIHandler{
           "GET": (req) => {
             return new Promise((resolve, reject) => {
               this.laborsManager.getService().map((service) => {
-              //this.laborsManager.getService()
-              //.then((serviceList) => serviceList.map((service) => {
                 return {
                   id: service.id,
                   enable: service.enable,
                   status: service.status,
                   description: (service.description) ? service.description : ``
                 };
-              //}))
               })
               .then((servList) => resolve(this.makeJsonRespond(JSON.stringify(servList))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -191,20 +188,6 @@ class RoutesManager extends APIHandler{
           }
         }
       },
-
-      // /***  Resource : /service/devices-service/device  ***/
-      // {
-      //   "resource": /\/service\/devices-service\/device/,
-      //   "method": {
-      //     "GET": (req) => {
-      //       return new Promise((resolve, reject) => {
-      //         this.laborsManager.getService(`devices-service`).obj.getDevice()
-      //         .then((devices) => resolve(this.makeJsonRespond(JSON.stringify(devices))))
-      //         .catch((err) => resolve(this.catchErrorRespond(err)));
-      //       });
-      //     }
-      //   }
-      // },
 
       /***  Resource : /service/devices-service/service-device  ***/
       {
@@ -326,6 +309,8 @@ class RoutesManager extends APIHandler{
         }
       },
 
+
+
       /***  Resource : /service/scripts  ***/
       {
         "resource": /\/service\/scripts/,
@@ -385,72 +370,11 @@ class RoutesManager extends APIHandler{
         }
       },
 
-      // /***  Resource : /service/engines  ***/
-      // {
-      //   "resource": /\/service\/engines/,
-      //   "method": {
-      //     "GET": (req) => {
-      //       return new Promise((resolve, reject) => {
-      //         Promise.resolve(this.laborsManager.getService(`engines-service`).obj.get(null, {"state": true}))
-      //         .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
-      //         .catch((err) => resolve(this.catchErrorRespond(err)));
-      //       });
-      //     }
-      //   }
-      // },
-
-      // /***  Resource : /service/engines/{name}  ***/
-      // {
-      //   "resource": /\/service\/engines\/[^/]+/,
-      //   "method": {
-      //     "GET": (req) => {
-      //       return new Promise((resolve, reject) => {
-      //         let name = req.path.split(`/`).pop();
-      //         Promise.resolve(this.laborsManager.getService(`engines-service`).obj.get(name, {"state": true}))
-      //         .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
-      //         .catch((err) => resolve(this.catchErrorRespond(err)));
-      //       });
-      //     }
-      //   }
-      // },
-
-      // /***  Resource : /service/engineTemplate  ***/
-      // {
-      //   "resource": /\/service\/engineTemplate/,
-      //   "method": {
-      //     "GET": (req) => {
-      //       return new Promise((resolve, reject) => {
-      //         this.laborsManager.getService(`engines-service`).obj.getTemplate(null, {"deep": true})
-      //         .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
-      //         .catch((err) => resolve(this.catchErrorRespond(err)));
-      //       });
-      //     }
-      //   }
-      // },
-
-      // /***  Resource : /service/engineTemplate/{name}  ***/
-      // {
-      //   "resource": /\/service\/engineTemplate\/[^/]+/,
-      //   "method": {
-      //     "GET": (req) => {
-      //       return new Promise((resolve, reject) => {
-      //         let name = req.path.split(`/`).pop();
-      //         this.laborsManager.getService(`engines-service`).obj.getTemplate(name, {"deep": true, "base64": true})
-      //         .then((conf) => {
-      //           console.log(`config: ${JSON.stringify(conf, null ,2)}`);
-      //           resolve(this.makeJsonRespond(JSON.stringify(conf)))
-      //         })
-      //         .catch((err) => resolve(this.catchErrorRespond(err)));
-      //       });
-      //     }
-      //   }
-      // },
 
 
-
-      /***  Resource : /service/engines-service/generateConfigSchema  ***/
+      /***  Resource : /service/engines-service/generate-schema  ***/
       {
-        "resource": /\/service\/engines-service\/generateConfigSchema/,
+        "resource": /\/service\/engines-service\/generate-schema/,
         "method": {
           "POST": (req) => {
             return new Promise((resolve, reject) => {
@@ -464,15 +388,66 @@ class RoutesManager extends APIHandler{
         }
       },
 
-      /***  Resource : /service/engines-service/system-engine  ***/
+      /***  Resource : /service/engines-service/service-engine  ***/
       {
-        "resource": /\/service\/engines-service\/system-engine/,
+        "resource": /\/service\/engines-service\/service-engine/,
         "method": {
           "GET": (req) => {
             return new Promise((resolve, reject) => {
-              this.laborsManager.getService(`engines-service`).obj.getSystemEngine()
+              this.laborsManager.getService(`engines-service`).obj.getServiceEngine()
               .then((engines) => resolve(this.makeJsonRespond(JSON.stringify(engines))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/engines-service/system-engine/{id}  ***/
+      {
+        "resource": /\/service\/engines-service\/service-engine\/[^/]+/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              let id = req.path.split(`/`).pop();
+              this.laborsManager.getService(`engines-service`).obj.getServiceEngine(id)
+              .then((engines) => resolve(this.makeJsonRespond(JSON.stringify(engines))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/engines-service/system-engine/{id}/{cmd}  ***/
+      {
+        "resource": /\/service\/engines-service\/service-engine\/[^/]+\/[^/]+/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              let pathArr = req.path.split(`/`);
+              let cmd = pathArr.pop();
+              let id  = pathArr.pop();
+              if(cmd == `start`) {
+                this.laborsManager.getService(`engines-service`).obj.startEngine(id)
+                .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+              }
+              else if(cmd == `stop`) {
+                this.laborsManager.getService(`engines-service`).obj.stopEngine(id)
+                .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+              }
+              else if(cmd == `add-to-service`) {
+                this.laborsManager.getService(`engines-service`).obj.addToService(id)
+                .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+              }
+              else if(cmd == `remove-from-service`) {
+                this.laborsManager.getService(`engines-service`).obj.removeFromService(id)
+                .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+              }
+              else
+                resolve(this.catchErrorRespond(new Errors.PathInvalid(cmd)));
             });
           }
         }

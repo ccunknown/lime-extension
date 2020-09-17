@@ -31,7 +31,9 @@ class EnginesService extends Service {
   }
 
   start() {
+    console.log(`EnginesService: start() >> `);
     return new Promise(async (resolve, reject) => {
+      this.devicesService = this.laborsManager.getService(`devices-service`).obj;
       await this.initEngine();
       this.configTranslator = new ConfigTranslator(this);
       resolve();
@@ -88,26 +90,55 @@ class EnginesService extends Service {
   addToService(id, config) {
     console.log(`EnginesService: addToService(${id}) >> `);
     return new Promise(async (resolve, reject) => {
+      if(!config)
+        config = await this.getConfigEngine(id);
+
       let template = this.engineTemplateList.find((elem) => config.template == elem.name);
       if(template) {
         let path = template.path.replace(/^\//, ``);
         let Obj = require(`./${path}/engine.js`);
         let engine = new (Obj)(this, config);
-        let port = (await this.sysportService.get(config.port, {"object": true})).object;
-        engine.init(port)
+
+        this.sysportService.get(config.port, {"object": true})
+        .then((sysportSchema) => engine.init(sysportSchema.object))
         .then(() => engine.start())
         .then(() => {
           this.engineList[id] = engine;
-          resolve({});
+          return ;
         })
+        .then(() => this.addToServiceChain(id))
+        .then(() => resolve(config))
         .catch((err) => {
-          console.log(`error name: ${err.name}`);
-          console.log(`error message: ${err.message}`);
+          console.log(`>> error name: ${err.name}`);
+          console.log(`>> error message: ${err.message}`);
           reject(err)
         });
       }
       else
         reject(new Error(`Engine id "${id}" with template "${config.template}" not found!!!`));
+    });
+  }
+
+  addToServiceChain(id) {
+    console.log(`EnginesService: addToServiceChain(${id}) >> `);
+    return new Promise((resolve, reject) => {
+      let devices = {};
+      this.devicesService.getByConfigAttribute(`engine`, id)
+      .then((deviceList) => {
+        let prom = [];
+        devices = deviceList;
+        for(let i in devices)
+          prom.push(this.devicesService.removeFromService(i));
+        return Promise.all(prom);
+      })
+      .then(async () => {
+        let prom = [];
+        for(let i in devices)
+          await this.devicesService.addToService(i);
+        return ;
+      })
+      .then(() => resolve())
+      .catch((err) => reject(err))
     });
   }
 
@@ -125,7 +156,7 @@ class EnginesService extends Service {
     console.log(`EnginesService: removeFromConfig() >> `);
     return new Promise((resolve, reject) => {
       this.configManager.deleteConfig(`service-config.engines-service.list.${id}`)
-      .then(() => resolve())
+      .then(() => resolve({}))
       .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
     });
   }
@@ -135,7 +166,7 @@ class EnginesService extends Service {
     return new Promise((resolve, reject) => {
       this.stopEngine(id)
       .then(() => delete this.engineList[id])
-      .then(() => resolve())
+      .then(() => resolve({}))
       .catch((err) => reject(err));
     });
   }
@@ -143,8 +174,8 @@ class EnginesService extends Service {
   update(id, config) {
     console.log(`EnginesService: update(${id}) >> `);
     return new Promise((resolve, reject) => {
-      this.updateConfig(id, config)
-      .then(() => this.updateService(id, config))
+      this.updateToConfig(id, config)
+      .then(() => this.updateToService(id, config))
       .then(() => {
         let res = {};
         res[id] = config;
@@ -154,8 +185,8 @@ class EnginesService extends Service {
     });
   }
 
-  updateConfig(id, config) {
-    console.log(`EnginesService: updateConfig(${id}) >> `);
+  updateToConfig(id, config) {
+    console.log(`EnginesService: updateToConfig(${id}) >> `);
     return new Promise((resolve, reject) => {
       this.configTranslator.validate(config)
       .then((validateInfo) => {
@@ -170,11 +201,12 @@ class EnginesService extends Service {
     });
   }
 
-  updateService(id, config) {
-    console.log(`EnginesService: updateService(${id}) >> `);
+  updateToService(id, config) {
+    console.log(`EnginesService: updateToService(${id}) >> `);
     return new Promise((resolve, reject) => {
       this.removeFromService(id)
       .then(() => this.addToService(id, config))
+      // .then(() => this.updateToServiceChain(id))
       .then(() => resolve())
       .catch((err) => reject(err));
     });
@@ -183,23 +215,36 @@ class EnginesService extends Service {
   startEngine(id) {
     console.log(`EnginesService: startEngine("${id}") >> `);
     return new Promise((resolve, reject) => {
-      this.get(id, {"object": true})
-      .then((engine) => (engine) ? engine.start() : reject(new Errors.ObjectNotFound(id)))
-      .then(() => resolve())
-      .catch((err) => reject(err));
+      let engine = this.get(id, {"object": true});
+      if(engine) {
+        engine.start()
+        .then(() => resolve())
+        .catch((err) => reject(err));
+      }
+      else {
+        reject(new Errors.ObjectNotFound(id));
+      }
+    });
+  }
+
+  startEngineChain(id) {
+    console.log(`EnginesService: startEngineChain("${id}") >> `);
+    return new Promise((resolve, reject) => {
+      resolve();
     });
   }
 
   stopEngine(id) {
     console.log(`EnginesService: stopEngine("${id}") >> `);
     return new Promise((resolve, reject) => {
-      if(this.engineList.hasOwnProperty(id)) {
-        this.engineList[id].stop()
+      let engine = this.get(id, {"object": true});
+      if(engine) {
+        engine.stop()
         .then(() => resolve())
         .catch((err) => reject(err));
       }
       else {
-        resolve();
+        reject(new Errors.ObjectNotFound(id));
       }
     });
   }
@@ -208,52 +253,29 @@ class EnginesService extends Service {
     options = (options) ? options : (typeof id == `object`) ? id : undefined;
     id = (typeof id == `string`) ? id : (options && options.id) ? options.id : undefined;
     console.log(`EnginesService: get(${(id) ? `${id}` : ``}) >> `);
-    return (options && options.object) ? this.getServiceEngine(id, options) : this.getConfigEngine(id, options);
+    // return (options && options.object) ? this.getServiceEngine(id, options) : this.getConfigEngine(id, options);
+    return (options && options.object) ? ((id) ? this.engineList[id] : this.engineList) : this.getConfigEngine(id, options);
   }
 
-  getSystemEngine(id) {
-    console.log(`EnginesService: getSystemEngine(${(id) ? `${id}` : ``}) >> `);
-    return new Promise((resolve, reject) => {
-      let config = null;
-      this.getConfigEngine(id)
-      .then((conf) => {
-        config = conf;
-        return (id) ? this.getServiceEngine(id, {"object": true}) : this.getServiceEngine(null, {"object": true});
-      })
-      .then((service) => {
-        let result = JSON.parse(JSON.stringify(config));
-        for(let i in result)
-          result[i].state = (service.hasOwnProperty(i)) ? service[i].getState() : `error`;
-        return result;
-      })
-      .then((result) => resolve(result))
-      .catch((err) => reject(err));
-    });
-  }
-
-  getServiceEngine(id, options) {
-    options = (options) ? options : (typeof id == `object`) ? id : undefined;
-    id = (typeof id == `string`) ? id : (options && options.id) ? options.id : undefined;
-    console.log(`EnginesService: getServiceEngine(${(id) ? `${id}` : ``}) >> `);
-    return new Promise(async (resolve, reject) => {
-      if(options && options.object == true)
-        resolve((id) ? this.engineList[id] : this.engineList);
-      else {
-        if(id) {
-          let result = this.engineList[id].config;
-          if(options && options.state)
-            result.state = this.engineList[id].getState();
-          resolve(result);
-        }
-        else {
-          let engineList = {};
-          for(let i in this.engineList)
-            engineList[i] = await this.get(i, options);
-          resolve(engineList);
-        }
-      }
-    });
-  }
+  // getSystemEngine(id) {
+  //   console.log(`EnginesService: getSystemEngine(${(id) ? `${id}` : ``}) >> `);
+  //   return new Promise((resolve, reject) => {
+  //     let config = null;
+  //     this.getConfigEngine(id)
+  //     .then((conf) => {
+  //       config = conf;
+  //       return (id) ? this.getServiceEngine(id, {"object": true}) : this.getServiceEngine(null, {"object": true});
+  //     })
+  //     .then((service) => {
+  //       let result = JSON.parse(JSON.stringify(config));
+  //       for(let i in result)
+  //         result[i].state = (service.hasOwnProperty(i)) ? service[i].getState() : `error`;
+  //       return result;
+  //     })
+  //     .then((result) => resolve(result))
+  //     .catch((err) => reject(err));
+  //   });
+  // }
 
   getConfigEngine(id, options) {
     options = (options) ? options : (typeof id == `object`) ? id : undefined;
@@ -268,7 +290,7 @@ class EnginesService extends Service {
       else {
         this.getSchema({"renew": true})
         .then((conf) => {
-          console.log(`conf: ${JSON.stringify(conf.list, null, 2)}`);
+          console.log(`>> conf: ${JSON.stringify(conf.list, null, 2)}`);
           resolve(conf.list)
         })
         .catch((err) => reject(err));
@@ -276,9 +298,53 @@ class EnginesService extends Service {
     });
   }
 
-  // getByAttribute(attr, val) {
-  //   return this.engineList.find((elem) => elem.schema[attr] == val);
-  // }
+  getServiceEngine(id) {
+    console.log(`EnginesService: getServiceEngine(${(id) ? `${id}` : ``})`);
+    return new Promise((resolve, reject) => {
+      let config = null;
+      this.getConfigEngine(id)
+      .then((conf) => {
+        config = conf;
+        return this.getEngineConfigWithState(id);
+      })
+      .then((service) => {
+        let result = JSON.parse(JSON.stringify(config));
+        if(id)
+          result.state = (service) ? service.state : `not in service`;
+        else
+          for(let i in result)
+            result[i].state = (service.hasOwnProperty(i)) ? service[i].state : `not in service`;
+        return result;
+      })
+      .then((res) => resolve(res))
+      .catch((err) => reject(err));
+    });
+  }
+
+  getEngineConfigWithState(id) {
+    console.log(`EnginesService: getEngineConfigWithState(${(id) ? `${id}`: ``})`);
+    return new Promise(async (resolve, reject) => {
+      if(id) {
+        if(this.engineList.hasOwnProperty(id)) {
+          let schema = JSON.parse(JSON.stringify(this.engineList[id].config));
+          schema.state = this.engineList[id].getState();
+          resolve(schema);
+        }
+        else
+          reject(new Errors.ObjectNotFound(id));
+      }
+      else {
+        let schemas = {};
+        try {
+          for(let i in this.engineList)
+            schemas[i] = await this.getEngineConfigWithState(i);
+          resolve(schemas);
+        } catch(err) {
+          reject(err);
+        }
+      }
+    });
+  }
 
   getTemplate(key, options) {
     console.log(`EnginesService: getTemplate(${(key) ? key : ``})`);

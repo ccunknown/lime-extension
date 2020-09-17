@@ -39,7 +39,7 @@ class ServiceConfigTranslator {
         let EngineConfigTranslator = require(`./engines/${params.template}/config-translator.js`);
         let engConfTrans = new EngineConfigTranslator(this.enginesService);
         let engConf = await engConfTrans.generateConfigSchema(params);
-        console.log(`engConf: ${JSON.stringify(engConf, null, 2)}`);
+        // console.log(`engConf: ${JSON.stringify(engConf, null, 2)}`);
         for(let i in engConf.properties) {
           config.properties[i] = engConf.properties[i];
         }

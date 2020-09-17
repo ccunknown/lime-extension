@@ -136,7 +136,8 @@ export default class PageEngines {
       this.vue.ui.base.ready = false;
       this.vue.ui.slider.hide = true;
 
-      let systemEngine = await this.getSystemEngine();
+      // let systemEngine = await this.getSystemEngine();
+      let systemEngine = await this.getServiceEngine();
       this.vue.resource.systemEngine = systemEngine;
 
       this.vue.ui.base.ready = true;
@@ -254,7 +255,7 @@ export default class PageEngines {
   };
 
   getConfigEngine(id) {
-    this.console.log(`PageEngines: getConfigEngine() >> `);
+    this.console.log(`PageEngines: getConfigEngine(${(id) ? `${id}` : ``}) >> `);
     return new Promise((resolve, reject) => {
       this.api.restCall(`get`, `/api/service/engines-service/config-engine${(id) ? `/${id}` : ``}`)
       .then((res) => (res.error) ? reject(res.error) : resolve(res))
@@ -262,14 +263,23 @@ export default class PageEngines {
     });
   }
 
-  getSystemEngine() {
-    this.console.log(`PageEngines: getSystemEngine() >> `);
+  getServiceEngine(id) {
+    this.console.log(`PageEngines: getServiceEngine(${(id) ? `${id}` : ``}) >> `);
     return new Promise((resolve, reject) => {
-      this.api.restCall(`get`, `/api/service/engines-service/system-engine`)
+      this.api.restCall(`get`, `/api/service/engines-service/service-engine${(id) ? `/${id}` : ``}`)
       .then((res) => (res.error) ? reject(res.error) : resolve(res))
       .catch((err) => reject(err));
     });
   }
+
+  // getSystemEngine() {
+  //   this.console.log(`PageEngines: getSystemEngine() >> `);
+  //   return new Promise((resolve, reject) => {
+  //     this.api.restCall(`get`, `/api/service/engines-service/system-engine`)
+  //     .then((res) => (res.error) ? reject(res.error) : resolve(res))
+  //     .catch((err) => reject(err));
+  //   });
+  // }
 
   addConfig(config) {
     this.console.log(`PageEngines: addConfig() >> `);
@@ -316,7 +326,7 @@ export default class PageEngines {
   generateConfigSchema(param) {
     this.console.log(`PageSysport: generateConfigSchema() >> `);
     return new Promise((resolve, reject) => {
-      this.api.restCall(`post`, `/api/service/engines-service/generateConfigSchema`, (param) ? param : undefined)
+      this.api.restCall(`post`, `/api/service/engines-service/generate-schema`, (param) ? param : undefined)
       .then((res) => resolve(res))
       .catch((err) => reject(err));
     });

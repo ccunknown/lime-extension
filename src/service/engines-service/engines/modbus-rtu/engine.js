@@ -95,15 +95,26 @@ class ModbusRtu {
     console.log(`ModbusRtu: restart() >> `);
     this.emit(`restarting`, this);
     return new Promise(async (resolve, reject) => {
-      await this.stop();
-      try {
-        await this.start();
-      } catch(err) {
-        setTimeout(() => this.restart(), 5000);
-      }
-      resolve();
+      this.stop()
+      .then(() => this.start())
+      .then(() => resolve())
+      .catch((err) => setTimeout(() => this.restart(), 5000));
     });
   }
+
+  // restart() {
+  //   console.log(`ModbusRtu: restart() >> `);
+  //   this.emit(`restarting`, this);
+  //   return new Promise(async (resolve, reject) => {
+  //     await this.stop();
+  //     try {
+  //       await this.start();
+  //     } catch(err) {
+  //       setTimeout(() => this.restart(), 5000);
+  //     }
+  //     resolve();
+  //   });
+  // }
 
   stop() {
     console.log(`ModbusRtu: stop() >> `);

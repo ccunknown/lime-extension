@@ -43,8 +43,8 @@ class ModbusDevice extends Device {
     return new Promise(async (resolve, reject) => {
       config = (config) ? config : this.exConf.config;
       let schema = await this.configTranslator.translate(config);
-      console.log(`ModbusDevice: config: ${JSON.stringify(config, null, 2)}`);
-      //console.log(`translated schema: ${JSON.stringify(this.exConf.schema, null, 2)}`);
+      // console.log(`>> config: ${JSON.stringify(config, null, 2)}`);
+      // console.log(`translated schema: ${JSON.stringify(this.exConf.schema, null, 2)}`);
       await this.initAttr(schema);
       await this.initEngine(config.engine);
       let script = await this.initScript(config.script);
@@ -141,7 +141,7 @@ class ModbusDevice extends Device {
 
   addProperty(id, config) {
     console.log(`ModbusDevice: addProperty() >> `);
-    console.log(`config: ${JSON.stringify(config, null, 2)}`);
+    // console.log(`>> config: ${JSON.stringify(config, null, 2)}`);
     return new Promise(async (resolve, reject) => {
       let PropertyObject = require(`./property/${config.template}/property.js`);
       let property = new PropertyObject(this, id, config);
@@ -163,7 +163,7 @@ class ModbusDevice extends Device {
       let hasStoppedProp = false;
       for(let i in props) {
         let prop = this.findProperty(i);
-        console.log(`${i} period: ${prop.period && true}`);
+        // console.log(`${i} period: ${prop.period && true}`);
         if(prop.period && true)
           hasRunningProp = true;
         else
@@ -182,7 +182,7 @@ class ModbusDevice extends Device {
     return new Promise((resolve, reject) => {
       let promArr = [];
       let props = this.getPropertyDescriptions();
-      console.log(`Properties : ${JSON.stringify(props, null, 2)}`);
+      // console.log(`Properties : ${JSON.stringify(props, null, 2)}`);
       for(let i in props) {
         let prop = this.findProperty(i);
         promArr.push(prop.start());
@@ -198,7 +198,7 @@ class ModbusDevice extends Device {
     return new Promise((resolve, reject) => {
       let promArr = [];
       let props = this.getPropertyDescriptions();
-      console.log(`Properties : ${JSON.stringify(props, null, 2)}`);
+      // console.log(`Properties : ${JSON.stringify(props, null, 2)}`);
       for(let i in props) {
         let prop = this.findProperty(i);
         promArr.push(prop.stop());

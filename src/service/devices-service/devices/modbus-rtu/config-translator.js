@@ -19,12 +19,12 @@ class DeviceConfigTranslator {
     this.Errors = require(`${rootDir}/constants/errors.js`);
     this.propertySchemaConfig = require(`${rootDir}/config/property-schema.js`);
     this.propIdPattern = this.propertySchemaConfig.idPattern.regex;
-    console.log(`propertySchemaConfig: ${this.propIdPattern}`);
+    // console.log(`>> propertySchemaConfig: ${this.propIdPattern}`);
   }
 
   generateConfigSchema(params) {
     console.log(`DeviceConfigTranslator: generateConfigSchema() >> `);
-    console.log(`params: ${JSON.stringify(params, null, 2)}`);
+    console.log(`>> params: ${JSON.stringify(params, null, 2)}`);
     return new Promise(async (resolve, reject) => {
 
       //  Copy config from ValidateConfigSchema.
