@@ -161,6 +161,14 @@ export default class ExtensionLoader {
     return this.getObjects(`type`, `custom-script`);
   }
 
+  getCustomObject(id) {
+    let customObjects = this.getCustomObjects();
+    if(customObjects.hasOwnProperty(id))
+      return this.getObject(id);
+    else
+      return null;
+  }
+
   getCustomViews() {
     return this.getObjects(`type`, `custom-view`);
   }

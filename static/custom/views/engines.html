@@ -66,47 +66,9 @@
                   </json-schema-form>
                 </div>
               </template>
-              
-              <!-- <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Name</label>
-                <input 
-                type="text" 
-                v-model="ui.slider.form.name"
-                class="miso-badge-union border-secondary">
-              </div>
-
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Description</label>
-                <textarea class="miso-badge-union border-secondary no-resize" rows="4" type="text"></textarea>
-              </div> -->
 
             </div>
           </div>
-
-          <!-- <div class="miso-badge-header-group align-items-end w-100">
-            <label class="miso-label-badge badge-info font-size-inherit">Config</label>
-            <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
-
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Engine Template</label>
-                <select v-model="ui.slider.form.engine" class="miso-badge-union border-secondary">
-                  <template v-for="option in ui.slider.formTemplate.engine.enum">
-                    <option :value="`${option.name}`">{{option.name}}</option>
-                  </template>
-                </select>
-              </div>
-
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Port</label>
-                <select v-model="ui.slider.form.port" class="miso-badge-union border-secondary">
-                  <template v-for="option in ui.slider.formTemplate.port.enum">
-                    <option :value="`${option.name}`">{{option.name}}</option>
-                  </template>
-                </select>
-              </div>
-
-            </div>
-          </div> -->
 
         </div>
 
@@ -168,17 +130,29 @@
                     <i class="fas fa-bars fa-lg"></i>
                   </button>
                   <div class="dropdown-menu bg-dark text-light">
-                    <a v-if="item.state != 'running'" @click="fn.start(id)" class="dropdown-item d-flex text-light" href="#">
+                    <a v-if="['stopped'].includes(item.state)" @click="fn.start(id)" class="dropdown-item d-flex text-light" href="#">
                       <div class="miso-icon-box-16">
                         <i class="fas fa-play fa-lg"></i>
                       </div>
                       <span>Start</span>
                     </a>
-                    <a v-if="item.state == 'running'" @click="fn.stop(id)" class="dropdown-item d-flex text-light" href="#">
+                    <a v-if="['running'].includes(item.state)" @click="fn.stop(id)" class="dropdown-item d-flex text-light" href="#">
                       <div class="miso-icon-box-16">
                         <i class="fas fa-stop fa-lg"></i>
                       </div>
                       <span>Stop</span>
+                    </a>
+                    <a v-if="['not in service'].includes(item.state)" @click="fn.addToService(id)" class="dropdown-item d-flex text-light" href="#">
+                      <div class="miso-icon-box-16">
+                        <i class="fas fa-history fa-lg"></i>
+                      </div>
+                      <span>Add to Service</span>
+                    </a>
+                    <a v-if="!['not in service'].includes(item.state)" @click="fn.removeFromService(id)" class="dropdown-item d-flex text-light" href="#">
+                      <div class="miso-icon-box-16">
+                        <i class="fas fa-caret-down fa-lg"></i>
+                      </div>
+                      <span>Remove from Service</span>
                     </a>
                     <a @click="fn.edit(id)" class="dropdown-item d-flex text-light" href="#">
                       <div class="miso-icon-box-16">
@@ -195,14 +169,6 @@
                   </div>
                 </div>
               </div>
-              <!-- <div class="miso-card-header-btn-box">
-                <button class="btn btn-warning" @click="fn.edit(id)">
-                  <i class="fas fa-edit fa-lg"></i>
-                </button>
-                <button class="btn btn-danger" @click="fn.remove(id)">
-                  <i class="fas fa-trash fa-lg"></i>
-                </button>
-              </div> -->
             </div>
             <!-- Item Body -->
             <div class="card-body bg-secondary d-flex flex-column">

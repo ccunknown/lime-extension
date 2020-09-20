@@ -7,11 +7,57 @@ export default class PageSysport {
   }
 
   init(config) {
-    this.console.trace(`init()`);
+    this.console.trace(`init() >> `);
     return new Promise(async (resolve, reject) => {
-      //this.initFunction();
-      await this.initVue();
-      resolve();
+      this.initCustomRest()
+      .then(() => this.initVue())
+      .then(() => resolve())
+      .catch((err) => reject(err));
+    });
+  }
+
+  initCustomRest() {
+    this.console.trace(`initCustomRest() >> `);
+    return new Promise((resolve, reject) => {
+      let meta = {
+        "service-id": "sysport-service",
+        "service-title": "System Port Service",
+        "resource-id": "port",
+        "resource-title": "Port"
+      };
+      let customRest = null;
+      this.ui.getCustomObject(`custom-rest`, {}, this.extension, meta)
+      .then((object) => customRest = object)
+      .then(() => customRest.init())
+      .then(() => this.rest = customRest)
+      .then(() => this.initSysportCustomRest())
+      .then(() => resolve())
+      .catch((err) => reject(err));
+    });
+  }
+
+  initSysportCustomRest() {
+    this.console.log(`initSysportCustomRest() >> `);
+    Object.assign(this.rest, {
+      getSystemPort: () => {
+        this.console.log(`PageSysport: getSystemPort() >> `);
+        return new Promise((resolve, reject) => {
+          this.api.restCall(`get`, `/api/service/sysport-service/system-port`)
+          .then((res) => (res.error) ?
+            reject(res.error) : 
+            resolve(
+              res.map((elem) => {
+                return {
+                  path: elem.path,
+                  pnpid: (elem.pnpId) ? elem.pnpId : `null`,
+                  manufacturer: (elem.manufacturer) ? elem.manufacturer : `null`
+                };
+              })
+            )
+          )
+          .catch((err) => reject(err));
+        });
+      }
     });
   }
 
@@ -19,7 +65,6 @@ export default class PageSysport {
     this.console.trace(`initVue()`);
     return new Promise(async (resolve, reject) => {
       let id = this.ui.said(`content.sysport.section`);
-      // let schema = await this.getSchema();
 
       this.vue = new Vue({
         "el": `#${id}`,
@@ -28,8 +73,6 @@ export default class PageSysport {
           "loader": this.extension.schema,
           /** Resource **/
           "resource": {
-            // "config": {"list": []},
-            // "schema": schema,
             "configPort": {},
             "systemPort": [],
           },
@@ -74,7 +117,7 @@ export default class PageSysport {
           return new Promise((resolve, reject) => {
             let conf = confirm(`Are you sure to delete port "${id}"!`);
             if(conf) {
-              this.deleteConfigPort(id)
+              this.rest.deleteConfig(id)
               .then((res) => this.render())
               .then(() => resolve())
               .catch((err) => reject(err));
@@ -89,7 +132,7 @@ export default class PageSysport {
           return new Promise((resolve, reject) => {
             let id = this.vue.ui.slider[`edit-id`];
             let config = this.vue.ui.slider.form;
-            ((id) ? this.editConfigPort(id, config) : this.addConfigPort(config))
+            ((id) ? this.rest.editConfig(id, config) : this.rest.addConfig(config))
             .then((res) => this.render())
             .then(() => resolve())
             .catch((err) => reject(err));
@@ -120,7 +163,7 @@ export default class PageSysport {
         },
         "updateSystemPort": async () => {
           console.log(`sysport.updateSystemPort()`);
-          this.vue.resource.systemPort = await this.getSystemPort();
+          this.vue.resource.systemPort = await this.rest.getSystemPort();
         },
         "shortSchemaCall": (key) => {
           let res = this.ui.shortJsonElement(this.vue.resource.schema, key);
@@ -131,7 +174,6 @@ export default class PageSysport {
           console.log(obj);
         }
       };
-
       resolve();
     });
   }
@@ -155,8 +197,8 @@ export default class PageSysport {
       this.vue.ui.base.ready = false;
       this.vue.ui.slider.hide = true;
 
-      let configPort = await this.getConfigPort();
-      this.vue.resource.configPort = configPort;
+      let config = await this.rest.getItemConfig();
+      this.vue.resource.configPort = config;
 
       this.vue.ui.base.ready = true;
       resolve();
@@ -180,9 +222,9 @@ export default class PageSysport {
     this.console.log(`PageSysport: renderVueAddForm() >> `);
     return new Promise((resolve, reject) => {
       Promise.all([
-        this.getConfigPort(),
-        this.getSystemPort(),
-        this.generateConfigSchema()
+        this.rest.getItemConfig(),
+        this.rest.getSystemPort(),
+        this.rest.generateConfigSchema()
       ])
       .then((promArr) => {
         this.vue.resource.configPort = promArr[0];
@@ -200,107 +242,6 @@ export default class PageSysport {
 
         resolve();
       });
-    });
-  }
-
-  getConfig() {
-    this.console.log(`getConfig()`);
-    return new Promise((resolve, reject) => {
-      this.api.getConfig()
-      .then((config) => resolve(config[`service-config`][`sysport-service`]));
-    });
-  }
-
-  getSchema() {
-    this.console.log(`getSchema()`);
-    return new Promise((resolve, reject) => {
-      this.api.getSchema()
-      .then((schema) => resolve(schema.properties[`service-config`].properties[`sysport-service`]));
-    });
-  }
-
-  getConfigPort() {
-    this.console.log(`PageSysport: getConfigPort() >> `);
-    return new Promise(async (resolve, reject) => {
-      this.api.restCall(`get`, `/api/service/sysport-service/config-port`)
-      .then((res) => (res.error) ? reject(res.error) : resolve(res))
-      .catch((err) => reject(err));
-    });
-  }
-
-  getSystemPort() {
-    this.console.log(`PageSysport: getSystemPort() >> `);
-    return new Promise((resolve, reject) => {
-      this.api.restCall(`get`, `/api/service/sysport-service/system-port`)
-      .then((res) => (res.error) ?
-        reject(res.error) : 
-        resolve(
-          res.map((elem) => {
-            return {
-              path: elem.path,
-              pnpid: (elem.pnpId) ? elem.pnpId : `null`,
-              manufacturer: (elem.manufacturer) ? elem.manufacturer : `null`
-            };
-          })
-        )
-      )
-      .catch((err) => reject(err));
-    });
-  }
-
-  addConfigPort(config) {
-    this.console.log(`PageSysport: addConfigPort() >> `);
-    return new Promise((resolve, reject) => {
-      let toast = this.ui.toast.info(`Adding new port.`);
-      this.api.restCall(`post`, `/api/service/sysport-service/config-port`, config)
-      .then((res) => {
-        this.ui.toast.success(`Port saving complete.`, {"icon": `fa-save`});
-        resolve(res);
-      })
-      .catch((err) => reject(err))
-      .finally(() => toast.remove());
-    });
-  }
-
-  editConfigPort(id, config) {
-    this.console.log(`PageSysport: editConfigPort() >> `);
-    return new Promise((resolve, reject) => {
-      let toast = this.ui.toast.info(`Edit port "${id}".`);
-      this.api.restCall(`put`, `/api/service/sysport-service/config-port/${id}`, config)
-      .then((res) => {
-        this.ui.toast.success(`Port "${id}" edit complete.`, {"icon": `fa-save`});
-        resolve(res);
-      })
-      .catch((err) => reject(err))
-      .finally(() => toast.remove());
-    });
-  }
-
-  deleteConfigPort(id) {
-    this.console.log(`PageSysport: deleteConfigPort() >> `);
-    return new Promise((resolve, reject) => {
-      let toast = this.ui.toast.info(`Delete port "${id}".`, {"icon": `fa-trash-alt`});
-      this.api.restCall(`delete`, `/api/service/sysport-service/config-port/${id}`)
-      .then((res) => {
-        this.ui.toast.success(`Port "${id}" delete complete.`, {"icon": `fa-trash-alt`});
-        resolve(res);
-      })
-      .catch((err) => reject(err))
-      .finally(() => toast.remove());
-    });
-  }
-
-  generateConfigSchema(param) {
-    this.console.log(`PageSysport: generateConfigSchema() >> `);
-    return new Promise((resolve, reject) => {
-      // let toast = this.ui.toast.info(`Generate config schema.`);
-      this.api.restCall(`post`, `/api/service/sysport-service/generateConfigSchema`, {})
-      .then((res) => {
-        // this.ui.toast.success(`Config schema generated.`);
-        resolve(res);
-      })
-      .catch((err) => reject(err));
-      // .finally(() => toast.remove());
     });
   }
 }

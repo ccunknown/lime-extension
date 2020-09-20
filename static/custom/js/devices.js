@@ -7,26 +7,47 @@ export default class PageDevices {
   }
 
   init(config) {
-    this.console.trace(`init()`);
+    this.console.trace(`init() >> `);
     return new Promise(async (resolve, reject) => {
-      // await this.initVueComponent();
-      await this.initVue();
-      resolve();
+      this.initCustomRest()
+      .then(() => this.initVue())
+      .then(() => resolve())
+      .catch((err) => reject(err));
     });
   }
 
-  // initVueComponent() {
-  //   return new Promise(async (resolve, reject) => {
-  //     //  Load resource.
-  //     let loader = this.ui.extension.loader;
-  //     let script = await loader.getObject(`vue-component-json-schema-script`);
-  //     console.log(loader.objects);
-  //     script.template = await loader.getObject(`vue-component-json-schema-template`);
+  initCustomRest() {
+    this.console.trace(`initCustomRest() >> `);
+    return new Promise((resolve, reject) => {
+      let meta = {
+        "service-id": "devices-service",
+        "service-title": "Devices Service",
+        "resource-id": "device",
+        "resource-title": "Device"
+      };
+      let customRest = null;
+      this.ui.getCustomObject(`custom-rest`, {}, this.extension, meta)
+      .then((object) => customRest = object)
+      .then(() => customRest.init())
+      .then(() => this.rest = customRest)
+      .then(() => this.initDeviceCustomRest())
+      .then(() => resolve())
+      .catch((err) => reject(err));
+    });
+  }
 
-  //     Vue.component(`json-schema-form`, script);
-  //     resolve();
-  //   });
-  // }
+  initDeviceCustomRest() {
+    this.console.log(`initDeviceCustomRest() >> `);
+    Object.assign(this.rest, {
+      generatePropertyId: (params) => {
+        this.console.log(`generatePropertyId() >> `);
+        return new Promise(async (resolve, reject) => {
+          let res = await this.api.restCall(`post`, `/api/service/devices-service/config/generate-property-id`, params);
+          resolve(res);
+        });
+      }
+    });
+  }
 
   initVue() {
     this.console.trace(`initVue()`);
@@ -49,7 +70,6 @@ export default class PageDevices {
             "slider": {
               "hide": true,
               "ready": false,
-              "edit": true,
               "edit-id": null,
               "form": {},
               "formTemplate": {},
@@ -87,7 +107,7 @@ export default class PageDevices {
           return new Promise(async (resolve, reject) => {
             let conf = confirm(`Are you sure to delete device "${id}"!`);
             if(conf) {
-              this.deleteConfigDevice(id)
+              this.rest.deleteConfig(id)
               .then(() => this.render())
               .then(() => resolve())
               .catch((err) => reject(err));
@@ -107,7 +127,7 @@ export default class PageDevices {
 
             let id = this.vue.ui.slider[`edit-id`];
             let config = this.vue.ui.slider.final.device;
-            ((id) ? this.editConfigDevice(id, config) : this.addConfigDevice(config))
+            ((id) ? this.rest.editConfig(id, config) : this.rest.addConfig(config))
             .then(() => this.render())
             .then(() => resolve())
             .catch((err) => reject(err));
@@ -116,7 +136,7 @@ export default class PageDevices {
         "start": (id) => {
           this.console.log(`start(${id})`);
           return new Promise((resolve, reject) => {
-            this.startServiceDevice(id)
+            this.rest.startServicedItem(id)
             .then(() => this.render())
             .then(() => resolve())
             .catch((err) => reject(err));
@@ -125,7 +145,7 @@ export default class PageDevices {
         "stop": (id) => {
           this.console.log(`stop(${id})`);
           return new Promise((resolve, reject) => {
-            this.stopServiceDevice(id)
+            this.rest.stopServicedItem(id)
             .then(() => this.render())
             .then(() => resolve())
             .catch((err) => reject(err));
@@ -134,7 +154,7 @@ export default class PageDevices {
         "addToService": (id) => {
           this.console.log(`addToService(${id})`);
           return new Promise((resolve, reject) => {
-            this.addToService(id)
+            this.rest.addToService(id)
             .then(() => this.render())
             .then(() => resolve())
             .catch((err) => reject(err));
@@ -143,7 +163,7 @@ export default class PageDevices {
         "removeFromService": (id) => {
           this.console.log(`removeFromService(${id})`);
           return new Promise((resolve, reject) => {
-            this.removeFromService(id)
+            this.rest.removeFromService(id)
             .then(() => this.render())
             .then(() => resolve())
             .catch((err) => reject(err));
@@ -232,7 +252,7 @@ export default class PageDevices {
           }
           else {
             return new Promise((resolve, reject) => {
-              this.generatePropertyId(params)
+              this.rest.generatePropertyId(params)
               .then((res) => {
                 let id = res.id;
                 let finalProp = JSON.parse(JSON.stringify(this.vue.ui.slider.final.properties));
@@ -287,8 +307,7 @@ export default class PageDevices {
       this.vue.ui.base.ready = false;
       this.vue.ui.slider.hide = true;
 
-      // let config = await this.getConfigDevice();
-      let config = await this.getServiceDevice();
+      let config = await this.rest.getServicedItem();
       this.vue.resource.config = config;
       
       this.vue.ui.base.ready = true;
@@ -302,7 +321,6 @@ export default class PageDevices {
       this.vue.ui.slider.ready = false;
       this.vue.ui.slider.hide = false;
 
-      //this.console.log(`ui slider : ${JSON.stringify(this.vue.ui.slider, null, 2)}`);
       await this.renderForm(name);
 
       this.vue.ui.slider.ready = true;
@@ -313,11 +331,9 @@ export default class PageDevices {
   renderForm(id) {
     this.console.log(`PageDevices: renderForm(${(id) ? `${id}` : ``}) >> `);
     return new Promise(async (resolve, reject) => {
-      //this.vue.resource.deviceTemplate = await this.getDeviceTemplate();
       if(id) {
-        this.vue.ui.slider.edit = false;
         Promise.all([
-          this.getConfigDevice(id)
+          this.rest.getItemConfig(id)
         ])
         .then((promArr) => {
           let config = promArr[0];
@@ -328,10 +344,9 @@ export default class PageDevices {
           this.vue.ui.slider.final.properties = {};
 
           this.vue.deviceForm = config;
-          // this.vue.propertyForm = config.properties;
           return config;
         })
-        .then((config) => this.generateConfigSchema(config))
+        .then((config) => this.rest.generateConfigSchema(config))
         .then((schema) => {
           this.vue.resource.deviceConfigSchema = schema;
           return ;
@@ -368,7 +383,7 @@ export default class PageDevices {
       let config = JSON.parse(JSON.stringify(this.vue.deviceForm));
       config.properties = JSON.parse(JSON.stringify(this.vue.propertyForm));
 
-      let schema = await this.generateConfigSchema(config);
+      let schema = await this.rest.generateConfigSchema(config);
       let oldSchema = JSON.parse(JSON.stringify(this.vue.resource.deviceConfigSchema));
       this.vue.resource.deviceConfigSchema = JSON.parse(JSON.stringify(schema));
 
@@ -416,14 +431,12 @@ export default class PageDevices {
   }
 
   jsonCopyBySchema(dst, src, schema) {
-    // console.log(`dst: `, dst);
     src = JSON.parse(JSON.stringify(src));
     let copyFlag = false;
     for(let i in schema) {
       if(schema[i] == true) {
         dst[i] = ([`object`, `array`].includes(typeof src[i])) ? JSON.parse(JSON.stringify(src[i])) : src[i];
         copyFlag = true;
-        // console.log(`jsonCopyBySchema[${i}]: `, dst[i]);
       }
       else if([`object`, `array`].includes(typeof schema[i]))
         copyFlag = this.jsonCopyBySchema(dst[i], src[i], schema[i]) || copyFlag;
@@ -432,7 +445,6 @@ export default class PageDevices {
   }
 
   jsonDiv(dst, src, options) {
-    // console.log(`jsonDiv()`);
     let result = {};
     let opt = (options) ? JSON.parse(JSON.stringify(options)) : {};
     if(opt.level)
@@ -451,148 +463,5 @@ export default class PageDevices {
         result[i] = true;
     }
     return result;
-  };
-
-  getConfigDevice(id) {
-    this.console.log(`getConfigDevice(${(id) ? `${id}` : ``}) >> `);
-    return new Promise((resolve, reject) => {
-      this.api.restCall(`get`, `/api/service/devices-service/config-device${(id) ? `/${id}` : ``}`)
-      .then((res) => (res.error) ? reject(res.error) : resolve(res))
-      .catch((err) => reject(err));
-    });
-  }
-
-  getServiceDevice(id) {
-    this.console.log(`getServiceDevice(${(id) ? `${id}` : ``}) >> `);
-    return new Promise((resolve, reject) => {
-      this.api.restCall(`get`, `/api/service/devices-service/service-device${(id) ? `/${id}` : ``}`)
-      .then((res) => (res.error) ? reject(res.error) : resolve(res))
-      .catch((err) => reject(err));
-    });
-  }
-
-  startServiceDevice(id) {
-    this.console.log(`startServiceDevice(${id}) >> `);
-    return new Promise((resolve, reject) => {
-      let toast = this.ui.toast.info(`Starting device "${id}".`);
-      this.api.restCall(`get`, `/api/service/devices-service/service-device/${id}/start`)
-      .then((res) => {
-        this.ui.toast.success(`Device "${id}" is running.`, {"icon": `fa-play`});
-        resolve(res);
-      })
-      .catch((err) => reject(err))
-      .finally(() => toast.remove());
-    });
-  }
-
-  stopServiceDevice(id) {
-    this.console.log(`stopServiceDevice(${id}) >> `);
-    return new Promise((resolve, reject) => {
-      let toast = this.ui.toast.info(`Stopping device "${id}".`);
-      this.api.restCall(`get`, `/api/service/devices-service/service-device/${id}/stop`)
-      .then((res) => {
-        this.ui.toast.success(`Device "${id}" stoped.`, {"icon": `fa-stop`});
-        resolve(res);
-      })
-      .catch((err) => reject(err))
-      .finally(() => toast.remove());
-    });
-  }
-
-  addToService(id) {
-    this.console.log(`addToService(${id}) >> `);
-    return new Promise((resolve, reject) => {
-      let toast = this.ui.toast.info(`Add device "${id}" to service.`);
-      this.api.restCall(`get`, `/api/service/devices-service/service-device/${id}/add-to-service`)
-      .then((res) => {
-        this.ui.toast.success(`Device "${id}" serviced.`, {"icon": `fa-history`});
-        resolve(res);
-      })
-      .catch((err) => reject(err))
-      .finally(() => toast.remove());
-    });
-  }
-
-  removeFromService(id) {
-    this.console.log(`removeFromService(${id}) >> `);
-    return new Promise((resolve, reject) => {
-      let toast = this.ui.toast.info(`Add device "${id}" to service.`);
-      this.api.restCall(`get`, `/api/service/devices-service/service-device/${id}/remove-from-service`)
-      .then((res) => {
-        this.ui.toast.success(`Device "${id}" serviced.`, {"icon": `fa-caret-down`});
-        resolve(res);
-      })
-      .catch((err) => reject(err))
-      .finally(() => toast.remove());
-    });
-  }
-
-  addConfigDevice(config) {
-    this.console.log(`addConfigDevice() >> `);
-    return new Promise((resolve, reject) => {
-      let toast = this.ui.toast.info(`Adding new device.`);
-      this.api.restCall(`post`, `/api/service/devices-service/config-device`, config)
-      .then((res) => {
-        this.ui.toast.success(`Device saving complete.`, {"icon": `fa-save`});
-        resolve(res);
-      })
-      .catch((err) => reject(err))
-      .finally(() => toast.remove());
-    });
-  }
-
-  editConfigDevice(id, config) {
-    this.console.log(`editConfigDevice(${id}) >> `);
-    return new Promise((resolve, reject) => {
-      let toast = this.ui.toast.info(`Edit device "${id}".`);
-      this.api.restCall(`put`, `/api/service/devices-service/config-device/${id}`, config)
-      .then((res) => {
-        this.ui.toast.success(`Device "${id}" edit complete.`, {"icon": `fa-save`});
-        resolve(res);
-      })
-      .catch((err) => reject(err))
-      .finally(() => toast.remove());
-    });
-  }
-
-  deleteConfigDevice(id) {
-    this.console.log(`deleteConfigDevice(${id}) >> `);
-    return new Promise(async (resolve, reject) => {
-      let toast = this.ui.toast.info(`Delete device "${id}".`, {"icon": `fa-trash-alt`});
-      this.api.restCall(`delete`, `/api/service/devices-service/config-device/${id}`)
-      .then((res) => {
-        this.ui.toast.success(`Device "${id}" delete complete.`, {"icon": `fa-trash-alt`});
-        resolve(res);
-      })
-      .catch((err) => reject(err))
-      .finally(() => toast.remove());
-    });
-  }
-
-  getSchema() {
-    this.console.log(`getSchema()`);
-    return new Promise((resolve, reject) => {
-      this.api.getSchema()
-      .then((schema) => resolve(schema.properties[`service-config`].properties[`devices-service`]));
-    });
-  }
-
-  generateConfigSchema(params) {
-    this.console.log(`generateConfigSchema() >> `);
-    return new Promise(async (resolve, reject) => {
-      params = (params) ? params : {};
-      // let res = await this.api.restCall(`post`, `/api/service/devices-service/generateConfigSchema`, params);
-      let res = await this.api.restCall(`post`, `/api/service/devices-service/config/generate-schema`, params);
-      resolve(res);
-    });
-  }
-
-  generatePropertyId(params) {
-    this.console.log(`generatePropertyId() >> `);
-    return new Promise(async (resolve, reject) => {
-      // let res = await this.api.restCall(`post`, `/api/service/devices-service/generatePropertyId`, params);
-      let res = await this.api.restCall(`post`, `/api/service/devices-service/config/generate-property-id`, params);
-      resolve(res);
-    });
   }
 }

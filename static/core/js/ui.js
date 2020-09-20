@@ -10,6 +10,7 @@ export default class ExtensionUi {
 
     this.page = {};
     this.view = null;
+    this.customObjects = {};
   }
 
   init() {
@@ -21,6 +22,12 @@ export default class ExtensionUi {
       this.initFunction();
       //await this.initScript();
       //await this.initScript();
+
+      this.extension.view.innerHTML = this.view;
+      // this.initRaid();
+      this.initNavEvent();
+      this.initScript();
+
       resolve();
     });
   }
@@ -198,6 +205,25 @@ export default class ExtensionUi {
     this.console.log(`onNavClick(${page.schema.name})`);
     if(page.object)
       page.object.render();
+  }
+
+  getCustomObject(id, options, ...args) {
+    this.console.log(`getCustomObject(${id}) >> `);
+    return new Promise((resolve, reject) => {
+      if(!this.customObjects.hasOwnProperty(id) || !options || !options.unique) {
+        let CustomObject = this.extension.loader.getCustomObject(id);
+        if(CustomObject) {
+          let customObject = new CustomObject(...args);
+          if(options && options.unique)
+            this.customObjects[id] = customObject;
+          resolve(customObject);
+        }
+        else
+          reject(`CustomObject id '${id}' not found!`);
+      }
+      else
+        resolve(this.customObjects[id]);
+    });
   }
 
   render() {

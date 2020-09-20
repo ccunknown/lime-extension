@@ -84,11 +84,19 @@ class SysportService extends Service {
         "schema": schema,
         "object": new SerialPort(schema.path, schema.config)
       };
+      port.object.removeAllListeners();
       port.object.on("close", (err) => {
         console.log(`Port "${id}" error : `);
         console.error(err);
       });
       this.portList[id] = port;
+      resolve();
+    });
+  }
+
+  addToServiceChain(id) {
+    console.log(`SysportService: addToServiceChain(${id}) >> `);
+    return new Promise((resolve, reject) => {
       resolve();
     });
   }

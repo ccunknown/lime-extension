@@ -67,6 +67,7 @@
           "load": [
             "extension-view-main",
             "extension-view-resource",
+            "custom-rest",
             "script-devices",
             "script-scripts",
             "script-engines",
@@ -217,6 +218,12 @@
         "type": "custom-script",
         "path": "/custom/js/sysport.js",
         "object-name": "PageSysport"
+      },
+
+      "custom-rest": {
+        "type": "custom-script",
+        "path": "/custom/js/custom-rest.js",
+        "object-name": "CustomRest"
       }
     }
   };

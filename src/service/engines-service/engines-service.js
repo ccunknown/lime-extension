@@ -227,13 +227,6 @@ class EnginesService extends Service {
     });
   }
 
-  startEngineChain(id) {
-    console.log(`EnginesService: startEngineChain("${id}") >> `);
-    return new Promise((resolve, reject) => {
-      resolve();
-    });
-  }
-
   stopEngine(id) {
     console.log(`EnginesService: stopEngine("${id}") >> `);
     return new Promise((resolve, reject) => {

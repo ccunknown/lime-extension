@@ -19,7 +19,7 @@ export default class PageScripts {
     return new Promise(async (resolve, reject) => {
       let id = this.ui.said(`content.scripts.section`);
       this.console.log(`id : ${id}`);
-      let schema = await this.getSchema();
+      // let schema = await this.getSchema();
 
       this.vue = new Vue({
         "el": `#${id}`,
@@ -32,7 +32,7 @@ export default class PageScripts {
           /** Resource **/
           "resource": {
             "config": {"directory": null, "list": []},
-            "schema": schema,
+            "schema": {},
             "scripts": []
           },
           /** UI **/
@@ -41,7 +41,8 @@ export default class PageScripts {
               "hide": true,
               "ready": false,
               "edit": true,
-              "form": this.ui.generateData(this.ui.shortJsonElement(schema, `.+`)),
+              "form": {},
+              // "form": this.ui.generateData(this.ui.shortJsonElement(schema, `.+`)),
               //"formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `.+`))
             },
             "base": {
@@ -187,6 +188,7 @@ export default class PageScripts {
     this.console.log(`render()`);
     return new Promise(async (resolve, reject) => {
       this.console.trace(`render()`);
+      this.vue.resource.schema = await this.getSchema();
       let result = (base) ? await this.renderBase() : await this.renderSlider();
       resolve(result);
     });
@@ -218,6 +220,7 @@ export default class PageScripts {
       this.vue.ui.slider.ready = false;
       this.vue.ui.slider.hide = false;
 
+      this.vue.ui.slider.form = this.ui.generateData(this.ui.shortJsonElement(this.vue.resource.schema, `.+`)),
       this.console.log(`ui slider : ${JSON.stringify(this.vue.ui.slider, null, 2)}`);
       await this.renderForm(name);
 

@@ -145,13 +145,11 @@ class ModbusDevice extends Device {
     return new Promise(async (resolve, reject) => {
       let PropertyObject = require(`./property/${config.template}/property.js`);
       let property = new PropertyObject(this, id, config);
-      await property.init();
-      await property.start();
-      this.properties.set(id, property);
-      
-      //this.notifyPropertyChanged(this);
-      //property.start();
-      resolve();
+      property.init()
+      .then(() => property.start())
+      .then(() => this.properties.set(id, property))
+      .then(() => resolve())
+      .catch((err) => reject(err));
     });
   }
 

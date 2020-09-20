@@ -12,54 +12,53 @@ export default class ExtensionMain extends window.Extension {
 
     this.console = console;
     this.console.trace = () => {};
-    //let prom = this.init();
-    this.promise.push(this.init());
 
-    Promise.all(this.promise).then(() => {
-      this.view.innerHTML = this.ui.view;
-      this.ui.initRaid();
-      this.ui.initNavEvent();
-      this.ui.initScript();
-      this.api.getConfig().then((config) => {
+    this.init();
+  }
+
+  init() {
+    return new Promise((resolve, reject) => {
+      this.initLoader()
+      .then(() => this.initCoreObject())
+      .then(() => this.initWindowObject())
+      .then(() => this.api.getConfig())
+      .then((config) => {
         this.console.log(`get config`);
         this.config = config;
         this.console.log(this.config);
         this.ui.render(this.config);
-      });
-    });
-  }
-
-  init() {
-    return new Promise(async (resolve, reject) => {
-      await this.initLoader();
-      await this.initCoreObject();
-      await this.initWindowObject();
-      resolve();
+      })
+      .then(() => resolve())
+      .catch((err) => reject(err));
     });
   }
 
   initLoader() {
-    return new Promise(async (resolve, reject) => {
-      //  Call Loader.
-      let ExtensionLoader = (await import(`/extensions/${this.id}/static/core/js/loader.js`)).default;
-      this.loader = new ExtensionLoader(this);
-      //this.loader = new ((await import(`/extensions/${this.id}/static/core/js/loader.js`)).default)();
-      await this.loader.init();
-      resolve();
+    return new Promise((resolve, reject) => {
+      import(`/extensions/${this.id}/static/core/js/loader.js`)
+      .then((ExtensionLoader) => new ExtensionLoader.default(this))
+      .then((loader) => this.loader = loader)
+      .then(() => this.loader.init())
+      .then(() => resolve())
+      .catch((err) => reject(err));
     });
   }
 
   initCoreObject() {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this.collector = new (this.loader.getCoreObject(`collector`))(this);
       this.api = new (this.loader.getCoreObject(`api`))(this);
       this.ui = new (this.loader.getCoreObject(`ui`))(this);
 
-      await this.ui.init();
-      await this.collector.init();
-      await this.api.init();
+      // await this.ui.init();
+      // await this.collector.init();
+      // await this.api.init();
 
-      resolve();
+      //  Sequential promise using 'reduce'.
+      let initialCoreComp = [this.ui, this.collector, this.api].reduce((prev, next) => {
+        return prev.then(() => next.init()).catch((err) => reject(err));
+      }, Promise.resolve());
+      initialCoreComp.then(() => resolve());
     });
   }
 

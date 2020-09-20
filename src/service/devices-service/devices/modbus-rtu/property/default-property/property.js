@@ -134,7 +134,7 @@ class DefaultProperty extends Property{
       locker.acquire(
         key, 
         async (done) => {
-          if(this.device) {
+          if(this.device && this.exConf[`devices-service`]) {
             let ret = await this._periodWork();
             done(null, ret);
           }

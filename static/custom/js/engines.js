@@ -9,8 +9,29 @@ export default class PageEngines {
   init(config) {
     this.console.trace(`init()`);
     return new Promise(async (resolve, reject) => {
-      await this.initVue();
-      resolve();
+      this.initCustomRest()
+      .then(() => this.initVue())
+      .then(() => resolve())
+      .catch((err) => reject(err));
+    });
+  }
+
+  initCustomRest() {
+    this.console.trace(`initCustomRest()`);
+    return new Promise((resolve, reject) => {
+      let meta = {
+        "service-id": "engines-service",
+        "service-title": "Engines Service",
+        "resource-id": "engine",
+        "resource-title": "Engine"
+      };
+      let customRest = null;
+      this.ui.getCustomObject(`custom-rest`, {}, this.extension, meta)
+      .then((object) => customRest = object)
+      .then(() => customRest.init())
+      .then(() => this.rest = customRest)
+      .then(() => resolve())
+      .catch((err) => reject(err));
     });
   }
 
@@ -65,7 +86,7 @@ export default class PageEngines {
           return new Promise((resolve, reject) => {
             let conf = confirm(`Are you sure to delete engine "${id}"!`);
             if(conf) {
-              this.deleteConfig(id)
+              this.rest.deleteConfig(id)
               .then((res) => this.render())
               .then(() => resolve())
               .catch((err) => reject(err));
@@ -80,8 +101,44 @@ export default class PageEngines {
           return new Promise((resolve, reject) => {
             let id = this.vue.ui.slider[`edit-id`];
             let config = this.vue.ui.slider.form;
-            ((id) ? this.editConfig(id, config) : this.addConfig(config))
+            ((id) ? this.rest.editConfig(id, config) : this.rest.addConfig(config))
             .then((res) => this.render())
+            .then(() => resolve())
+            .catch((err) => reject(err));
+          });
+        },
+        "start": (id) => {
+          this.console.log(`start(${id})`);
+          return new Promise((resolve, reject) => {
+            this.rest.startServicedItem(id)
+            .then(() => this.render())
+            .then(() => resolve())
+            .catch((err) => reject(err));
+          });
+        },
+        "stop": (id) => {
+          this.console.log(`stop(${id})`);
+          return new Promise((resolve, reject) => {
+            this.rest.stopServicedItem(id)
+            .then(() => this.render())
+            .then(() => resolve())
+            .catch((err) => reject(err));
+          });
+        },
+        "addToService": (id) => {
+          this.console.log(`addToService(${id})`);
+          return new Promise((resolve, reject) => {
+            this.rest.addToService(id)
+            .then(() => this.render())
+            .then(() => resolve())
+            .catch((err) => reject(err));
+          });
+        },
+        "removeFromService": (id) => {
+          this.console.log(`removeFromService(${id})`);
+          return new Promise((resolve, reject) => {
+            this.rest.removeFromService(id)
+            .then(() => this.render())
             .then(() => resolve())
             .catch((err) => reject(err));
           });
@@ -136,8 +193,8 @@ export default class PageEngines {
       this.vue.ui.base.ready = false;
       this.vue.ui.slider.hide = true;
 
-      // let systemEngine = await this.getSystemEngine();
-      let systemEngine = await this.getServiceEngine();
+      // let systemEngine = await this.getServiceEngine();
+      let systemEngine = await this.rest.getServicedItem();
       this.vue.resource.systemEngine = systemEngine;
 
       this.vue.ui.base.ready = true;
@@ -162,10 +219,10 @@ export default class PageEngines {
     this.console.log(`PageEngines: renderForm(${(id) ? `${id}` : ``}) >> `);
     return new Promise((resolve, reject) => {
       if(id) {
-        this.getConfigEngine(id)
+        this.rest.getItemConfig(id)
         .then((conf) => {
           this.vue.ui.slider.form = conf;
-          return this.generateConfigSchema(conf);
+          return this.rest.generateConfigSchema(conf);
         })
         .then((schema) => {
           this.vue.resource.configSchema = schema;
@@ -191,7 +248,7 @@ export default class PageEngines {
 
       this.console.log(`config: `, config);
 
-      let newSchema = await this.generateConfigSchema(config);
+      let newSchema = await this.rest.generateConfigSchema(config);
       let oldSchema = JSON.parse(JSON.stringify(this.vue.resource.configSchema));
       this.vue.resource.configSchema = JSON.parse(JSON.stringify(newSchema));
 
@@ -253,82 +310,4 @@ export default class PageEngines {
     }
     return result;
   };
-
-  getConfigEngine(id) {
-    this.console.log(`PageEngines: getConfigEngine(${(id) ? `${id}` : ``}) >> `);
-    return new Promise((resolve, reject) => {
-      this.api.restCall(`get`, `/api/service/engines-service/config-engine${(id) ? `/${id}` : ``}`)
-      .then((res) => (res.error) ? reject(res.error) : resolve(res))
-      .catch((err) => reject(err));
-    });
-  }
-
-  getServiceEngine(id) {
-    this.console.log(`PageEngines: getServiceEngine(${(id) ? `${id}` : ``}) >> `);
-    return new Promise((resolve, reject) => {
-      this.api.restCall(`get`, `/api/service/engines-service/service-engine${(id) ? `/${id}` : ``}`)
-      .then((res) => (res.error) ? reject(res.error) : resolve(res))
-      .catch((err) => reject(err));
-    });
-  }
-
-  // getSystemEngine() {
-  //   this.console.log(`PageEngines: getSystemEngine() >> `);
-  //   return new Promise((resolve, reject) => {
-  //     this.api.restCall(`get`, `/api/service/engines-service/system-engine`)
-  //     .then((res) => (res.error) ? reject(res.error) : resolve(res))
-  //     .catch((err) => reject(err));
-  //   });
-  // }
-
-  addConfig(config) {
-    this.console.log(`PageEngines: addConfig() >> `);
-    return new Promise((resolve, reject) => {
-      let toast = this.ui.toast.info(`Adding new engine.`);
-      this.api.restCall(`post`, `/api/service/engines-service/config-engine`, config)
-      .then((res) => {
-        this.ui.toast.success(`Engine saving complete.`, {"icon": `fa-save`});
-        resolve(res);
-      })
-      .catch((err) => reject(err))
-      .finally(() => toast.remove());
-    });
-  }
-
-  editConfig(id, config) {
-    this.console.log(`PageEngines: editConfig() >> `);
-    return new Promise((resolve, reject) => {
-      let toast = this.ui.toast.info(`Edit engine "${id}".`);
-      this.api.restCall(`put`, `/api/service/engines-service/config-engine/${id}`, config)
-      .then((res) => {
-        this.ui.toast.success(`Engine "${id}" edit complete.`, {"icon": `fa-save`});
-        resolve(res);
-      })
-      .catch((err) => reject(err))
-      .finally(() => toast.remove());
-    });
-  }
-
-  deleteConfig(id) {
-    this.console.log(`PageEngines: deleteConfig() >> `);
-    return new Promise((resolve, reject) => {
-      let toast = this.ui.toast.info(`Delete engine "${id}".`, {"icon": `fa-trash-alt`});
-      this.api.restCall(`delete`, `/api/service/engines-service/config-engine/${id}`)
-      .then((res) => {
-        this.ui.toast.success(`Engine "${id}" delete complete.`, {"icon": `fa-trash-alt`});
-        resolve(res);
-      })
-      .catch((err) => reject(err))
-      .finally(() => toast.remove());
-    });
-  }
-
-  generateConfigSchema(param) {
-    this.console.log(`PageSysport: generateConfigSchema() >> `);
-    return new Promise((resolve, reject) => {
-      this.api.restCall(`post`, `/api/service/engines-service/generate-schema`, (param) ? param : undefined)
-      .then((res) => resolve(res))
-      .catch((err) => reject(err));
-    });
-  }
 }

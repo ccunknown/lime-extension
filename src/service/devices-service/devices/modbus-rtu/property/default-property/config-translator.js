@@ -89,10 +89,7 @@ class PropertyConfigTranslator {
         console.log(`>> prop id gen result: ${JSON.stringify(result, null, 2)}`);
         resolve(result);
       })
-      // let readMap = script.children.find((elem) => elem.name == `readMap.js`).object.map;
-      // let elem = readMap[params.properties.table][params.properties.address];
-      
-      // resolve(id);
+      .catch((err) => reject(err));
     });
   }
 

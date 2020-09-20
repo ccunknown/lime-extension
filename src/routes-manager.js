@@ -374,7 +374,7 @@ class RoutesManager extends APIHandler{
 
       /***  Resource : /service/engines-service/generate-schema  ***/
       {
-        "resource": /\/service\/engines-service\/generate-schema/,
+        "resource": /\/service\/engines-service\/config\/generate-schema/,
         "method": {
           "POST": (req) => {
             return new Promise((resolve, reject) => {
@@ -507,9 +507,9 @@ class RoutesManager extends APIHandler{
 
 
 
-      /***  Resource : /service/sysport-service/generateConfigSchema  ***/
+      /***  Resource : /service/sysport-service/config/generate-schema  ***/
       {
-        "resource": /\/service\/sysport-service\/generateConfigSchema/,
+        "resource": /\/service\/sysport-service\/config\/generate-schema/,
         "method": {
           "POST": (req) => {
             return new Promise((resolve, reject) => {
