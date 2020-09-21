@@ -130,7 +130,8 @@ export default class PageDevices {
             ((id) ? this.rest.editConfig(id, config) : this.rest.addConfig(config))
             .then(() => this.render())
             .then(() => resolve())
-            .catch((err) => reject(err));
+            .catch((err) => reject(err))
+            .finally(() => this.vue.ui.slider.ready = true);
           });
         },
         "start": (id) => {
@@ -265,6 +266,30 @@ export default class PageDevices {
               .catch((err) => reject(err));
             });
           }
+        },
+        "editProperty": (id) => {
+          this.console.log(`editProperty(${id})`);
+          return new Promise((resolve, reject) => {
+            let targetId = null;
+            for(let i in this.vue.ui.slider.final.properties) {
+              if(i == id) {
+                targetId = i;
+                break;
+              }
+            }
+
+            if(targetId) {
+              this.vue.propertyForm = this.vue.ui.slider.final.properties[targetId];
+              // let form = JSON.parse(JSON.stringify(this.vue.deviceForm));
+              // form.properties = JSON.parse(JSON.stringify(this.vue.propertyForm));
+              this.onAlternateChange()
+              .then(() => this.ui.saidObj(`content.devices.modal.property`).modal())
+              .then(() => resolve())
+              .catch((err) => reject(err));
+            }
+            else
+              reject(`Property id "${id}" not found!`);
+          });
         },
         "removeProperty": (id) => {
           this.console.log(`removeProperty(${id})`);

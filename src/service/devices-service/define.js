@@ -5,7 +5,10 @@ const ValidateConfigSchema = {
   "properties": {
     "name": {
       "type": "string",
-      "title": "Name"
+      "title": "Name",
+      "pattern": "^[a-zA-Z0-9 \-_]+$",
+      "minLength": 4,
+      "maxLength": 20
     },
     "description": {
       "type": "string",

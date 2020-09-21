@@ -1,3 +1,5 @@
+const Validator = require('jsonschema').Validator;
+
 const {
   ValidateConfigSchema,
   AttributeList,
@@ -7,6 +9,7 @@ const {
 class ServiceConfigTranslator {
   constructor(devicesService) {
     this.devicesService = devicesService;
+    this.Errors = require(`${this.devicesService.getRootDirectory()}/constants/errors.js`);
   }
 
   generateConfigSchema(params) {
@@ -67,6 +70,53 @@ class ServiceConfigTranslator {
       let wotSchema = await devConfTrans.translate(config, {"properties": true});
 
       resolve(wotSchema);
+    });
+  }
+
+  validate(config) {
+    console.log(`ServiceConfigTranslator: validateParams() >> `);
+    return new Promise(async (resolve, reject) => {
+      let validator = new Validator();
+      if(config.properties) {
+        let deviceConfig = JSON.parse(JSON.stringify(config));
+        deviceConfig.properties = {};
+        for(let i in config.properties) {
+          let propertyConfig = JSON.parse(JSON.stringify(config.properties[i]));
+
+          let params = JSON.parse(JSON.stringify(deviceConfig));
+          params.properties = JSON.parse(JSON.stringify(propertyConfig));
+          let schema = await this.generateConfigSchema(params);
+
+          params.properties = {};
+          params.properties[i] = propertyConfig;
+          let valid = validator.validate(params, schema);
+
+          if(valid.errors && valid.errors.length) {
+            reject(new this.Errors.InvalidConfigSchema(valid));
+            break;
+          }
+        }
+        resolve({});
+      }
+      else
+        this.validateParams(config)
+        .then((validInfo) => resolve(validInfo))
+        .catch((err) => reject(err));
+    });
+  }
+
+  validateParams(deviceConfig, propertyConfig) {
+    console.log(`ServiceConfigTranslator: validateParams() >> `);
+    return new Promise((resolve, reject) => {
+      deviceConfig
+      params.properties = config.properties[i];
+      this.generateConfigSchema(params)
+      .then((schema) => {
+        let validator = new Validator();
+        return validator.validate(params, schema);
+      })
+      .then((validInfo) => resolve(validInfo))
+      .catch((err) => reject(err));
     });
   }
 }

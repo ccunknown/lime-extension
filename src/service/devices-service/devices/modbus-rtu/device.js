@@ -42,14 +42,22 @@ class ModbusDevice extends Device {
     console.log(`ModbusDevice: init() >> `);
     return new Promise(async (resolve, reject) => {
       config = (config) ? config : this.exConf.config;
-      let schema = await this.configTranslator.translate(config);
-      // console.log(`>> config: ${JSON.stringify(config, null, 2)}`);
-      // console.log(`translated schema: ${JSON.stringify(this.exConf.schema, null, 2)}`);
-      await this.initAttr(schema);
-      await this.initEngine(config.engine);
-      let script = await this.initScript(config.script);
-      await this.initProperty(script);
-      resolve();
+      // let schema = await this.configTranslator.translate(config);
+      // // console.log(`>> config: ${JSON.stringify(config, null, 2)}`);
+      // // console.log(`translated schema: ${JSON.stringify(this.exConf.schema, null, 2)}`);
+      // await this.initAttr(schema);
+      // await this.initEngine(config.engine);
+      // let script = await this.initScript(config.script);
+      // await this.initProperty(script);
+      // resolve();
+
+      this.configTranslator.translate(config)
+      .then((schema) => this.initAttr(schema))
+      .then(() => this.initEngine(config.engine))
+      .then(() => this.initScript(config.script))
+      .then((script) => this.initProperty(script))
+      .then(() => resolve())
+      .catch((err) => reject(err));
     });
   }
 
@@ -132,10 +140,15 @@ class ModbusDevice extends Device {
     console.log(`ModbusDevice: initProperty() >> `);
     return new Promise(async (resolve, reject) => {
       let config = this.exConf.config.properties;
-      for(let i in config) {
-        await this.addProperty(i, config[i]);
+      try {
+        for(let i in config) {
+          await this.addProperty(i, config[i]);
+        }
+        resolve();
       }
-      resolve();
+      catch(err) {
+        reject(err);
+      }  
     });
   }
 
@@ -145,11 +158,15 @@ class ModbusDevice extends Device {
     return new Promise(async (resolve, reject) => {
       let PropertyObject = require(`./property/${config.template}/property.js`);
       let property = new PropertyObject(this, id, config);
-      property.init()
-      .then(() => property.start())
-      .then(() => this.properties.set(id, property))
-      .then(() => resolve())
-      .catch((err) => reject(err));
+      try {
+        property.init()
+        .then(() => property.start())
+        .then(() => this.properties.set(id, property))
+        .then(() => resolve())
+        .catch((err) => reject(err));
+      } catch(err) {
+        reject(err);
+      }
     });
   }
 

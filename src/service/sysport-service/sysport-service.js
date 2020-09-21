@@ -29,6 +29,7 @@ class SysportService extends Service {
       console.log(`SysportService: start() >> `);
       config = (config) ? config : this.config;
       this.portList = {};
+      this.enginesService = this.laborsManager.getService(`engines-service`).obj;
       this.configTranslator = new ConfigTranslator(this);
       //console.log(`sysport config : ${JSON.stringify(this.config, null, 2)}`);
       let serviceSchema = this.getSchema();
@@ -73,31 +74,48 @@ class SysportService extends Service {
     });
   }
 
-  addToService(id, schema) {
-    console.log(`SysportService: addPort("${id}": "${schema.path}") >> `);
-    return new Promise(async (resolve, reject) => {
-      if(this.portList[id]) {
-        console.warn(`Port "${id}" already open, reopen port operation!!!`);
-        await this.remove(id);
-      }
-      let port = {
-        "schema": schema,
-        "object": new SerialPort(schema.path, schema.config)
-      };
-      port.object.removeAllListeners();
-      port.object.on("close", (err) => {
-        console.log(`Port "${id}" error : `);
-        console.error(err);
-      });
-      this.portList[id] = port;
-      resolve();
+  addToService(id, schema, options) {
+    console.log(`SysportService: addToService("${id}": "${schema.path}") >> `);
+    return new Promise((resolve, reject) => {
+      ((this.portList[id]) ? this.removeFromService(id) : Promise.resolve())
+      .then(() => {
+        let port = {
+          "schema": schema,
+          "object": new SerialPort(schema.path, schema.config)
+        };
+        port.object.removeAllListeners();
+        port.object.on("close", (err) => {
+          console.log(`Port "${id}" error : `);
+          console.error(err);
+        });
+        this.portList[id] = port;
+      })
+      .then(() => (options && options.chain) ? this.addToServiceChain(id) : Promise.resolve())
+      .then(() => resolve())
+      .catch((err) => reject(err));
     });
   }
 
   addToServiceChain(id) {
     console.log(`SysportService: addToServiceChain(${id}) >> `);
     return new Promise((resolve, reject) => {
-      resolve();
+      let engines = {};
+      this.enginesService.getByConfigAttribute(`port`, id)
+      .then((list) => engines = list)
+      .then(() => {
+        let prom = [];
+        for(let i in engines)
+          prom.push(this.enginesService.removeFromService(i));
+        return Promise.all(prom);
+      })
+      .then(() => {
+        let prom = [];
+        for(let i in engines)
+          prom.push(this.enginesService.addToService(i));
+        return Promise.all(prom);
+      })
+      .then(() => resolve())
+      .catch((err) => reject(err));
     });
   }
 
@@ -175,7 +193,7 @@ class SysportService extends Service {
     console.log(`SysportService: updateService(${id}) >> `);
     return new Promise((resolve, reject) => {
       this.removeFromService(id)
-      .then(() => this.addToService(id, config))
+      .then(() => this.addToService(id, config, {"chain": true}))
       .then(() => resolve())
       .catch((err) => reject(err));
     });
@@ -185,6 +203,8 @@ class SysportService extends Service {
     options = (options) ? options : (typeof id == `object`) ? id : undefined;
     id = (typeof id == `string`) ? id : (options && options.id) ? options.id : undefined;
     console.log(`SysportService: get(${(id) ? `"${id}"` : ``}) >> `);
+    for(let i in this.portList)
+      console.log(`port id: ${i}`);
     return new Promise(async (resolve, reject) => {
       if(options && options.object == true)
         resolve((id) ? this.portList[id] : this.portList);

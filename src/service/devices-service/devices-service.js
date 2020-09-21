@@ -37,11 +37,9 @@ class DevicesService extends Service {
 
   init(config) {
     console.log(`DevicesService: init() >> `);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this.config = (config) ? config : this.config;
-      //this.adapter = new vAdapter(this.addonManager, this.manifest.name);
-      await this.initAdapter();
-      //this.initDeviceTemplate();
+      this.initAdapter();
       resolve();
     });
   }
@@ -62,24 +60,29 @@ class DevicesService extends Service {
 
   initDevices() {
     console.log(`DevicesService: initDevices() >> `);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let serviceSchema = this.getSchema();
       let list = serviceSchema.list;
-      for(let i in list) {
-        await this.addToService(i, list[i]);
-      }
-      resolve();
+      let redArr = [];
+
+      for(let i in list)
+        redArr.push({"id": i, "config": list[i]});
+      let addToService = redArr.reduce((prev, next) => {
+        return prev.then(() => this.addToService(next.id, next.config)).catch((err) => reject(err));
+      }, Promise.resolve());
+      addToService.then(() => resolve()).catch((err) => reject(err));
     });
   }
 
   start() {
     console.log(`DevicesService: start() >> `);    
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this.scriptsService = this.laborsManager.getService(`scripts-service`).obj;
       this.enginesService = this.laborsManager.getService(`engines-service`).obj;
       this.configTranslator = new ConfigTranslator(this);
-      await this.initDevices();
-      resolve();
+      this.initDevices()
+      .then(() => resolve())
+      .catch((err) => reject(err));
     });
   }
 
@@ -87,10 +90,11 @@ class DevicesService extends Service {
     console.log(`DevicesService: stop() >> `);
     return new Promise((resolve, reject) => {
       this.getServiceDevice()
-      .then(async (services) => {
-        for(let i in services)
-          await this.stopDevice(i);
-        return ;
+      .then((services) => {
+        redArr = Object.keys(services);
+        return redArr.reduce((prev, next) => {
+          return prev.then(() => this.stopDevice(next)).catch((err) => reject(err));
+        }, Promise.resolve());
       })
       .then(() => resolve({}))
       .catch((err) => reject(err));
@@ -128,52 +132,46 @@ class DevicesService extends Service {
   add(config) {
     console.log(`DevicesService: add() >> `);
     // console.log(`config: ${JSON.stringify(config, null, 2)}`);
-    return new Promise(async (resolve, reject) => {
-      let template = await this.getTemplate(config.template, {"deep": true});
-      if(template) {
-        let id = await this.generateId();
-        this.addToConfig(id, config)
-        .then((res) => this.addToService(id, config))
-        .then((res) => this.reloadConfig())
-        .then((res) => resolve(res))
-        .catch((err) => reject((err) ? err : new Errors.ErrorObjectNotReturn()));
-      }
-      else {
-        reject(new Error(`Template '${config.template}' not found!!!`));
-      }
+    return new Promise((resolve, reject) => {
+      let id, respond = {};
+      this.configTranslator.validate(config)
+      .then(() => this.getTemplate(config.template, {"deep": true}))
+      .then((template) => (template) ? 
+        this.generateId() : 
+        new Error(`Template '${config.template}' not found!!!`))
+      .then((i) => id = i)
+      .then(() => this.addToConfig(id, config))
+      .then(() => this.addToService(id, config))
+      .then(() => this.reloadConfig())
+      .then(() => this.getServiceDevice(id))
+      .then((res) => resolve(res))
+      .catch((err) => reject(err));
     });
   }
 
   addToService(id, config) {
     console.log(`DevicesService: addToService(${id}) >> `);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       // console.log(`add: ${JSON.stringify(config, null, 2)}`);
 
       //  Check duplicate.
       let device = this.adapter.getDevice(id);
-      if(device) {
-        console.warn(`>> Device id "${id}" already in service. Remove old and add new!!!`);
-        await this.removeFromService(id);
-      }
-
-      if(!config)
-        config = await this.getConfigDevice(id);
-
-      //  Initial and Add device to adapter.
-      let template = await this.getTemplate(config.template, {"deep": true});
-      if(template) {
-        // console.log(`template: ${JSON.stringify(template, null, 2)}`);
+      ((device) ? Promise.resolve() : this.removeFromService(id))
+      .then(() => (config) ? Promise.resolve(config) : this.getConfigDevice(id))
+      .then((conf) => config = conf)
+      .then(() => this.getTemplate(config.template, {"deep": true}))
+      .then((template) => {
+        if(!template)
+          throw(new Error(`Device template '${config.template}' not found!!!`));
         let path = Path.join(__dirname, `${template.path}`, `device.js`);
-        console.log(`>> path: ${path}`);
         let Obj = require(path);
         device = new Obj(this, this.adapter, id, config);
-        await device.init();
-        this.adapter.handleDeviceAdded(device);
-        resolve(device.asThing());
-      }
-      else {
-        reject(new Error(`Device template '${config.template}' not found!!!`));
-      }
+        return ;
+      })
+      .then(() => device.init())
+      .then(() => this.adapter.handleDeviceAdded(device))
+      .then(() => resolve(device.asThing()))
+      .catch((err) => reject(err));
     });
   }
 
@@ -188,7 +186,7 @@ class DevicesService extends Service {
 
   remove(id) {
     console.log(`DevicesService: removeDevice() >> `);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this.removeFromConfig(id)
       .then(() => this.removeFromService(id))
       .then(() => resolve({}))
@@ -225,7 +223,11 @@ class DevicesService extends Service {
   update(id, config) {
     console.log(`DevicesService: update(${(id) ? `${id}` : ``}) >> `);
     return new Promise((resolve, reject) => {
-      this.remove(id)
+      this.configTranslator.validate(config)
+      // .then((valid) => (valid.errors && valid.errors.length) ? 
+      //   reject(new Errors.InvalidConfigSchema(valid)) :
+      //   this.remove(id))
+      .then(() => this.remove(id))
       .then(() => this.add(config))
       .then(() => resolve({}))
       .catch((err) => reject(err));
@@ -294,11 +296,17 @@ class DevicesService extends Service {
       })
       .then(() => {
         let result = JSON.parse(JSON.stringify(config));
-        for(let i in result)
-          if(service.hasOwnProperty(i))
-            result[i].state = service[i].state;
-          else
-            result[i].state = `not in service`;
+        console.log(`>> result: ${JSON.stringify(result, null, 2)}`);
+        if(id)
+          result.state = (service) ? service.state : `not in service`;
+        else {
+          for(let i in result) {
+            if(service.hasOwnProperty(i))
+              result[i].state = service[i].state;
+            else
+              result[i].state = `not in service`;
+          }
+        }
         return result;
       })
       .then((res) => resolve(res))
@@ -308,7 +316,7 @@ class DevicesService extends Service {
 
   getDeviceConfigWithState(id) {
     console.log(`DevicesService: getDeviceConfigWithState(${(id) ? `${id}`: ``})`);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       if(id) {
         let device = this.adapter.getDevice(id);
         let schema = JSON.parse(JSON.stringify(device.exConf.config));
@@ -322,14 +330,14 @@ class DevicesService extends Service {
       else {
         let devices = this.adapter.getDevices();
         let schemas = {};
-        let promArr = [];
-        try {
-          for(let i in devices)
-            schemas[i] = await this.getDeviceConfigWithState(i);
-          resolve(schemas);
-        } catch(err) {
-          reject(err);
-        }
+        let redArr = Object.keys(devices);
+        let reduceProm = redArr.reduce((prev, next) => {
+          return prev
+          .then(() => this.getDeviceConfigWithState(next))
+          .then((schema) => schemas[next] = schema)
+          .catch((err) => reject(err));
+        }, Promise.resolve());
+        reduceProm.then(() => resolve(schemas)).catch((err) => reject(err));
       }
     });
   }
@@ -352,9 +360,10 @@ class DevicesService extends Service {
 
   generateConfigSchema(params) {
     console.log(`DevicesService: generateConfigSchema() >> `);
-    return new Promise(async (resolve, reject) => {
-      let config = await this.configTranslator.generateConfigSchema(params);
-      resolve(config);
+    return new Promise((resolve, reject) => {
+      this.configTranslator.generateConfigSchema(params)
+      .then((config) => resolve(config))
+      .catch((err) => reject(err));
     });
   }
 
@@ -369,77 +378,82 @@ class DevicesService extends Service {
 
   translateConfig(config) {
     console.log(`DevicesService: getConfigTranslation() >> `);
-    return new Promise(async (resolve, reject) => {
-      let translated = await this.configTranslator.translate(config);
-      resolve(translated);
+    return new Promise((resolve, reject) => {
+      this.configTranslator.translate(config)
+      .then((translated) => resolve(translated))
+      .catch((err) => reject(err));
     });
   }
 
   getTemplate(name, options) {
     console.log(`DevicesService: getTemplate(${(name) ? name : ``})`);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let serviceSchema = this.getSchema();
       if(name) {
         let result = null;
         let opttmp = (options) ? JSON.parse(JSON.stringify(options)) : {};
         opttmp.object = false;
-        let deviceList = (await this.getDirectorySchema(serviceSchema.directory, opttmp)).children;
-        //console.log(`deviceList: ${JSON.stringify(deviceList, null, 2)}`);
-        let device = deviceList.find((elem) => elem.name == name);
-        if(device)
-          result = await this.getDirectorySchema(device.path, options);
-        resolve(result);
+
+        this.getDirectorySchema(serviceSchema.directory, options)
+        .then((deviceDir) => deviceDir.children.find((elem) => elem.name == name))
+        .then((device) => (device) ? this.getDirectorySchema(device.path, options) : null)
+        .then((res) => resolve(res))
+        .catch((err) => reject(err));
       }
       else {
-        let deviceList = (await this.getDirectorySchema(serviceSchema.directory, options)).children;
-        //console.log(`deviceList: ${JSON.stringify(deviceList)}`);
-        resolve(deviceList);
+        this.getDirectorySchema(serviceSchema.directory, options)
+        .then((deviceList) => resolve(deviceList.children))
+        .catch((err) => reject(err));
       }
     });
   }
 
   getCompatibleScript(tagArr) {
     console.log(`ModbusDevice: getCompatibleScript() >> `);
-    return new Promise(async (resolve, reject) => {
-      let scripts = await this.scriptsService.get(null, {"deep": true});
-      //console.log(`ModbusDevice: getCompatibleScript(): ${JSON.stringify(scripts, null, 2)}`);
-      let result = scripts.filter((elem) => {
-        //console.log(`tags: ${elem.meta.tags}`);
-        return !!elem.meta.tags.find((elem) => tagArr.includes(elem));
-      });
-      result = result.map((elem) => elem.name);
-      resolve(result);
+    return new Promise((resolve, reject) => {
+      this.scriptsService.get(null, {"deep": true})
+      .then((scripts) => {
+        let result = scripts.filter((elem) => {
+          //console.log(`tags: ${elem.meta.tags}`);
+          return !!elem.meta.tags.find((elem) => tagArr.includes(elem));
+        });
+        return result.map((elem) => elem.name);
+      })
+      .then((res) => resolve(res))
+      .catch((err) => reject(err));
     });
   }
 
   getCompatibleEngine(templateName) {
     console.log(`DevicesService: getCompatibleEngine(${templateName}) >> `);
-    return new Promise(async (resolve, reject) => {
-      let schema = await this.enginesService.getSchema({"renew": true});
-      let engines = schema.list;
-      // console.log(`DevicesService: getCompatibleEngine(): getSchema(): ${JSON.stringify(schema, null, 2)}`);
-      // let engines = this.enginesService.getSchema().list;
-      // console.log(`DevicesService: getCompatibleEngine(): ${JSON.stringify(engines, null, 2)}`);
-      let result = this.jsonToArray(engines, `id`).filter((elem) => elem.template == templateName);
-      result = result.map((elem) => elem.id);
-      resolve(result);
+    return new Promise((resolve, reject) => {
+      this.enginesService.getSchema({"renew": true})
+      .then((schema) => {
+        let engines = schema.list;
+        let result = this.jsonToArray(engines, `id`).filter((elem) => elem.template == templateName);
+        return result.map((elem) => elem.id);
+      })
+      .then((res) => resolve(res))
+      .catch((err) => reject(err));
     });
   }
 
   generateId() {
     console.log(`DevicesService: generateId() >> `);
-    return new Promise(async (resolve, reject) => {
-      let deviceList = (await this.getSchema({"renew": true})).list;
-      // console.log(deviceList);
-      // console.log(`deviceList: ${JSON.stringify(deviceList, null, 2)}`);
-      let id;
-      let maxIndex = 10000;
-      for(let i = 1;i < maxIndex;i++) {
-        id = `lime-device-${i}`;
-        if(!(deviceList.hasOwnProperty(id)))
-          break;
-      }
-      resolve(id);
+    return new Promise((resolve, reject) => {
+      this.getSchema({"renew": true})
+      .then((deviceConf) => {
+        let id;
+        let maxIndex = 10000;
+        for(let i = 1;i < maxIndex;i++) {
+          id = `lime-device-${i}`;
+          if(!(deviceConf.list.hasOwnProperty(id)))
+            break;
+        }
+        return id;
+      })
+      .then((id) => resolve(id))
+      .catch((err) => reject(err));
     });
   }
 }

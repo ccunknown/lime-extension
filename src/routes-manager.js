@@ -189,6 +189,20 @@ class RoutesManager extends APIHandler{
         }
       },
 
+      /***  Resource : /service/devices-service/validate  ***/
+      {
+        "resource": /\/service\/devices-service\/config\/validate/,
+        "method": {
+          "POST": (req) => {
+            return new Promise((resolve, reject) => {
+              this.laborsManager.getService(`devices-service`).obj.configTranslator.validate(req.body)
+              .then((json) => resolve(this.makeJsonRespond(JSON.stringify(json))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
       /***  Resource : /service/devices-service/service-device  ***/
       {
         "resource": /\/service\/devices-service\/service-device/,
@@ -664,12 +678,13 @@ class RoutesManager extends APIHandler{
       err = (err) ? err : new Errors.ErrorObjectNotReturn();
       console.error(err);
       let res;
-      if(err.getHttpResponse) {
-        console.log(`Extension error.`);
+      console.log(`getHttpResponse type: ${typeof err.getHttpResponse}`);
+      if(typeof err.getHttpResponse == `function`) {
+        console.error(`Extension error.`);
         res = err.getHttpResponse();
       }
       else {
-        console.log(`System error.`);
+        console.error(`System error.`);
         console.log(`error message: ${err.message}`);
         res = {
           "status": 500,

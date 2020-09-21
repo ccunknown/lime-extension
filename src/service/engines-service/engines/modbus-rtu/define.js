@@ -6,6 +6,16 @@ const ValidateConfigSchema = {
     "port": {
       "title": "Port",
       "type": "string"
+    },
+    "delay": {
+      "title": "Delay (ms)",
+      "type": "number",
+      "default": 100
+    },
+    "timeout": {
+      "title": "Timeout (ms)",
+      "type": "number",
+      "default": 200
     }
   }
 };

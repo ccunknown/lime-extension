@@ -95,24 +95,28 @@ class PropertyConfigTranslator {
 
   translate(config, fullMap) {
     console.log(`PropertyConfigTranslator: translate() >> `);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let validateInfo = this.validator.validate(config, ValidateConfigSchema);
       if(validateInfo.errors.length)
         reject(new this.Errors.InvalidConfigSchema(validateInfo.errors));
 
       let modbusRegister = fullMap.map[config.table][`${config.address}`];
       // console.log(`>> FullMap: ${JSON.stringify(fullMap.map[config.table], null, 2)}`);
-      let schema = {
-        "title": modbusRegister.name,
-        "type": modbusRegister.type,
-        "value": (modbusRegister.type == `string`) ? `` : 
-        (modbusRegister.type == `number`) ? 0 : 
-        (modbusRegister.type == `boolean`) ? false : undefined,
-        "unit": modbusRegister.unit,
-        "readOnly": true
-      };
+      try {
+        let schema = {
+          "title": modbusRegister.name,
+          "type": modbusRegister.type,
+          "value": (modbusRegister.type == `string`) ? `` : 
+          (modbusRegister.type == `number`) ? 0 : 
+          (modbusRegister.type == `boolean`) ? false : undefined,
+          "unit": modbusRegister.unit,
+          "readOnly": true
+        };
 
-      resolve(schema);
+        resolve(schema);
+      } catch(err) {
+        reject(err);
+      }
     });
   }
 }

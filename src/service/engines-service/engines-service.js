@@ -93,7 +93,7 @@ class EnginesService extends Service {
       if(!config)
         config = await this.getConfigEngine(id);
 
-      let template = this.engineTemplateList.find((elem) => config.template == elem.name);
+      let template = (await this.getTemplate(null, {"deep": true})).find((elem) => config.template == elem.name);
       if(template) {
         let path = template.path.replace(/^\//, ``);
         let Obj = require(`./${path}/engine.js`);
@@ -237,7 +237,8 @@ class EnginesService extends Service {
         .catch((err) => reject(err));
       }
       else {
-        reject(new Errors.ObjectNotFound(id));
+        console.warn(`Object with id "${id}" not found!!!`);
+        resolve();
       }
     });
   }
@@ -250,25 +251,23 @@ class EnginesService extends Service {
     return (options && options.object) ? ((id) ? this.engineList[id] : this.engineList) : this.getConfigEngine(id, options);
   }
 
-  // getSystemEngine(id) {
-  //   console.log(`EnginesService: getSystemEngine(${(id) ? `${id}` : ``}) >> `);
-  //   return new Promise((resolve, reject) => {
-  //     let config = null;
-  //     this.getConfigEngine(id)
-  //     .then((conf) => {
-  //       config = conf;
-  //       return (id) ? this.getServiceEngine(id, {"object": true}) : this.getServiceEngine(null, {"object": true});
-  //     })
-  //     .then((service) => {
-  //       let result = JSON.parse(JSON.stringify(config));
-  //       for(let i in result)
-  //         result[i].state = (service.hasOwnProperty(i)) ? service[i].getState() : `error`;
-  //       return result;
-  //     })
-  //     .then((result) => resolve(result))
-  //     .catch((err) => reject(err));
-  //   });
-  // }
+  getByConfigAttribute(attr, val) {
+    console.log(`EnginesService: getByConfigAttribute(${attr}, ${val}) >> `);
+    return new Promise((resolve, reject) => {
+      this.get()
+      .then((engines) => {
+        let result = {};
+        for(let i in engines) {
+          if(engines[i].hasOwnProperty(attr) && engines[i][attr] == val)
+            result[i] = engines[i];
+        }
+        console.log(`>> result: ${JSON.stringify(result, null, 2)}`);
+        return result;
+      })
+      .then((res) => resolve(res))
+      .catch((err) => reject(err));
+    });
+  }
 
   getConfigEngine(id, options) {
     options = (options) ? options : (typeof id == `object`) ? id : undefined;

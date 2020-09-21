@@ -42,7 +42,7 @@ class DefaultProperty extends Property{
         },
         "periodWork": {
           "key": `periodWork`,
-          "locker": new AsyncLock()
+          "locker": new AsyncLock({"maxPending": 0})
         }
       },
       "timeout": 5000
@@ -53,13 +53,18 @@ class DefaultProperty extends Property{
   }
 
   init() {
-    return new Promise(async (resolve, reject) => {
-      let schema = await this.configTranslator.translate(this.exConf.config, this.device.exConf.script);
-      this.copyDescr(schema);
-      this.setCachedValue(schema.value);
-      //this.device.notifyPropertyChanged(this);
-
-      resolve();
+    return new Promise((resolve, reject) => {
+      try {
+        this.configTranslator.translate(this.exConf.config, this.device.exConf.script)
+        .then((schema) => {
+          this.copyDescr(schema);
+          this.setCachedValue(schema.value);
+        })
+        .then(() => resolve())
+        .catch((err) => reject(err));
+      } catch(err) {
+        reject(err);
+      } 
     });
   }
 
@@ -97,19 +102,16 @@ class DefaultProperty extends Property{
     return new Promise((resolve, reject) => {
       locker.acquire(key, async () => {
         if(this.device && !this.period) {
-          console.log(`setPeriodWork(${this.name}) >> Accept.`);
-          //await this.periodWork();
-          //this.period = setTimeout(() => this.setPeriodWork(), this.exConf.config.period);
-          this.period = setInterval(
-            () => this.periodWork(), 
-            this.exConf.config.period
-          );
+          console.log(`>> setPeriodWork(${this.name}) >> Accept.`);
+          await this.periodWork();
+          this.period = setInterval(() => this.periodWork(), this.exConf.config.period);
         }
         else
-          console.log(`setPeriodWork(${this.name}) >> Deny.`);
+          console.log(`>> setPeriodWork(${this.name}) >> Deny.`);
         return ;
       })
-      .then(() => resolve());
+      .then(() => resolve())
+      .catch((err) => reject(err));
     });
   }
 
