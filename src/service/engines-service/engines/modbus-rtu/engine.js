@@ -185,10 +185,10 @@ class ModbusRtu {
         this.client.setID(cmd.id);
         let val;
         let func = 
-        (cmd.table == `coils`) ? this.client.readCoils.bind(this.client) :
-        (cmd.table == `contacts`) ? this.client.readDiscreteInputs.bind(this.client) :
-        (cmd.table == `inputRegisters`) ? this.client.readInputRegisters.bind(this.client) :
-        (cmd.table == `holdingRegisters`) ? this.client.readHoldingRegisters.bind(this.client) : undefined;
+          (cmd.table == `coils`) ? this.client.readCoils.bind(this.client) :
+          (cmd.table == `contacts`) ? this.client.readDiscreteInputs.bind(this.client) :
+          (cmd.table == `inputRegisters`) ? this.client.readInputRegisters.bind(this.client) :
+          (cmd.table == `holdingRegisters`) ? this.client.readHoldingRegisters.bind(this.client) : undefined;
         
         if(func) {
           try {

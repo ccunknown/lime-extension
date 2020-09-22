@@ -232,6 +232,46 @@ class RoutesManager extends APIHandler{
         }
       },
 
+      /***  Resource : /service/devices-service/system-device/{device-id}/metrics  ***/
+      {
+        "resource": /\/service\/devices-service\/service-device\/[^/]+\/metrics/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              let pathArr = req.path.split(`/`);
+              pathArr.pop();
+              let id = pathArr.pop();
+
+              this.laborsManager.getService(`devices-service`).obj.get(id, {"object": true})
+              .then((device) => device.getMetrics())
+              .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /service/devices-service/system-device/{device-id}/properties/{property-id}/metrics  ***/
+      {
+        "resource": /\/service\/devices-service\/service-device\/[^/]+\/properties\/[^/]+\/metrics/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              let pathArr = req.path.split(`/`);
+              pathArr.pop();
+              let propertyId = pathArr.pop();
+              pathArr.pop();
+              let deviceId = pathArr.pop();
+
+              this.laborsManager.getService(`devices-service`).obj.get(deviceId, {"object": true})
+              .then((device) => device.getPropertyMetrics(propertyId))
+              .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
       /***  Resource : /service/devices-service/service-device/{id}/{cmd}  ***/
       {
         "resource": /\/service\/devices-service\/service-device\/[^/]+\/[^/]+/,

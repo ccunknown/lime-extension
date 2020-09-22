@@ -226,8 +226,9 @@ export default class ExtensionUi {
     });
   }
 
-  render() {
-
+  render(config) {
+    this.console.log(`render(${config})`);
+    $("a.nav-link:first-child").trigger(`click`);
   }
 
   getNav() {

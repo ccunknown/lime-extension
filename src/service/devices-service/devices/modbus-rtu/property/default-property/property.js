@@ -50,6 +50,25 @@ class DefaultProperty extends Property{
 
     this.Errors = require(`${this.exConf[`devices-service`].getRootDirectory()}/constants/errors.js`);
     this.configTranslator = new ConfigTranslator(this.exConf[`devices-service`]);
+
+    let itemMetricsPath = `${this.exConf[`devices-service`].getRootDirectory()}/src/service/item-metrics.js`;
+    console.log(`Item Metrics Path: ${itemMetricsPath}`);
+    let ItemMetrics = require(itemMetricsPath);
+    this.metrics = new ItemMetrics({
+      "start": null,
+      "call": {
+        "count": 0,
+        "last": null
+      },
+      "success-call": {
+        "count": 0,
+        "last": null
+      },
+      "fail-call": {
+        "count": 0,
+        "last": null
+      }
+    });
   }
 
   init() {
@@ -87,7 +106,12 @@ class DefaultProperty extends Property{
 
   start() {
     console.log(`${this.name}: DefaultProperty: start() >> `);
-    return this.setPeriodWork();
+    return new Promise((resolve, reject) => {
+      this.metrics.set(`start`, (new Date()).toString())
+      .then(() => this.setPeriodWork())
+      .then((res) => resolve(res))
+      .catch((err) => reject(err));
+    });
   }
 
   stop() {
@@ -166,6 +190,8 @@ class DefaultProperty extends Property{
 
       //  Prevent infinite await by using setTimeout to call resolve().
       //setTimeout(resolve, this.exConf.timeout);
+      this.metrics.set(`call.last`, (new Date()).toString());
+      this.metrics.increase(`call.count`);
 
       try {
         if(script && engine && engine.getState() == "running") {
@@ -179,12 +205,16 @@ class DefaultProperty extends Property{
 
           let value = script.map[table][address].translator(ret.buffer, script.map[table][address]);
           console.log(`${this.device.id}[${this.name}] => [hex: ${ret.buffer.toString('hex')}] / [${typeof value}: ${value}]`);
+          this.metrics.set(`success-call.last`, (new Date()).toString());
+          this.metrics.increase(`success-call.count`);
           //console.log(`${this.device.id} : ${this.name} : ${typeof value} : ${value}`);
           this.setCachedValueAndNotify(value);
         }
       }
       catch(err) {
         console.log(`DefaultProperty: periodWork() >> Error!!!`);
+        this.metrics.set(`fail-call.last`, (new Date()).toString());
+        this.metrics.increase(`fail-call.count`);
         console.error(err);
       }
       //this.deviceObject.setProperty(this.property.name, value);

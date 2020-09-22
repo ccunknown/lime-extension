@@ -69,6 +69,22 @@ class ModbusDevice extends Device {
     });
   }
 
+  initProperty() {
+    console.log(`ModbusDevice: initProperty() >> `);
+    return new Promise(async (resolve, reject) => {
+      let config = this.exConf.config.properties;
+      try {
+        for(let i in config) {
+          await this.addProperty(i, config[i]);
+        }
+        resolve();
+      }
+      catch(err) {
+        reject(err);
+      }  
+    });
+  }
+
   initEngine(engineName) {
     return new Promise(async (resolve, reject) => {
       let enginesService = this.exConf[`devices-service`].enginesService;
@@ -86,14 +102,6 @@ class ModbusDevice extends Device {
     });
   }
 
-  getEngine() {
-    let engine = this.exConf.engine;
-    let state = (engine) ? engine.getState() : null;
-    if(state != `running`)
-      this.disableProperties();
-    return (state == `running`) ? engine : null;
-  }
-
   initScript(scriptName) {
     return new Promise(async (resolve, reject) => {
       let scriptsService = this.exConf[`devices-service`].scriptsService;
@@ -105,8 +113,68 @@ class ModbusDevice extends Device {
     });
   }
 
+  getEngine() {
+    let engine = this.exConf.engine;
+    let state = (engine) ? engine.getState() : null;
+    if(state != `running`)
+      this.disableProperties();
+    return (state == `running`) ? engine : null;
+  }
+
   getScript() {
     return this.exConf.script;
+  }
+
+  getState() {
+    console.log(`ModbusDevice: getState() >> `);
+    return new Promise((resolve, reject) => {
+      let props = this.getPropertyDescriptions();
+      let hasRunningProp = false;
+      let hasStoppedProp = false;
+      for(let i in props) {
+        let prop = this.findProperty(i);
+        // console.log(`${i} period: ${prop.period && true}`);
+        if(prop.period && true)
+          hasRunningProp = true;
+        else
+          hasStoppedProp = true;
+      }
+      let state = (hasRunningProp && hasStoppedProp) ? `semi-running` :
+        (hasRunningProp) ? `running` :
+        (hasStoppedProp) ? `stopped` :
+        `no-property`;
+      resolve(state);
+    });
+  }
+
+  getMetrics() {
+    console.log(`ModbusDevice: getMetrics() >> `);
+    return this.getPropertyMetrics();
+  }
+
+  getPropertyMetrics(id) {
+    console.log(`ModbusDevice: getPropertyMetrics(${(id) ? `${id}` : ``}) >> `);
+    return new Promise((resolve, reject) => {
+      if(id) {
+        let property = this.findProperty(id);
+        resolve(property.metrics.get());
+      }
+      else {
+        let result = {};
+        // let propKeyList = Object.keys(this.properties);
+        let propKeyList = [];
+        this.properties.forEach((property, id) => propKeyList.push(id));
+        console.log(`propKeyList: ${propKeyList}`);
+        let prom = propKeyList.reduce((prev, next) => {
+          console.log(`next: ${next}`);
+          return prev
+            .then(() => this.getPropertyMetrics(next))
+            .then((metrics) => result[next] = metrics)
+            .catch((err) => reject(err));
+        }, Promise.resolve());
+        prom.then(() => resolve(result)).catch((err) => reject(err));
+      }
+    });
   }
 
   start() {
@@ -136,22 +204,6 @@ class ModbusDevice extends Device {
     });
   }
 
-  initProperty() {
-    console.log(`ModbusDevice: initProperty() >> `);
-    return new Promise(async (resolve, reject) => {
-      let config = this.exConf.config.properties;
-      try {
-        for(let i in config) {
-          await this.addProperty(i, config[i]);
-        }
-        resolve();
-      }
-      catch(err) {
-        reject(err);
-      }  
-    });
-  }
-
   addProperty(id, config) {
     console.log(`ModbusDevice: addProperty() >> `);
     // console.log(`>> config: ${JSON.stringify(config, null, 2)}`);
@@ -167,28 +219,6 @@ class ModbusDevice extends Device {
       } catch(err) {
         reject(err);
       }
-    });
-  }
-
-  getState() {
-    console.log(`ModbusDevice: getState() >> `);
-    return new Promise((resolve, reject) => {
-      let props = this.getPropertyDescriptions();
-      let hasRunningProp = false;
-      let hasStoppedProp = false;
-      for(let i in props) {
-        let prop = this.findProperty(i);
-        // console.log(`${i} period: ${prop.period && true}`);
-        if(prop.period && true)
-          hasRunningProp = true;
-        else
-          hasStoppedProp = true;
-      }
-      let state = (hasRunningProp && hasStoppedProp) ? `semi-running` :
-        (hasRunningProp) ? `running` :
-        (hasStoppedProp) ? `stopped` :
-        `no-property`;
-      resolve(state);
     });
   }
 

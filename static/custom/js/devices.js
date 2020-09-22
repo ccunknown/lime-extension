@@ -41,9 +41,24 @@ export default class PageDevices {
     Object.assign(this.rest, {
       generatePropertyId: (params) => {
         this.console.log(`generatePropertyId() >> `);
-        return new Promise(async (resolve, reject) => {
-          let res = await this.api.restCall(`post`, `/api/service/devices-service/config/generate-property-id`, params);
-          resolve(res);
+        return new Promise((resolve, reject) => {
+          this.api.restCall(`post`, `/api/service/devices-service/config/generate-property-id`, params)
+          .then((res) => resolve(res))
+          .catch((err) => reject(err));
+        });
+      },
+      getPropertyMetrics: (deviceId, propertyId) => {
+        return new Promise((resolve, reject) => {
+          this.api.restCall(`get`, `/api/service/devices-service/service-device/${deviceId}/properties/${propertyId}/metrics`)
+          .then((res) => resolve(res))
+          .catch((err) => reject(err));
+        });
+      },
+      getMetrics: (id) => {
+        return new Promise((resolve, reject) => {
+          this.api.restCall(`get`, `/api/service/devices-service/service-device/${id}/metrics`)
+          .then((res) => resolve(res))
+          .catch((err) => reject(err));
         });
       }
     });
@@ -85,6 +100,7 @@ export default class PageDevices {
           },
           "deviceForm": {},
           "propertyForm": {},
+          "metrics": {},
           /** Function **/
           "fn": {}
         },
@@ -170,28 +186,22 @@ export default class PageDevices {
             .catch((err) => reject(err));
           });
         },
+        "showMetrics": (id) => {
+          this.console.log(`showMetrics(${id})`);
+          return new Promise((resolve, reject) => {
+            this.vue.metrics = null;
+            this.ui.saidObj(`content.devices.modal.metrics`).modal();
+            this.rest.getMetrics(id)
+            .then((res) => this.vue.metrics = res)
+            .then(() => resolve())
+            .catch((err) => reject(err));
+          });
+        },
         "renderBase": () => {
           this.render();
         },
         "renderSlider": () => {
           this.render(false);
-        },
-        "onDeviceTemplateChange": async (event) => {
-          let val = event.target.value;
-          this.vue.resource.deviceConfigSchema = await this.getDeviceConfigSchema(val);
-          let config = this.ui.generateData(this.vue.resource.deviceConfigSchema);
-          for(let i in config) {
-            if(i != `devices`)
-              this.vue.ui.slider.form.config[i] = config[i];
-          }
-        },
-        "onDeviceConfigChange": async (event, position) => {
-          console.log(event);
-          console.log(position);
-          let preRequireList = this.getPreRequire(this.vue.resource.deviceConfigSchema);
-          console.log(`preRequireList: ${preRequireList}`);
-          if(position == `template` || preRequireList.includes(position))
-            this.renewDeviceConfigSchema();
         },
         "onAlternateChange": () => {
           console.log(`onAlternateChange() >> `);
@@ -270,18 +280,8 @@ export default class PageDevices {
         "editProperty": (id) => {
           this.console.log(`editProperty(${id})`);
           return new Promise((resolve, reject) => {
-            let targetId = null;
-            for(let i in this.vue.ui.slider.final.properties) {
-              if(i == id) {
-                targetId = i;
-                break;
-              }
-            }
-
-            if(targetId) {
-              this.vue.propertyForm = this.vue.ui.slider.final.properties[targetId];
-              // let form = JSON.parse(JSON.stringify(this.vue.deviceForm));
-              // form.properties = JSON.parse(JSON.stringify(this.vue.propertyForm));
+            if(this.vue.ui.slider.final.properties.hasOwnProperty(id)) {
+              this.vue.propertyForm = this.vue.ui.slider.final.properties[id];
               this.onAlternateChange()
               .then(() => this.ui.saidObj(`content.devices.modal.property`).modal())
               .then(() => resolve())
@@ -298,6 +298,17 @@ export default class PageDevices {
             if(i != id)
               result[i] = this.vue.ui.slider.final.properties[i];
           this.vue.ui.slider.final.properties = result;
+        },
+        "showPropertyMetrics": (id) => {
+          this.console.log(`showPropertyMetrics(${id})`);
+          return new Promise((resolve, reject) => {
+            this.vue.metrics = null;
+            this.ui.saidObj(`content.devices.modal.metrics`).modal();
+            this.rest.getPropertyMetrics(this.vue.ui.slider[`edit-id`], id)
+            .then((res) => this.vue.metrics = res)
+            .then(() => resolve())
+            .catch((err) => reject(err));
+          });
         },
         "objectToText": (obj) => {
           let result = ``;

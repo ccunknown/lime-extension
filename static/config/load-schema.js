@@ -169,7 +169,8 @@
         "name": "devices",
         "type": "custom-view",
         "path": "/custom/views/devices.html",
-        "icon": "fas fa-calculator",
+        // "icon": "fas fa-calculator",
+        "icon": "fas fa-network-wired",
         "link-script": "script-devices"
       },
       "script-devices": {

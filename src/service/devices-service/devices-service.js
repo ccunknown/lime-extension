@@ -237,7 +237,9 @@ class DevicesService extends Service {
   get(id, options) {
     console.log(`DevicesService: get(${id})`);
     return new Promise((resolve, reject) => {
-      if(id) {
+      if(options && options.object)
+        resolve((id) ? this.adapter.getDevice(id) : this.adapter.getDevices());
+      else if(id) {
         let device = this.adapter.getDevice(id);
         let json = device.asThing();
         resolve(JSON.parse(JSON.stringify(json)));
