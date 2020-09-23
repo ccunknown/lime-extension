@@ -18,6 +18,8 @@ export default {
             type = `checkbox`;
           else if(param.type == `object`)
             type = `object`;
+          else if(param.type == `array` && param.items && param.items.enum)
+            type = `checklist`;
           return type;
         },
 
@@ -25,8 +27,25 @@ export default {
           if(param.const)
             return true;
           return false;
-        }
+        },
 
+        "check": (arr, val) => {
+          arr = (Array.isArray(arr)) ? arr : [];
+          (arr.includes(val)) ? 0 : arr.push(val);
+          // arr.sort();
+          return arr;
+        },
+
+        "uncheck": (arr, val) => {
+          arr = (Array.isArray(arr)) ? arr : [];
+          let result = [];
+          if(arr.includes(val)) {
+            for(let i in arr)
+              (arr[i] == val) ? 0 : result.push(arr[i]);
+          }
+          // result.sort();
+          return result;
+        }
       }
     }
   }

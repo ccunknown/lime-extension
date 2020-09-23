@@ -39,14 +39,15 @@ class DeviceConfigTranslator {
         let indexArray = index.split(`.`);
         let pointer = config;
         while(indexArray.length > 0) {
-          index = indexArray.shift();
-          if(pointer.hasOwnProperty(`properties`) && pointer.properties.hasOwnProperty(index)) {
-            pointer = pointer.properties[index];
+          let i = indexArray.shift();
+          console.log(`index: ${i}`);
+          if(pointer.hasOwnProperty(`properties`) && pointer.properties.hasOwnProperty(i)) {
+            pointer = pointer.properties[i];
             if(indexArray.length == 0)
               pointer.alternate = true;
           }
-          else if(pointer.hasOwnProperty(`patternProperties`) && pointer.patternProperties.hasOwnProperty(index)) {
-            pointer = pointer.patternProperties[index];
+          else if(pointer.hasOwnProperty(`patternProperties`) && pointer.patternProperties.hasOwnProperty(i)) {
+            pointer = pointer.patternProperties[i];
             if(indexArray.length == 0)
               pointer.alternate = true;
           }

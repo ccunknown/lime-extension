@@ -79,6 +79,7 @@ class DefaultProperty extends Property{
           this.copyDescr(schema);
           this.setCachedValue(schema.value);
         })
+        .then(() => this.device.properties.set(this.name, this))
         .then(() => resolve())
         .catch((err) => reject(err));
       } catch(err) {

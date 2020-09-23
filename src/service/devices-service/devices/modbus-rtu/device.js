@@ -133,11 +133,16 @@ class ModbusDevice extends Device {
       let hasStoppedProp = false;
       for(let i in props) {
         let prop = this.findProperty(i);
-        // console.log(`${i} period: ${prop.period && true}`);
+        prop = (prop.master) ? prop.master : prop;
+        console.log(`${i} period: ${prop.period && true}`);
         if(prop.period && true)
           hasRunningProp = true;
         else
           hasStoppedProp = true;
+        // if((prop.isRunning) ? prop.isRunning() : (prop.period && true))
+        //   hasRunningProp = true;
+        // else
+        //   hasStoppedProp = true;
       }
       let state = (hasRunningProp && hasStoppedProp) ? `semi-running` :
         (hasRunningProp) ? `running` :
@@ -157,6 +162,7 @@ class ModbusDevice extends Device {
     return new Promise((resolve, reject) => {
       if(id) {
         let property = this.findProperty(id);
+        property = (property.master) ? property.master : property;
         resolve(property.metrics.get());
       }
       else {
@@ -213,7 +219,7 @@ class ModbusDevice extends Device {
       try {
         property.init()
         .then(() => property.start())
-        .then(() => this.properties.set(id, property))
+        // .then(() => this.properties.set(id, property))
         .then(() => resolve())
         .catch((err) => reject(err));
       } catch(err) {
@@ -230,6 +236,7 @@ class ModbusDevice extends Device {
       // console.log(`Properties : ${JSON.stringify(props, null, 2)}`);
       for(let i in props) {
         let prop = this.findProperty(i);
+        prop = (prop.master) ? prop.master : prop;
         promArr.push(prop.start());
       }
       Promise.all(promArr)
@@ -246,6 +253,7 @@ class ModbusDevice extends Device {
       // console.log(`Properties : ${JSON.stringify(props, null, 2)}`);
       for(let i in props) {
         let prop = this.findProperty(i);
+        prop = (prop.master) ? prop.master : prop;
         promArr.push(prop.stop());
       }
       Promise.all(promArr)

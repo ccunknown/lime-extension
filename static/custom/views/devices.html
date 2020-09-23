@@ -306,6 +306,7 @@
               </label>
               <json-schema-form 
               v-bind:param="param"
+              v-bind:value="propertyForm[index]"
               class="miso-badge-union border-secondary"
               v-bind:class="{'no-resize': param.attrs && param.attrs.type == 'textarea'}"
               v-model="propertyForm[index]"

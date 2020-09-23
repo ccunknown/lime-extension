@@ -45,7 +45,7 @@ const CompatibleList = {
 
 const AlternateList = [
   "script",
-  "properties.[^\n]+.template"
+  "properties.^[^\n]+$.template"
 ];
 
 const AttributeList = [
