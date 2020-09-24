@@ -79,6 +79,7 @@ v-on:change="$emit('change', $event.target.checked)"
             $event.target.value
         )
     )"
+    :checked="fn.isChecked(value, addr)"
     >
     <span>{{(param.items.enumDisplay && param.items.enumDisplay[`${addr}`] && param.items.enumDisplay[`${addr}`].title) ? param.items.enumDisplay[`${addr}`].title : addr}}</span>
     <br>

@@ -283,6 +283,10 @@ export default class PageDevices {
             if(this.vue.ui.slider.final.properties.hasOwnProperty(id)) {
               this.vue.propertyForm = this.vue.ui.slider.final.properties[id];
               this.onAlternateChange()
+              /* *** *** Hot fix. *** *** */
+              .then(() => this.vue.propertyForm = this.vue.ui.slider.final.properties[id])
+              .then(() => this.onAlternateChange())
+              /* *** *** *** *** *** *** */
               .then(() => this.ui.saidObj(`content.devices.modal.property`).modal())
               .then(() => resolve())
               .catch((err) => reject(err));
@@ -457,6 +461,7 @@ export default class PageDevices {
         );
         propertyCopy = this.jsonCopyBySchema(vuePropTemp, propertyGen, propSchema);
         this.vue.propertyForm = vuePropTemp;
+        console.log(`propertyForm: `, JSON.stringify(vuePropTemp, null, 2));
       }
 
       if(deviceCopy || propertyCopy)

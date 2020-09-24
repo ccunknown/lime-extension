@@ -29,6 +29,13 @@ export default {
           return false;
         },
 
+        "isChecked": (arr, val) => {
+          console.log(`isChecked() >> `);
+          console.log(`arr: `, arr);
+          console.log(`val: `, val);
+          return (arr.includes(val)) ? true : false;
+        },
+
         "check": (arr, val) => {
           arr = (Array.isArray(arr)) ? arr : [];
           (arr.includes(val)) ? 0 : arr.push(val);
