@@ -54,6 +54,16 @@
   top: 5rem;
 }
 
+#extension-lime-contents .miso-workspace {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 5px 0px 5px 0px;
+  height: fit-content;
+  max-height: 100%;
+  overflow: auto;
+}
+
 #extension-lime-contents .nav .nav-link {
   background: var(--light);
   margin-left: 3px;
@@ -92,11 +102,11 @@
 }
 
 #extension-lime-contents .miso-content {
-  max-height: 100%;
+  /*max-height: 100%;*/
   max-width: 700px;
-  overflow: auto;
+  /*overflow: auto;
   height: fit-content;
-  min-height: var(--miso-content-min-height);
+  min-height: var(--miso-content-min-height);*/
 }
 
 #extension-lime-contents .miso-tab-content {

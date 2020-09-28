@@ -8,7 +8,7 @@
       "code": "LimeExtension",
       "title-short": "LiME",
       "title-full": "LiME Extension",
-      "debug": true,
+      "debug": false,
       "config": {
         "config-sync": {
           "enable": false,
