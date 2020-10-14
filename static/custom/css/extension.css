@@ -3,38 +3,38 @@
 */
 
 :root {
-  --blue: #007bff;
-  --indigo: #6610f2;
-  --purple: #6f42c1;
-  --pink: #e83e8c;
-  --red: #dc3545;
-  --orange: #fd7e14;
-  --yellow: #ffc107;
-  --green: #28a745;
-  --teal: #20c997;
-  --cyan: #17a2b8;
-  --white: #fff;
-  --gray: #6c757d;
-  --gray-dark: #343a40;
-  --primary: #007bff;
-  --secondary: #6c757d;
-  --success: #28a745;
-  --info: #17a2b8;
-  --warning: #ffc107;
-  --danger: #dc3545;
-  --light: #f8f9fa;
-  --dark: #343a40;
-  --breakpoint-xs: 0;
-  --breakpoint-sm: 576px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 992px;
-  --breakpoint-xl: 1200px;
-  --font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --lime-blue: #007bff;
+  --lime-indigo: #6610f2;
+  --lime-purple: #6f42c1;
+  --lime-pink: #e83e8c;
+  --lime-red: #dc3545;
+  --lime-orange: #fd7e14;
+  --lime-yellow: #ffc107;
+  --lime-green: #28a745;
+  --lime-teal: #20c997;
+  --lime-cyan: #17a2b8;
+  --lime-white: #fff;
+  --lime-gray: #6c757d;
+  --lime-gray-dark: #343a40;
+  --lime-primary: #007bff;
+  --lime-secondary: #6c757d;
+  --lime-success: #28a745;
+  --lime-info: #17a2b8;
+  --lime-warning: #ffc107;
+  --lime-danger: #dc3545;
+  --lime-light: #f8f9fa;
+  --lime-dark: #343a40;
+  --lime-breakpoint-xs: 0;
+  --lime-breakpoint-sm: 576px;
+  --lime-breakpoint-md: 768px;
+  --lime-breakpoint-lg: 992px;
+  --lime-breakpoint-xl: 1200px;
+  --lime-font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --lime-font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-  --miso-content-min-height: 230px;
-  --miso-loading-dialog-width: 200px;
-  --miso-loading-dialog-height: 50px;
+  --lime-miso-content-min-height: 230px;
+  --lime-miso-loading-dialog-width: 200px;
+  --lime-miso-loading-dialog-height: 50px;
 }
 
 
@@ -47,11 +47,11 @@
 
 /* Container and Nav */
 #extension-lime-extension-view {
-  height: calc(100% - 5rem);
+  height: calc(100% - 6rem);
   box-sizing: border-box;
   /*overflow: auto;*/
   position: relative;
-  top: 5rem;
+  top: 6rem;
 }
 
 #extension-lime-contents .miso-workspace {
@@ -65,27 +65,27 @@
 }
 
 #extension-lime-contents .nav .nav-link {
-  background: var(--light);
+  background: var(--lime-light);
   margin-left: 3px;
-  color: var(--dark);
+  color: var(--lime-dark);
   border-radius: 0.5rem 0.5rem 0rem 0rem;
   /*width: 40px;*/
   padding: 0.5rem 0.5rem;
 }
 
 #extension-lime-contents .nav .nav-link:hover {
-  background-color: var(--warning);
+  background-color: var(--lime-warning);
   opacity: 1;
 }
 
 #extension-lime-contents .nav .nav-link.active {
-  background-color: var(--dark);
+  background-color: var(--lime-dark);
   opacity: 1;
 }
 
 #extension-lime-contents .nav .nav-link.disabled {
-  background-color: var(--gray);
-  color: var(--light);
+  background-color: var(--lime-gray);
+  color: var(--lime-light);
   opacity: 0.5;
 }
 
@@ -106,7 +106,7 @@
   max-width: 700px;
   /*overflow: auto;
   height: fit-content;
-  min-height: var(--miso-content-min-height);*/
+  min-height: var(--lime-miso-content-min-height);*/
 }
 
 #extension-lime-contents .miso-tab-content {
@@ -151,7 +151,7 @@
   top: 0%;
   width: 100%;
   height: 100%;
-  background: var(--dark);
+  background: var(--lime-dark);
   z-index: 1;
 
   transition: left 0.5s;
@@ -188,30 +188,30 @@
   margin: 10px;
   /*height: 150px;*/
   width: 100%;
-  border-color: var(--gray);
+  border-color: var(--lime-gray);
   transition: 0.2s;
 }
 
 #extension-lime-contents .miso-grid-item:hover {
-  border-color: var(--light);
+  border-color: var(--lime-light);
   transition: 0.2s;
 }
 
 #extension-lime-contents .miso-grid-item-adder {
   border: 2px;
   border-style: dashed;
-  border-color: var(--dark);
+  border-color: var(--lime-dark);
 }
 
 #extension-lime-contents .miso-grid-item-adder .card-body {
-  background-color: var(--dark);
-  color: var(--gray);
+  background-color: var(--lime-dark);
+  color: var(--lime-gray);
   transition: 0.2s;
 }
 
 #extension-lime-contents .miso-grid-item-adder .card-body:hover {
-  background-color: var(--secondary);
-  color: var(--light);
+  background-color: var(--lime-secondary);
+  color: var(--lime-light);
   transition: 0.2s;
 }
 
@@ -239,26 +239,26 @@
 #extension-lime-contents .miso-badge-http-method-post,
 #extension-lime-contents .miso-badge-http-method-put,
 #extension-lime-contents .miso-badge-http-method-patch {
-  color: var(--dark);
-  background-color: var(--warning);
+  color: var(--lime-dark);
+  background-color: var(--lime-warning);
 }
 
 #extension-lime-contents .miso-badge-http-method-get {
-  color: var(--light);
-  background-color: var(--success);
+  color: var(--lime-light);
+  background-color: var(--lime-success);
 }
 
 #extension-lime-contents .miso-badge-http-method-delete {
-  color: var(--dark);
-  background-color: var(--danger);
+  color: var(--lime-dark);
+  background-color: var(--lime-danger);
 }
 
 #extension-lime-contents .miso-badge-http-method-head,
 #extension-lime-contents .miso-badge-http-method-connect,
 #extension-lime-contents .miso-badge-http-method-option,
 #extension-lime-contents .miso-badge-http-method-trace {
-  color: var(--dark);
-  background-color: var(--light);
+  color: var(--lime-dark);
+  background-color: var(--lime-light);
 }
 
 #extension-lime-contents .miso-grid-item .card-text {
@@ -277,7 +277,7 @@
 }
 
 #extension-lime-contents .miso-history-item {
-  border-color: var(--secondary);
+  border-color: var(--lime-secondary);
   transition: 0.2s;
   margin-bottom: 10px;
   max-width: 700px;
@@ -291,12 +291,12 @@
 }
 
 #extension-lime-contents .miso-history-item:hover {
-  border-color: var(--light);
+  border-color: var(--lime-light);
   transition: 0.2s;
 }
 
 #extension-lime-contents .miso-history-item .card-header{
-  background-color: var(--dark);
+  background-color: var(--lime-dark);
   padding: 5px;
   font-size: 1.5rem;
   display: flex;
@@ -304,7 +304,7 @@
 }
 
 #extension-lime-contents .miso-history-item .card-body {
-  background-color: var(--secondary);
+  background-color: var(--lime-secondary);
   font-size: 1.4rem;
   padding: 5px;
 }
@@ -317,12 +317,12 @@
 
   border-style: solid;
   border-width: 1px;
-  border-color: var(--dark);
+  border-color: var(--lime-dark);
   transition: 0.2s;
 }
 
 #extension-lime-contents .miso-history-item-element:hover {
-  border-color: var(--light);
+  border-color: var(--lime-light);
   transition: 0.2s;
 }
 
@@ -336,7 +336,7 @@
 }
 
 #extension-lime-contents .miso-history-item-element > div {
-  background-color: var(--dark);
+  background-color: var(--lime-dark);
   display: flex;
   align-items: center;
 }
@@ -352,15 +352,15 @@
 }
 
 #extension-lime-contents .miso-history-item-element > button:hover {
-  background-color: var(--warning);
-  color: var(--dark);
+  background-color: var(--lime-warning);
+  color: var(--lime-dark);
   transition: 0.2s;
 }
 
 #extension-lime-contents .miso-history-item-element > *:first-child {
   border-radius: 3px 0px 0px 3px;
   min-width: 30px;
-  background-color: var(--dark);
+  background-color: var(--lime-dark);
   opacity: 0.5;
 }
 
@@ -386,7 +386,7 @@
 #extension-lime-contents .miso-modal .modal-header,
 #extension-lime-contents .miso-modal .modal-body,
 #extension-lime-contents .miso-modal .modal-footer {
-  background-color: var(--dark);
+  background-color: var(--lime-dark);
 }
 
 #extension-lime-contents .miso-modal .modal-body {
@@ -403,12 +403,12 @@
 #extension-lime-contents .miso-setting-item {
   margin-bottom: 5px;
 
-  border-color: var(--secondary);
+  border-color: var(--lime-secondary);
   transition: 0.2s;
 }
 
 #extension-lime-contents .miso-setting-item:hover {
-  border-color: var(--light);
+  border-color: var(--lime-light);
   transition: 0.2s;
 }
 
@@ -426,15 +426,15 @@
 
 /* Service item */
 #extension-lime-contents .miso-service-item {
-  border-color: var(--secondary);
+  border-color: var(--lime-secondary);
 }
 
 #extension-lime-contents .miso-service-item > .card-headers {
-  background-color: var(--dark);
+  background-color: var(--lime-dark);
 }
 
 #extension-lime-contents .miso-service-item > .card-bodys {
-  background-color: var(--secondary);
+  background-color: var(--lime-secondary);
 }
 
 
@@ -505,7 +505,7 @@
 
 #extension-lime-contents input.miso-badge-union {
   height: 24px;
-  background-color: var(--light);
+  background-color: var(--lime-light);
 }
 
 #extension-lime-contents textarea.miso-badge-union {
@@ -515,7 +515,7 @@
 #extension-lime-contents .border-dash {
   border: 1px;
   border-style: dashed;
-  border-color: var(--dark);
+  border-color: var(--lime-dark);
 }
 
 
@@ -568,18 +568,18 @@
 }
 
 #extension-lime-contents .header-item-key {
-  color: var(--light);
-  background-color: var(--info);
+  color: var(--lime-light);
+  background-color: var(--lime-info);
 }
 
 #extension-lime-contents .header-item-value {
-  color: var(--dark);
-  background-color: var(--warning);
+  color: var(--lime-dark);
+  background-color: var(--lime-warning);
 }
 
 #extension-lime-contents .header-item-remove {
-  color: var(--light);
-  background-color: var(--danger);
+  color: var(--lime-light);
+  background-color: var(--lime-danger);
 }
 
 
@@ -617,8 +617,8 @@
 #extension-lime-contents .miso-loading-dialog {
   background-color: black;
   position: fixed;
-  top: calc(calc(100vh - var(--miso-loading-dialog-height))/2);
-  left: calc(calc(100vw - var(--miso-loading-dialog-width))/2);
+  top: calc(calc(100vh - var(--lime-miso-loading-dialog-height))/2);
+  left: calc(calc(100vw - var(--lime-miso-loading-dialog-width))/2);
   z-index: 1100;
   width: 150px;
   height: 50px;

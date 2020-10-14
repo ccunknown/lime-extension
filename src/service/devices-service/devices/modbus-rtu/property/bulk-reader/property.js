@@ -169,7 +169,7 @@ class BulkReader {
   }
 
   generatePropertyId(address) {
-    return `${this.id}-${address}`;
+    return `${this.id}-${Number(address).toString(16)}`;
   }
 
   _periodWork() {
