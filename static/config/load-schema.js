@@ -123,7 +123,8 @@
 
       "jquery": {
         "type": "script",
-        "path": "/resource/js/jquery.min.js"
+        "path": "/resource/js/jquery.min.js",
+        "windowObj": "jQuery"
       },
       "mustache": {
         "type": "script",
@@ -147,11 +148,13 @@
       },
       "popper": {
         "type": "script",
-        "path": "/resource/js/popper.min.js"
+        "path": "/resource/js/popper.min.js",
+        "windowObj": "Popper"
       },
       "bootstrap": {
         "type": "script",
-        "path": "/resource/js/bootstrap.min.js"
+        "path": "/resource/js/bootstrap.min.js",
+        "windowObj": "bootstrap"
       },
 
       "vue-component-json-schema-template": {

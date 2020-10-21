@@ -186,11 +186,11 @@ class DefaultProperty extends Property{
       let id = this.device.exConf.config.address;
       let address = ex.config.address;
       let table = ex.config.table;
-      //console.log(`script : ${JSON.stringify(this.script, null, 2)}`);
+      // console.log(`script : ${JSON.stringify(this.script, null, 2)}`);
       let ntr = script.map[table][address].registerSpec.number;
 
       //  Prevent infinite await by using setTimeout to call resolve().
-      //setTimeout(resolve, this.exConf.timeout);
+      // setTimeout(resolve, this.exConf.timeout);
       this.metrics.set(`call.last`, (new Date()).toString());
       this.metrics.increase(`call.count`);
 
@@ -205,10 +205,10 @@ class DefaultProperty extends Property{
           });
 
           let value = script.map[table][address].translator(ret.buffer, script.map[table][address]);
-          console.log(`${this.device.id}[${this.name}] => [hex: ${ret.buffer.toString('hex')}] / [${typeof value}: ${value}]`);
+          // console.log(`${this.device.id}[${this.name}] => [hex: ${ret.buffer.toString('hex')}] / [${typeof value}: ${value}]`);
           this.metrics.set(`success-call.last`, (new Date()).toString());
           this.metrics.increase(`success-call.count`);
-          //console.log(`${this.device.id} : ${this.name} : ${typeof value} : ${value}`);
+          // console.log(`${this.device.id} : ${this.name} : ${typeof value} : ${value}`);
           this.setCachedValueAndNotify(value);
         }
       }
@@ -218,10 +218,29 @@ class DefaultProperty extends Property{
         this.metrics.increase(`fail-call.count`);
         console.error(err);
       }
-      //this.deviceObject.setProperty(this.property.name, value);
+      // this.deviceObject.setProperty(this.property.name, value);
       
       resolve();
     });
+  }
+
+  //  Remove console.log for reduce numbers of log printout.
+  setCachedValueAndNotify(value) {
+    const oldValue = this.value;
+    this.setCachedValue(value);
+
+    // setCachedValue may change the value, therefore we have to check
+    // this.value after the call to setCachedValue
+    const hasChanged = oldValue !== this.value;
+
+    if (hasChanged) {
+      this.device.notifyPropertyChanged(this);
+
+      // console.log('setCachedValueAndNotify for property', this.name,
+      //             'from', oldValue, 'to', this.value, 'for', this.device.id);
+    }
+
+    return hasChanged;
   }
 }
 

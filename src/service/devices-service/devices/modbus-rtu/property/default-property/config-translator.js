@@ -56,7 +56,7 @@ class PropertyConfigTranslator {
           //config.properties.address.enum.push(`${addrList[i].name} [Addr:${Number(i).toString(16)}]`);
           config.properties.address.enum.push(Number(i));
           config.properties.address.enumDisplay[Number(i)] = {
-            "title": `${addrList[i].name} [Addr:${Number(i).toString(16)}]`
+            "title": `${addrList[i].name} [Addr:${Number(i).toString(16)}] ${(addrList[i].unit) ? `(${addrList[i].unit})` : ``}`
           };
         }
 

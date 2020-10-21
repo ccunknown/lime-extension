@@ -34,7 +34,7 @@ export default class ExtensionLoader {
           if(schema.define.hasOwnProperty(obj)) {
             if(schema.define[obj][`object-name`])
               result[obj] = await this.loadObject(`${schema.define[obj].path}`);
-            else
+            else if(!schema.define[obj][`windowObj`] || !window.hasOwnProperty(schema.define[obj][`windowObj`]))
               result[obj] = await this.loadResource(`${schema.define[obj].path}`);
             resolve(result);
           }

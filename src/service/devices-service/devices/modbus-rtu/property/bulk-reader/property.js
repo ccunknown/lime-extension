@@ -202,7 +202,7 @@ class BulkReader {
             "numtoread": ntr
           });
 
-          console.log(`${this.device.id}[${this.id}] => [hex: ${ret.buffer.toString('hex')}]`);
+          // console.log(`${this.device.id}[${this.id}] => [hex: ${ret.buffer.toString('hex')}]`);
           // console.log(ret.buffer);
 
           for(let i in addrArr) {
@@ -216,7 +216,7 @@ class BulkReader {
             
             // console.log(`${this.device.id}[${addr.toString(16)}] => [${startPoint}=>${endPoint}][hex: ${buffVal.toString('hex')}]`);
             let value = script.map[table][addr].translator(buffVal, script.map[table][addr]);
-            console.log(`${this.device.id}[0x${(`0000`+addr.toString(16)).slice(-4)}] => [hex: ${buffVal.toString('hex')} / value: ${typeof value}: ${value}]`);
+            // console.log(`${this.device.id}[0x${(`0000`+addr.toString(16)).slice(-4)}] => [hex: ${buffVal.toString('hex')} / value: ${typeof value}: ${value}]`);
             // let value = script.map[table][addr].translator(ret.buffer, script.map[table][address]);
             // console.log(`${this.device.id}[${this.id}] => [hex: ${ret.buffer.toString('hex')}] / [${typeof value}: ${value}]`);
             this.metrics.set(`success-call.last`, (new Date()).toString());
