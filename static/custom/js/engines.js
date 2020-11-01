@@ -165,6 +165,10 @@ export default class PageEngines {
         },
         "renderSlider": () => {
           this.render(false);
+        },
+        "onAlternateChange": () => {
+          console.log(`onAlternateChange() >> `);
+          this.onAlternateChange();
         }
       };
 

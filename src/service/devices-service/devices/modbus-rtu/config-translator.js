@@ -74,7 +74,8 @@ class DeviceConfigTranslator {
       if(params && 
         params.properties &&
         params.properties.template &&
-        params.properties.template != ``) {
+        params.properties.template != `` &&
+        config.properties.properties.patternProperties[this.propIdPattern].properties.template.enum.includes(params.properties.template)) {
 
         let PropertyConfigTranslator = require(`./property/${params.properties.template}/config-translator.js`);
         let propConfTrans = new PropertyConfigTranslator(this.devicesService);
