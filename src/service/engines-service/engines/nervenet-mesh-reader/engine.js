@@ -126,7 +126,7 @@ class NervenetMeshReader {
   dbSync() {
     console.log(`NervenetMeshReader: dbSync() >> `);
     return new Promise((resolve, reject) => {
-      let cmd = `sshpass -p "${this.config.password}" rsync -a ${this.config.username}@${this.config.host}:${this.config.dbpath} ./loramesh.sqlite3`;
+      let cmd = `sshpass -p "${this.config.password}" rsync -e "ssh -o StrictHostKeyChecking=no" -a ${this.config.username}@${this.config.host}:${this.config.dbpath} ./loramesh.sqlite3`;
       exec(`${cmd}`, (err, stdout, stderr) => {
         (err) ? reject(err) : resolve(stdout);
       });
