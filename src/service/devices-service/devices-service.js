@@ -426,15 +426,25 @@ class DevicesService extends Service {
     });
   }
 
-  getCompatibleEngine(templateName) {
-    console.log(`DevicesService: getCompatibleEngine(${templateName}) >> `);
+  getCompatibleEngine(tagArr) {
+    console.log(`DevicesService: getCompatibleEngine(${tagArr.toString()}) >> `);
     return new Promise((resolve, reject) => {
       this.enginesService.getSchema({"renew": true})
       .then((schema) => {
         let engines = schema.list;
-        let result = this.jsonToArray(engines, `id`).filter((elem) => elem.template == templateName);
+        let result = this.jsonToArray(engines, `id`).filter((elem) => tagArr.includes(elem.template));
         return result.map((elem) => elem.id);
       })
+      .then((res) => resolve(res))
+      .catch((err) => reject(err));
+    });
+  }
+
+  getEngineTemplateName(engineName) {
+    console.log(`DevicesService: getEngineTemplateName(${engineName})`);
+    return new Promise((resolve, reject) => {
+      this.enginesService.getSchema({"renew": true})
+      .then((config) => config.list.hasOwnProperty(engineName) ? config.list[engineName].template : null)
       .then((res) => resolve(res))
       .catch((err) => reject(err));
     });
