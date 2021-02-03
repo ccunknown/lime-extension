@@ -66,7 +66,6 @@ class DeviceConfigTranslator {
 
       //  Initial 'enum' attribute [engine].
       config.properties.engine.enum = await this.devicesService.getCompatibleEngine(CompatibleList.engine);
-      console.log(`>>>>>>>>>>>>>>>> engine list: ${JSON.stringify(config.properties.engine, null, 2)}`);
       
       //  Adjust config by engine type.
       var scriptCompatibleList = [...CompatibleList.script];
@@ -123,7 +122,7 @@ class DeviceConfigTranslator {
 
   translate(config, options) {
     console.log(`DeviceConfigTranslator: translate() >> `);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let schema = {
         "name": config.name,
         // "type": [
@@ -134,38 +133,34 @@ class DeviceConfigTranslator {
         "@type": [`EnergyMonitor`]
       };
 
-      if(options && options.properties) {
-        schema.properties = {};
-        
-        let fullMap = await this.buildFullMap(config.script);
-        // let script = await this.scriptsService.get(config.script, {"object": true, "deep": true});
-        // let readMap = script.children.find((elem) => elem.name == `readMap.js`).object;
-        // let calcMap = script.children.find((elem) => elem.name == `calcMap.js`).object;
-        // //console.log(`readMap: ${JSON.stringify(readMap, null, 2)}`);
-        // let fullMap = this.scriptBuilder.buildFullMap(readMap, calcMap);
-
-        for(let i in config.properties) {
-          let PropertyConfigTranslator = require(`./property/${config.properties[i].template}/config-translator.js`);
-          let propConfTrans = new PropertyConfigTranslator(this.devicesService);
-          let propSchema = await propConfTrans.translate(config.properties[i], fullMap);
-
-          schema.properties[i] = propSchema;
+      this.buildFullMap(config.script)
+      .then((fullMap) => {
+        if(options && options.properties) {
+          schema.properties = {};
+          for(let i in config.properties) {
+            let PropertyConfigTranslator = require(`./property/${config.properties[i].template}/config-translator.js`);
+            let propConfTrans = new PropertyConfigTranslator(this.devicesService);
+            schema.properties[i] = propConfTrans.translate(config.properties[i], fullMap);
+          }
+          return Promise.all(Object.values(schema.properties));
         }
-      }
-
-      resolve(schema);
+      })
+      .then(() => resolve(schema))
+      .catch((err) => reject(err));
     });
   }
 
   buildFullMap(scriptName) {
     console.log(`DeviceConfigTranslator: buildFullMap() >> `);
-    return new Promise(async (resolve, reject) => {
-      let script = await this.scriptsService.get(scriptName, {"object": true, "deep": true});
-      let readMap = script.children.find((elem) => elem.name == `readMap.js`).object;
-      let calcMap = script.children.find((elem) => elem.name == `calcMap.js`).object;
-      let fullMap = this.scriptBuilder.buildFullMap(readMap, calcMap);
-
-      resolve(fullMap);
+    return new Promise((resolve, reject) => {
+      this.scriptsService.get(scriptName, {"object": true, "deep": true})
+      .then((script) => {
+        let readMap = script.children.find((elem) => elem.name == `readMap.js`).object;
+        let calcMap = script.children.find((elem) => elem.name == `calcMap.js`).object;
+        return this.scriptBuilder.buildFullMap(readMap, calcMap);
+      })
+      .then((fullMap) => resolve(fullMap))
+      .catch((err) => reject(err));
     });
   }
 }

@@ -40,7 +40,7 @@ class ModbusTcp {
   restart() {
     console.log(`ModbusTcp: restart() >> `);
     this.emit(`restarting`, this);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this.stop()
       .then(() => this.start())
       .then(() => resolve())
@@ -72,7 +72,6 @@ class ModbusTcp {
   }
 
   act(cmd) {
-    //console.log(`ModbusTcp: act() >> `);
     return new Promise((resolve, reject) => {
       let locker = this.lock[`act`].locker;
       let key = this.lock[`act`].key;
@@ -89,7 +88,7 @@ class ModbusTcp {
   }
 
   _act(cmd) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       setTimeout(() => {
         this.__act(cmd)
         .then((res) => resolve(res))
@@ -99,11 +98,10 @@ class ModbusTcp {
   }
 
   __act(cmd) {
-    //console.log(`ModbusTcp: _act() >> `);
     let timestamp = (new Date()).toISOString();
     //console.log(`>>>>>> time: ${timestamp}`);
     //console.log(`cmd : ${JSON.stringify(cmd)}`);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
 
       let timeout = setTimeout(() => {
         let timeerr = (new Date()).toISOString();
@@ -133,8 +131,7 @@ class ModbusTcp {
         .finally(() => clearTimeout(timeout));
       }
       else {
-        //console.warn(`Action "${cmd.action}" not define!!!`);
-        //resolve(null);
+        // console.warn(`Action "${cmd.action}" not define!!!`);
         reject(new Error(`Action "${cmd.action}" not define!!!`));
       }
     });

@@ -13,7 +13,7 @@ class ServiceConfigTranslator {
 
   generateConfigSchema() {
     console.log(`ServiceConfigTranslator: generateConfigSchema() >> `);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       //  Copy config from ValidateConfigSchema.
       let config = JSON.parse(JSON.stringify(ValidateConfigSchema));
 

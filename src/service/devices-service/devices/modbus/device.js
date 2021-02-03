@@ -40,17 +40,8 @@ class ModbusDevice extends Device {
 
   init(config) {
     console.log(`ModbusDevice: init() >> `);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       config = (config) ? config : this.exConf.config;
-      // let schema = await this.configTranslator.translate(config);
-      // // console.log(`>> config: ${JSON.stringify(config, null, 2)}`);
-      // // console.log(`translated schema: ${JSON.stringify(this.exConf.schema, null, 2)}`);
-      // await this.initAttr(schema);
-      // await this.initEngine(config.engine);
-      // let script = await this.initScript(config.script);
-      // await this.initProperty(script);
-      // resolve();
-
       this.configTranslator.translate(config)
       .then((schema) => this.initAttr(schema))
       .then(() => this.initEngine(config.engine))
@@ -62,54 +53,54 @@ class ModbusDevice extends Device {
   }
 
   initAttr(schema) {
-    return new Promise(async (resolve, reject) => {
+    console.log(`ModbusDevice: initAttr() >> `);
+    return new Promise((resolve, reject) => {
       for(let i in schema)
         this[i] = schema[i];
       resolve();
     });
   }
 
-  initProperty() {
+  initProperty(id, config) {
     console.log(`ModbusDevice: initProperty() >> `);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let config = this.exConf.config.properties;
-      try {
-        for(let i in config) {
-          await this.addProperty(i, config[i]);
-        }
-        resolve();
-      }
-      catch(err) {
-        reject(err);
-      }  
+      Object.keys(config).reduce((prevProm, id) => {
+        return prevProm.then(() => this.addProperty(id, config[id]));
+      }, Promise.resolve())
+      .then(() => resolve())
+      .catch((err) => reject(err));
     });
   }
 
   initEngine(engineName) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let enginesService = this.exConf[`devices-service`].enginesService;
-      //let engine = enginesService.get(this.exConf.config.engine, {"object": true}).object;
-      let engine = await enginesService.get(this.exConf.config.engine, {"object": true});
-
-      engine.event.on(`running`, () => this.getScript() ? this.enableProperties() : null);
-      engine.event.on(`error`, () => {
-        console.log(`ModbusDevice: on engine error >> `);
-        this.disableProperties();
-      });
-
-      this.exConf.engine = engine;
-      resolve(this.exConf.engine);
+      Promise.resolve(enginesService.get(this.exConf.config.engine, {"object": true}))
+      .then((engine) => {
+        engine.event.on(`running`, () => this.getScript() ? this.enableProperties() : null);
+        engine.event.on(`error`, () => {
+          console.log(`ModbusDevice: on engine error >> `);
+          this.disableProperties();
+        });
+        this.exConf.engine = engine;
+      })
+      .then(() => resolve())
+      .catch((err) => reject(err));
     });
   }
 
   initScript(scriptName) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let scriptsService = this.exConf[`devices-service`].scriptsService;
-      let script = await scriptsService.get(scriptName, {"object": true, "deep": true});
-      let readMap = script.children.find((elem) => elem.name == `readMap.js`).object;
-      let calcMap = script.children.find((elem) => elem.name == `calcMap.js`).object;
-      this.exConf.script = this.scriptBuilder.buildFullMap(readMap, calcMap);
-      resolve(this.exConf.script);
+      Promise.resolve(scriptsService.get(scriptName, {"object": true, "deep": true}))
+      .then((script) => {
+        let readMap = script.children.find((elem) => elem.name == `readMap.js`).object;
+        let calcMap = script.children.find((elem) => elem.name == `calcMap.js`).object;
+        this.exConf.script = this.scriptBuilder.buildFullMap(readMap, calcMap);
+      })
+      .then(() => resolve(this.exConf.script))
+      .catch((err) => reject(err));
     });
   }
 
@@ -213,7 +204,7 @@ class ModbusDevice extends Device {
   addProperty(id, config) {
     console.log(`ModbusDevice: addProperty() >> `);
     // console.log(`>> config: ${JSON.stringify(config, null, 2)}`);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let PropertyObject = require(`./property/${config.template}/property.js`);
       let property = new PropertyObject(this, id, config);
       try {
