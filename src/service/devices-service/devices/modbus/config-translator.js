@@ -90,22 +90,57 @@ class DeviceConfigTranslator {
       config.properties.properties.patternProperties[this.propIdPattern].properties.template.enum = propertiesDirectorySchema.map((elem) => elem.name);
 
       //  Extend properties config using 'params.properties'.
+      this.assignPatternProperties(config.properties.properties.patternProperties[this.propIdPattern], params)
+      .then((prop) => config.properties.properties.patternProperties[this.propIdPattern] = prop)
+      .then(() => resolve(config))
+      .catch((err) => reject(err));
+
+      // resolve(config);
+    });
+  }
+
+  assignAlternate() {
+    return new Promise((resolve, reject) => {
+      resolve();
+    });
+  }
+
+  assignAttribute() {
+    return new Promise((resolve, reject) => {
+      resolve();
+    });
+  }
+
+  assignEnum() {
+    return new Promise((resolve, reject) => {
+      resolve();
+    });
+  }
+
+  assignPatternProperties(property, params) {
+    let patternProperty = JSON.parse(JSON.stringify(property));
+    return new Promise((resolve, reject) => {
+      //  Check 'params' has properties template and that template are included in pattern property enum choice.
       if(params && 
         params.properties &&
         params.properties.template &&
         params.properties.template != `` &&
-        config.properties.properties.patternProperties[this.propIdPattern].properties.template.enum.includes(params.properties.template)) {
+        patternProperty.properties.template.enum.includes(params.properties.template)) {
 
         let PropertyConfigTranslator = require(`./property/${params.properties.template}/config-translator.js`);
         let propConfTrans = new PropertyConfigTranslator(this.devicesService);
-        let propConf = await propConfTrans.generateConfigSchema(params);
-        for(let i in propConf.properties) {
-          config.properties.properties.patternProperties[this.propIdPattern].properties[i] = propConf.properties[i];
-        }
-        config.properties.properties.patternProperties[this.propIdPattern].required = [...config.properties.properties.patternProperties[this.propIdPattern].required, ...propConf.required];
+        propConfTrans.generateConfigSchema(params)
+        .then((propConf) => {
+          propConf.properties.forEach((value, i) => {
+            patternProperty.properties[i] = value;
+          });
+          //  Merge 'required' array.
+          patternProperty.required = [...patternProperty.required, ...propConf.required];
+        })
+        .then(() => resolve(patternProperty));
       }
-
-      resolve(config);
+      else
+        resolve(patternProperty);
     });
   }
 
