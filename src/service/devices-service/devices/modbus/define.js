@@ -3,13 +3,13 @@ const ValidateConfigSchema = {
   "required": ["script", "engine", "address"],
   "additionalProperties": false,
   "properties": {
-    "script": {
-      "type": "string",
-      "title": "Script"
-    },
     "engine": {
       "type": "string",
       "title": "Engine"
+    },
+    "script": {
+      "type": "string",
+      "title": "Script"
     },
 
     "ip": {
@@ -18,7 +18,8 @@ const ValidateConfigSchema = {
     },
     "port": {
       "type": "number",
-      "title": "Device Port Number"
+      "title": "Device Port Number",
+      "default": 502
     },
 
     "address": {
