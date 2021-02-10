@@ -19,6 +19,16 @@ const ValidateConfigSchema = {
     "template": {
       "title": "Engine Template",
       "type": "string"
+    },
+    "_config": {
+      "type": "object",
+      "required": [`addToService`],
+      "properties": {
+        "addToService": {
+          "type": "boolean",
+          "default": true
+        }
+      }
     }
   }
 };

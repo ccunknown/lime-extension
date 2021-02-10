@@ -57,7 +57,8 @@
   box-sizing: border-box;
   /*overflow: auto;*/
   /*position: relative;*/
-  position: fixed;
+  /*position: fixed;*/
+  position: absolute;
   top: var(--lime-miso-section-clearance-top);
 }
 /*#extension-lime-extension-view {

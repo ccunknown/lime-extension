@@ -53,8 +53,8 @@
             <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
 
               <template v-for="(param, index) in resource.configSchema.properties">
-                <div class="miso-badge-header-group grow-1">
-                  <label v-if="fn.typeIdentify(param) != 'object'" class="miso-label-badge badge-secondary">
+                <div v-if="fn.typeIdentify(param) != 'object'" class="miso-badge-header-group grow-1">
+                  <label class="miso-label-badge badge-secondary">
                     {{(param.title) ? param.title : index}}
                   </label>
                   <json-schema-form 

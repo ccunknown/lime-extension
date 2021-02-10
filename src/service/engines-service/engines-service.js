@@ -32,11 +32,13 @@ class EnginesService extends Service {
 
   start() {
     console.log(`EnginesService: start() >> `);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this.devicesService = this.laborsManager.getService(`devices-service`).obj;
-      await this.initEngine();
-      this.configTranslator = new ConfigTranslator(this);
-      resolve();
+      this.initEngine()
+      .then((result) => console.log(`initEngine: ${JSON.stringify(result, null, 2)}`))
+      .then(() => this.configTranslator = new ConfigTranslator(this))
+      .then(() => resolve())
+      .catch((err) => reject(err));
     });
   }
 
@@ -48,11 +50,38 @@ class EnginesService extends Service {
       this.engineList = [];
       let serviceSchema = this.getSchema();
       //let list = serviceSchema.config.list;
+      
       let list = serviceSchema.list;
-      for(let i in list) {
-        await this.addToService(i, list[i]);
+      let ret = [];
+      for(let id in list) {
+        ret.push(new Promise((resolve, reject) => {
+          if(list[id]._config && list[id]._config.addToService)
+            this.addToService(id, list[id])
+            .then(() => resolve({"id": id, "success": true}))
+            .catch((err) => resolve({"id": id,"error": err}));
+          else
+            resolve({"id": id, "skip": true});
+        }));
       }
-      resolve();
+
+      Promise.all(ret)
+      .then((arr) => resolve({
+        "success": arr.filter((elem) => elem.success == true).length,
+        "errors": arr.filter((elem) => elem.error).map((elem) => {
+          return {
+            "engine": elem.id,
+            "message": elem.error.message,
+            "stack": elem.error.stack
+          }
+        }),
+        "skip": arr.filter((elem) => elem.skip).map((elem) => elem.id)
+      }))
+      .catch((err) => reject(err));
+      // let list = serviceSchema.list;
+      // for(let i in list) {
+      //   await this.addToService(i, list[i]);
+      // }
+      // resolve();
     });
   }
 
