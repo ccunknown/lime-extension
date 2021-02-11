@@ -292,12 +292,12 @@ class RoutesManager extends APIHandler{
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
               else if(cmd == `add-to-service`) {
-                this.laborsManager.getService(`devices-service`).obj.addToService(id)
+                this.laborsManager.getService(`devices-service`).obj.addToService(id, null, {"addToService": true})
                 .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
               else if(cmd == `remove-from-service`) {
-                this.laborsManager.getService(`devices-service`).obj.removeFromService(id)
+                this.laborsManager.getService(`devices-service`).obj.removeFromService(id, {"addToService": false})
                 .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
@@ -491,12 +491,12 @@ class RoutesManager extends APIHandler{
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
               else if(cmd == `add-to-service`) {
-                this.laborsManager.getService(`engines-service`).obj.addToService(id)
+                this.laborsManager.getService(`engines-service`).obj.addToService(id, null, {"addToService": true})
                 .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
               else if(cmd == `remove-from-service`) {
-                this.laborsManager.getService(`engines-service`).obj.removeFromService(id)
+                this.laborsManager.getService(`engines-service`).obj.removeFromService(id, {"addToService": false})
                 .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }

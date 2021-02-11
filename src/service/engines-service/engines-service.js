@@ -116,7 +116,7 @@ class EnginesService extends Service {
     });
   }
 
-  addToService(id, config) {
+  addToService(id, config, options) {
     console.log(`EnginesService: addToService(${id}) >> `);
     return new Promise(async (resolve, reject) => {
       if(!config)
@@ -136,6 +136,13 @@ class EnginesService extends Service {
           return ;
         })
         .then(() => this.addToServiceChain(id))
+        .then(() => options
+          && options.hasOwnProperty(`addToService`) 
+          && this.configManager.updateConfig(
+            options.addToService, // Value to update.
+            `service-config.engines-service.list.${id}._config.addToService` // Update path.
+          )
+        )
         .then(() => resolve(config))
         .catch((err) => {
           console.log(`>> error name: ${err.name}`);
@@ -190,11 +197,19 @@ class EnginesService extends Service {
     });
   }
 
-  removeFromService(id) {
+  removeFromService(id, options) {
     console.log(`EnginesService: removeFromService() >> `);
     return new Promise((resolve, reject) => {
       this.stopEngine(id)
       .then(() => delete this.engineList[id])
+      .then(() => {
+        return (options && options.hasOwnProperty(`addToService`)) ? 
+          this.configManager.updateConfig(
+            {"addToService": options.addToService}, // Value to update.
+            `service-config.engines-service.list.${id}._config` // Update path.
+          ) : null;
+      })
+      .then((ret) => console.log(`update config: ${ret}`))
       .then(() => resolve({}))
       .catch((err) => reject(err));
     });
