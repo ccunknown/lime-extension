@@ -78,6 +78,8 @@ class ModbusDevice extends Device {
       let enginesService = this.exConf[`devices-service`].enginesService;
       Promise.resolve(enginesService.get(this.exConf.config.engine, {"object": true}))
       .then((engine) => {
+        if(!engine)
+          throw new Error(`Engine "${engineName}" not in service.`);
         engine.event.on(`running`, () => this.getScript() ? this.enableProperties() : null);
         engine.event.on(`error`, () => {
           console.log(`ModbusDevice: on engine error >> `);

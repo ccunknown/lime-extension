@@ -50,38 +50,16 @@ class EnginesService extends Service {
       this.engineList = [];
       let serviceSchema = this.getSchema();
       //let list = serviceSchema.config.list;
-      
-      let list = serviceSchema.list;
-      let ret = [];
-      for(let id in list) {
-        ret.push(new Promise((resolve, reject) => {
-          if(list[id]._config && list[id]._config.addToService)
-            this.addToService(id, list[id])
-            .then(() => resolve({"id": id, "success": true}))
-            .catch((err) => resolve({"id": id,"error": err}));
-          else
-            resolve({"id": id, "skip": true});
-        }));
-      }
 
-      Promise.all(ret)
-      .then((arr) => resolve({
-        "success": arr.filter((elem) => elem.success == true).length,
-        "errors": arr.filter((elem) => elem.error).map((elem) => {
-          return {
-            "engine": elem.id,
-            "message": elem.error.message,
-            "stack": elem.error.stack
-          }
-        }),
-        "skip": arr.filter((elem) => elem.skip).map((elem) => elem.id)
-      }))
+      let list = serviceSchema.list;
+      Object.keys(list).reduce((prevProm, id) => {
+        if(list[id]._config && list[id]._config.addToService)
+          return this.addToService(id, list[id]);
+        else
+          return Promise.resolve();
+      }, Promise.resolve())
+      .then(() => resolve({}))
       .catch((err) => reject(err));
-      // let list = serviceSchema.list;
-      // for(let i in list) {
-      //   await this.addToService(i, list[i]);
-      // }
-      // resolve();
     });
   }
 
@@ -136,13 +114,7 @@ class EnginesService extends Service {
           return ;
         })
         .then(() => this.addToServiceChain(id))
-        .then(() => options
-          && options.hasOwnProperty(`addToService`) 
-          && this.configManager.updateConfig(
-            options.addToService, // Value to update.
-            `service-config.engines-service.list.${id}._config.addToService` // Update path.
-          )
-        )
+        // .then(() => this.applyObjectOptions(id, options))
         .then(() => resolve(config))
         .catch((err) => {
           console.log(`>> error name: ${err.name}`);
@@ -159,24 +131,61 @@ class EnginesService extends Service {
     console.log(`EnginesService: addToServiceChain(${id}) >> `);
     return new Promise((resolve, reject) => {
       let devices = {};
-      this.devicesService.getByConfigAttribute(`engine`, id)
+      // this.devicesService.getByConfigAttribute(`engine`, id)
+      this.devicesService.getDeviceConfigByAttribute(`engine`, id)
       .then((deviceList) => {
         let prom = [];
-        devices = deviceList;
-        for(let i in devices)
-          prom.push(this.devicesService.removeFromService(i));
+        Object.keys(deviceList).forEach((id) => {
+          prom.push(this.devicesService.removeFromService(id))
+        });
         return Promise.all(prom);
       })
-      .then(async () => {
-        let prom = [];
-        for(let i in devices)
-          await this.devicesService.addToService(i);
-        return ;
-      })
+      .then(() => this.devicesService.getDeviceConfigByAttribute(`engine`, id))
+      .then((deviceList) => Object.keys(deviceList).reduce((prevProm, id) => {
+        // return this.devicesService.addToService(id);
+        return this.addDeviceToService(id);
+      }, Promise.resolve()))
       .then(() => resolve())
       .catch((err) => reject(err))
     });
   }
+
+  addDeviceToService(id) {
+    console.log(`EnginesService: addDeviceToService(${id}) >> `);
+    return new Promise((resolve, reject) => {
+      this.devicesService.getConfigDevice(id)
+      .then((config) => (config._config && config._config.addToService) ?
+        this.devicesService.addToService(id) :
+        Promise.resolve()
+      )
+      .then(() => resolve())
+      .catch((err) => reject());
+    });
+  }
+
+  // addToServiceChain(id) {
+  //   console.log(`EnginesService: addToServiceChain(${id}) >> `);
+  //   return new Promise((resolve, reject) => {
+  //     let devices = {};
+  //     this.devicesService.getByConfigAttribute(`engine`, id)
+  //     // this.devicesService.getDeviceConfigByAttribute(`engine`, id)
+  //     .then((deviceList) => {
+  //       let prom = [];
+  //       devices = deviceList;
+  //       for(let i in devices)
+  //         prom.push(this.devicesService.removeFromService(i));
+  //       return Promise.all(prom);
+  //     })
+  //     .then(async () => {
+  //       let prom = [];
+  //       for(let i in devices)
+  //         await this.devicesService.addToService(i);
+  //       return ;
+  //     })
+  //     .then(() => resolve())
+  //     .catch((err) => reject(err))
+  //   });
+  // }
 
   remove(id) {
     console.log(`EnginesService: remove("${id}")`);
@@ -202,14 +211,7 @@ class EnginesService extends Service {
     return new Promise((resolve, reject) => {
       this.stopEngine(id)
       .then(() => delete this.engineList[id])
-      .then(() => {
-        return (options && options.hasOwnProperty(`addToService`)) ? 
-          this.configManager.updateConfig(
-            {"addToService": options.addToService}, // Value to update.
-            `service-config.engines-service.list.${id}._config` // Update path.
-          ) : null;
-      })
-      .then((ret) => console.log(`update config: ${ret}`))
+      // .then(() => this.applyObjectOptions(id, options))
       .then(() => resolve({}))
       .catch((err) => reject(err));
     });

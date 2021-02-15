@@ -53,11 +53,8 @@ class ModbusTcp {
     if(this.state != `restarting`)
       this.emit(`stoping`, this);
     return new Promise((resolve, reject) => {
-      this.client.close(() => {
-        if(this.state != `restarting`)
-          this.emit(`stop`, this);
-        resolve();
-      });
+      (this.state != `restarting`) && this.emit(`stop`, this);
+      resolve();
     });
   }
 

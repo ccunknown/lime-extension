@@ -278,6 +278,7 @@ class RoutesManager extends APIHandler{
         "method": {
           "GET": (req) => {
             return new Promise((resolve, reject) => {
+              let devicesService = this.laborsManager.getService(`devices-service`).obj;
               let pathArr = req.path.split(`/`);
               let cmd = pathArr.pop();
               let id = pathArr.pop();
@@ -292,12 +293,14 @@ class RoutesManager extends APIHandler{
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
               else if(cmd == `add-to-service`) {
-                this.laborsManager.getService(`devices-service`).obj.addToService(id, null, {"addToService": true})
+                devicesService.objectFunctions.patchConfig(id, {"addToService": true})
+                .then(() => devicesService.addToService(id))
                 .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
               else if(cmd == `remove-from-service`) {
-                this.laborsManager.getService(`devices-service`).obj.removeFromService(id, {"addToService": false})
+                devicesService.objectFunctions.patchConfig(id, {"addToService": false})
+                .then(() => devicesService.removeFromService(id))
                 .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
@@ -480,6 +483,7 @@ class RoutesManager extends APIHandler{
               let pathArr = req.path.split(`/`);
               let cmd = pathArr.pop();
               let id  = pathArr.pop();
+              let enginesService = this.laborsManager.getService(`engines-service`).obj;
               if(cmd == `start`) {
                 this.laborsManager.getService(`engines-service`).obj.startEngine(id)
                 .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
@@ -491,12 +495,14 @@ class RoutesManager extends APIHandler{
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
               else if(cmd == `add-to-service`) {
-                this.laborsManager.getService(`engines-service`).obj.addToService(id, null, {"addToService": true})
+                enginesService.objectFunctions.patchConfig(id, {"addToService": true})
+                .then(() => enginesService.addToService(id))
                 .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
               else if(cmd == `remove-from-service`) {
-                this.laborsManager.getService(`engines-service`).obj.removeFromService(id, {"addToService": false})
+                enginesService.objectFunctions.patchConfig(id, {"addToService": false})
+                .then(() => enginesService.removeFromService(id))
                 .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }

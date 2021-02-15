@@ -75,18 +75,19 @@ class NervenetMesh extends Device {
   }
 
   initEngine(engineName) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let enginesService = this.exConf[`devices-service`].enginesService;
-      let engine = await enginesService.get(this.exConf.config.engine, {"object": true});
-
-      engine.event.on(`running`, () => this.getScript() ? this.enableProperties() : null);
-      engine.event.on(`error`, () => {
-        console.log(`NervenetMesh: on engine error >> `);
-        this.disableProperties();
-      });
-
-      this.exConf.engine = engine;
-      resolve(this.exConf.engine);
+      Promise.resolve(enginesService.get(this.exConf.config.engine, {"object": true}))
+      .then((engine) => {
+        engine.event.on(`running`, () => this.getScript() ? this.enableProperties() : null);
+        engine.event.on(`error`, () => {
+          console.log(`NervenetMesh: on engine error >> `);
+          this.disableProperties();
+        });
+        this.exConf.engine = engine;
+      })
+      .then(() => resolve(this.exConf.engine))
+      .catch((err) => reject(err));
     });
   }
 

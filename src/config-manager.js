@@ -134,13 +134,13 @@ class ConfigManager {
         //console.log("{Database} found.");
         this.db = new Database(this.manifest.name);
         //console.log("{Database} imported.");
+        let config = null;
         this.db.open()
-        .then(() => {
-          //console.log("opened database.");
-          var config = this.db.loadConfig();
-          this.db.close();
-          resolve(config);
-        });
+        .then(() => this.db.loadConfig())
+        .then((conf) => config = conf)
+        .then(() => this.db.close())
+        .then(() => resolve(config))
+        .catch((err) => reject(err)) ;
       }
       else {
         console.error(`{Database} not found!!!`);
@@ -163,12 +163,10 @@ class ConfigManager {
           this.db = new Database(this.manifest.name);
           //console.log("{Database} imported.");
           this.db.open()
-          .then(() => {
-            //console.log("opened database.");
-            this.db.saveConfig(validateInfo.instance);
-            this.db.close();
-            resolve(validateInfo.instance);
-          });
+          .then(() => this.db.saveConfig(validateInfo.instance))
+          .then(() => this.db.close())
+          .then(() => resolve(validateInfo.instance))
+          .catch((err) => reject(err));
         }
         else {
           console.error(`{Database} not found!!!`);

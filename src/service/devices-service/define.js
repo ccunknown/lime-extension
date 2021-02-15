@@ -17,6 +17,16 @@ const ValidateConfigSchema = {
     "template": {
       "type": "string",
       "title": "Template"
+    },
+    "_config": {
+      "type": "object",
+      "required": [`addToService`],
+      "properties": {
+        "addToService": {
+          "type": "boolean",
+          "default": true
+        }
+      }
     }
   }
 };

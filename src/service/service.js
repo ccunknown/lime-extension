@@ -6,7 +6,7 @@ const Path = require(`path`);
 const EventEmitter = require(`events`).EventEmitter;
 
 class Service extends EventEmitter {
-  constructor(extension, config, id) {
+  constructor(extension, config, id, serviceName) {
     super(extension.addonManager, extension.manifest.id);
 
     this.extension = extension;
@@ -18,9 +18,15 @@ class Service extends EventEmitter {
 
     this.config = JSON.parse(JSON.stringify(config));
     this.id = id;
-    this.initUtil();
+    this.initService();
     this.setupConfigHandler();
     //console.log(`Service constructor : ${this.id}`);
+  }
+
+  initService() {
+    this.initUtil();
+    this.initObjectFunctions();
+    return ;
   }
 
   initUtil() {
@@ -33,11 +39,46 @@ class Service extends EventEmitter {
     };
   }
 
+  initObjectFunctions() {
+    this.objectFunctions = {
+      "patchConfig": (id, config) => {
+        console.log(`${this.id}: objectFunctions: patchConfig`);
+        return new Promise((resolve, reject) => {
+          if(config && config.hasOwnProperty(`addToService`)) {
+            Promise.resolve(JSON.parse(JSON.stringify(config)))
+            .then((conf) => this.configManager.updateConfig(config, `service-config.${this.id}.list.${id}._config`))
+            .then(() => resolve())
+            .catch((err) => reject(err));
+          }
+          else
+            resolve();
+        });
+      }
+    };
+    return ;
+  }
+
+  applyObjectOptions(id, options = {}) {
+    console.log(`Service: applyObjectOptions() >> `);
+    // console.log(`Service: applyObjectOptions(${id}) >> `);
+    return new Promise((resolve, reject) => {
+      Object.keys(options).reduce((prevProm, key) => 
+        (this.objectFunctions.hasOwnProperty(key)) ? 
+          this.objectFunctions[key](id, options[key]) : 
+          Promise.resolve()
+      , Promise.resolve())
+      .then(() => resolve())
+      .catch((err) => reject(err));
+    });
+  }
+
   getSchema(options) {
+    console.log(`Service: getSchema() >> `);
     if(options && options.renew)
       return new Promise(async (resolve, reject) => {
-        let config = await this.getConfig(options);
-        resolve(config[`service-config`][this.id]);
+        this.getConfig(options)
+        .then((config) => resolve(config[`service-config`][this.id]))
+        .catch((err) => reject(err));
       });
     else {
       return this.config[`service-config`][this.id];
@@ -54,10 +95,7 @@ class Service extends EventEmitter {
   getConfig(options) {
     if(options && options.renew)
       return new Promise(async (resolve, reject) => {
-        let config = (options.save) ? 
-          await this.reloadConfig() : 
-          await this.configManager.getConfig();
-        resolve(config);
+        resolve((options.save) ? this.reloadConfig() : this.configManager.getConfig());
       });
     else
       return this.config;
