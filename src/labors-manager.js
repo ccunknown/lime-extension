@@ -27,59 +27,59 @@ class laborsManager {
   loadService() {
     console.log(`laborsManager: loadService() >> `);
     return new Promise((resolve, reject) => {
+      // this.configManager.getConfig()
+      // .then(async (config) => {
+      //   let serviceList = config.service;
+      //   for(let i in serviceList) {
+      //     let service = serviceList[i];
+      //     let path = Path.join(`${servicePrefix}`, `${service.path}`);
+      //     let serviceClass = require(`./${path}`);
+      //     config = JSON.parse(JSON.stringify(config));
+      //     //service.obj = new serviceClass(this.extension, config, service.id);
+      //     service.obj = new serviceClass(this.extension, config, i);
+      //     await service.obj.init();
+      //     //console.log(`service : ${service.id}`);
+      //     console.log(`service : ${i}`);
+      //     //this.serviceList.push(service);
+      //     this.serviceList[i] = service;
+      //   }
+      //   resolve();
+      // });
+
       this.configManager.getConfig()
-      .then(async (config) => {
+      .then((config) => {
         let serviceList = config.service;
-        for(let i in serviceList) {
-          let service = serviceList[i];
+        Object.keys(serviceList).reduce((prevProm, id) => {
+          let service = serviceList[id];
           let path = Path.join(`${servicePrefix}`, `${service.path}`);
           let serviceClass = require(`./${path}`);
           config = JSON.parse(JSON.stringify(config));
-          //service.obj = new serviceClass(this.extension, config, service.id);
-          service.obj = new serviceClass(this.extension, config, i);
-          await service.obj.init();
-          //console.log(`service : ${service.id}`);
-          console.log(`service : ${i}`);
-          //this.serviceList.push(service);
-          this.serviceList[i] = service;
-        }
-        resolve();
+          service.obj = new serviceClass(this.extension, config, id);
+          console.log(`service : ${id}`);
+          this.serviceList[id] = service;
+          return service.obj.init();
+        }, Promise.resolve())
+        .then(() => resolve())
+        .catch((err) => reject(err));
       });
-      /*
-      this.getConfigService()
-      .then((serviceList) => {
-        //console.log(`service list : ${JSON.stringify(serviceList, null, 2)}`);
-        for(let i in serviceList) {
-          let service = serviceList[i];
-          let serviceClass = require(`${servicePrefix}${service.id}`);
-          service.obj = new serviceClass(this.extension);
-          console.log(`service : ${service.id}`);
-          this.serviceList.push(service);
-        }
-        resolve();
-      });
-      */
     });
   }
 
   startService(serviceId) {
     console.log(`laborsManager: startService(${(serviceId) ? serviceId : ``})`);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       if(serviceId) {
       	this.getService(serviceId).obj.start()
-        //this.getService(serviceId)
-        //.then((service) => service.obj.start())
         .then(() => resolve());
       }
       else {
         let list = [];
-        for(var i in this.serviceList) {
-          let service = this.serviceList[i];
-          if(service.enable)
-          	await this.startService(i);
-            //await this.startService(this.serviceList[i].id);
-        }
-        resolve();
+        Object.keys(this.serviceList).reduce((prevProm, id) => {
+          let service = this.serviceList[id];
+          return (service.enable) ? this.startService(id) : Promise.resolve();
+        }, Promise.resolve())
+        .then(() => resolve())
+        .catch((err) => reject(err));
       }
     });
   }

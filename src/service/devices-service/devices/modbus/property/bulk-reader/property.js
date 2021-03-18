@@ -11,17 +11,20 @@ class BulkReader {
     this.config = config;
     this.device = device;
     this.devicesService = device.exConf[`devices-service`];
+    this.timeout = 5000;
     this.lock = {
       "period": {
         "key": `period`,
-        "locker": new AsyncLock()
+        "locker": new AsyncLock({"timeout": this.timeout})
       },
       "periodWork": {
         "key": `periodWork`,
-        "locker": new AsyncLock({"maxPending": 0})
+        "locker": new AsyncLock({
+          "timeout": this.timeout, 
+          "maxPending": 0
+        })
       }
     };
-    this.timeout = 5000;
     this.properties = {};
 
     this.Errors = require(`${this.devicesService.getRootDirectory()}/constants/errors.js`);
