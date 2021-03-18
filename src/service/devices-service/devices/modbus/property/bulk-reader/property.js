@@ -1,4 +1,5 @@
 'use strict'
+const PERIOD_WORK_TIMEOUT = 9000;
 
 const AsyncLock = require('async-lock');
 
@@ -11,7 +12,8 @@ class BulkReader {
     this.config = config;
     this.device = device;
     this.devicesService = device.exConf[`devices-service`];
-    this.timeout = 5000;
+    this.timeout = 9000;
+    this.periodWorkFlag = false;
     this.lock = {
       "period": {
         "key": `period`,
@@ -59,32 +61,29 @@ class BulkReader {
   }
 
   initProperty(bulkConf) {
-    console.log(`BulkReader: initProperty() >> `);
-    return new Promise(async (resolve, reject) => {
-      try {
-        console.log(`bulkConf: ${JSON.stringify(bulkConf, null, 2)}`)
-        let confJson = {};
-        bulkConf.address.forEach((addr) => {
-          let id = this.generatePropertyId(addr);
-          let config = JSON.parse(JSON.stringify(bulkConf));
-          let script = this.device.getScript();
-          config.title = script.map[config.table][addr].name;
-          config.address = addr;
-          confJson[id] = config;
-        });
-        console.log(`confJson: ${JSON.stringify(confJson, null, 2)}`);
-        for(let i in confJson)
-          await this.addProperty(i, confJson[i]);
-        resolve();
-      } catch(err) {
-        console.error(err);
-        reject(err);
-      }
+    console.log(`BulkReaderProperty: initProperty() >> `);
+    return new Promise((resolve, reject) => {
+      console.log(`bulkConf: ${JSON.stringify(bulkConf, null, 2)}`)
+      let confJson = {};
+      bulkConf.address.forEach((addr) => {
+        let id = this.generatePropertyId(addr);
+        let config = JSON.parse(JSON.stringify(bulkConf));
+        let script = this.device.getScript();
+        config.title = script.map[config.table][addr].name;
+        config.address = addr;
+        confJson[id] = config;
+      });
+      console.log(`confJson: ${JSON.stringify(confJson, null, 2)}`);
+      Object.keys(confJson).reduce((prevProm, id) => {
+        return this.addProperty(id, confJson[id]);
+      }, Promise.resolve())
+      .then(() => resolve())
+      .catch((err) => reject(err));
     });
   }
 
   addProperty(id, config) {
-    console.log(`BulkReader: addProperty(${id}) >> `);
+    console.log(`BulkReaderProperty: addProperty(${id}) >> `);
     return new Promise((resolve, reject) => {
       let conf = JSON.parse(JSON.stringify(config));
       let fullMap = this.device.getScript();
@@ -101,7 +100,7 @@ class BulkReader {
   }
 
   start() {
-    console.log(`${this.id}: DefaultProperty: start() >> `);
+    console.log(`${this.id}: BulkReaderProperty: start() >> `);
     return new Promise((resolve, reject) => {
       this.metrics.set(`start`, (new Date()).toString())
       .then(() => this.setPeriodWork())
@@ -111,32 +110,34 @@ class BulkReader {
   }
 
   stop() {
-    console.log(`${this.id}: DefaultProperty: stop() >> `);
+    console.log(`${this.id}: BulkReaderProperty: stop() >> `);
     return this.clearPeriodWork();
   }
 
   setPeriodWork() {
-    console.log(`${this.id}: DefaultProperty: setPeriodWork() >> `);
+    console.log(`${this.id}: BulkReaderProperty: setPeriodWork() >> `);
     let locker = this.lock.period.locker;
     let key = this.lock.period.key;
     return new Promise((resolve, reject) => {
-      locker.acquire(key, async () => {
+      locker.acquire(key, (done) => {
         if(this.device && !this.period) {
           console.log(`>> setPeriodWork(${this.id}) >> Accept.`);
-          await this.periodWork();
-          this.period = setInterval(() => this.periodWork(), this.config.period);
+          this.periodWork()
+          .then(() => this.period = setInterval(() => this.periodWork(), this.config.period))
+          .then(() => done(null))
+          .catch((err) => done(err));
         }
-        else
+        else {
           console.log(`>> setPeriodWork(${this.id}) >> Deny.`);
-        return ;
-      })
-      .then(() => resolve())
-      .catch((err) => reject(err));
+          done(null);
+        }
+      },
+      (err) => (err) ? reject(err) : resolve());
     });
   }
 
   clearPeriodWork() {
-    console.log(`${this.id}: DefaultProperty: clearPeriodWork() >> `);
+    console.log(`${this.id}: BulkReaderProperty: clearPeriodWork() >> `);
     let locker = this.lock.period.locker;
     let key = this.lock.period.key;
     return new Promise((resolve, reject) => {
@@ -152,23 +153,33 @@ class BulkReader {
   periodWork() {
     let locker = this.lock.periodWork.locker;
     let key = this.lock.periodWork.key;
-    return new Promise((resolve, reject) => {
-      locker.acquire(
-        key, 
-        async (done) => {
-          if(this.device && this.devicesService) {
-            let ret = await this._periodWork();
-            done(null, ret);
-          }
-          else {
-            await this.clearPeriodWork();
-            done(new this.Errors(ParentObjectUnavailable));
-          }
-        },
-        (err, ret) => (err) ? reject(err) : resolve(ret),
-        {maxPending: 1}
-      );
-    });
+    if(this.periodWorkFlag){
+      console.log(`${this.id}: BulkReaderProperty: previous period work still working!`);
+      return Promise.resolve();
+    }
+    else {
+      return new Promise((resolve, reject) => {
+        locker.acquire(
+          key, 
+          (done) => {
+            this.periodWorkFlag = true;
+            if(this.device && this.devicesService) {
+              this._periodWork()
+              .then((ret) => done(null, ret));
+            }
+            else {
+              this.clearPeriodWork()
+              .then(() => done(new this.Errors(ParentObjectUnavailable)));
+            }
+          },
+          (err, ret) => {
+            this.periodWorkFlag = false;
+            (err) ? reject(err) : resolve(ret)
+          },
+          {maxPending: 1}
+        );
+      });
+    }
   }
 
   generatePropertyId(address) {
@@ -178,6 +189,9 @@ class BulkReader {
   _periodWork() {
     // console.log(`${this.id}: DefaultProperty: _periodWork() >> `);
     return new Promise(async (resolve, reject) => {
+
+      setTimeout(() => reject(new Error(`period work timeout!`)), PERIOD_WORK_TIMEOUT);
+
       let engine = this.device.getEngine();
       let script = this.device.getScript();
 
@@ -197,58 +211,49 @@ class BulkReader {
       this.metrics.set(`call.last`, (new Date()).toString());
       this.metrics.increase(`call.count`);
 
-      try {
-        if(script && engine && engine.getState() == "running") {
-          let opt = {
-            "action": "read",
-            "id": id,
-            "address": address,
-            "table": table,
-            "numtoread": ntr
-          };
+      if(script && engine && engine.getState() == "running") {
+        let opt = {
+          "action": "read",
+          "id": id,
+          "address": address,
+          "table": table,
+          "numtoread": ntr
+        };
 
-          if(ip && port) {
-            opt.ip = ip;
-            opt.port = port;
-          }
+        if(ip && port) {
+          opt.ip = ip;
+          opt.port = port;
+        }
 
-          let ret = await engine.act(opt);
-
-          // console.log(`${this.device.id}[${this.id}] => [hex: ${ret.buffer.toString('hex')}]`);
-          // console.log(ret.buffer);
-
-          for(let i in addrArr) {
-            let addr = addrArr[i];
+        engine.act(opt)
+        .then((ret) => {
+          addrArr.forEach((addr) => {
             let ref = script.map[table][addr];
             let bytes = (ref.registerSpec.number * ref.registerSpec.size) / 8;
             let startPoint = (ref.registerSpec.size/8)*(addr - addrArr[0]);
             let endPoint = startPoint + bytes;
             let buffVal = Buffer.alloc(bytes, ret.buffer.slice(startPoint, endPoint));
-            // buffVal = ret.buffer.slice(startPoint, endPoint);
-            
-            // console.log(`${this.device.id}[${addr.toString(16)}] => [${startPoint}=>${endPoint}][hex: ${buffVal.toString('hex')}]`);
+
             let value = script.map[table][addr].translator(buffVal, script.map[table][addr]);
-            // console.log(`${this.device.id}[0x${(`0000`+addr.toString(16)).slice(-4)}] => [hex: ${buffVal.toString('hex')} / value: ${typeof value}: ${value}]`);
-            // let value = script.map[table][addr].translator(ret.buffer, script.map[table][address]);
-            // console.log(`${this.device.id}[${this.id}] => [hex: ${ret.buffer.toString('hex')}] / [${typeof value}: ${value}]`);
+
             this.metrics.set(`success-call.last`, (new Date()).toString());
             this.metrics.increase(`success-call.count`);
-            //console.log(`${this.device.id} : ${this.id} : ${typeof value} : ${value}`);
 
             this.device.findProperty(this.generatePropertyId(addr)).setCachedValueAndNotify(value);
-            // this.setCachedValueAndNotify(value);
-          }
-        }
+          });
+        })
+        .then(() => resolve())
+        .catch((err) => {
+          console.log(`BulkReaderProperty: periodWork() >> Error!!!`);
+          this.metrics.set(`fail-call.last`, (new Date()).toString());
+          this.metrics.increase(`fail-call.count`);
+          reject(err);
+        });
       }
-      catch(err) {
-        console.log(`DefaultProperty: periodWork() >> Error!!!`);
-        this.metrics.set(`fail-call.last`, (new Date()).toString());
-        this.metrics.increase(`fail-call.count`);
-        console.error(err);
+      else {
+        resolve();
       }
-      //this.deviceObject.setProperty(this.property.id, value);
       
-      resolve();
     });
   }
 }

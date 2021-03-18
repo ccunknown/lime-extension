@@ -1,4 +1,5 @@
 const Validator = require('jsonschema').Validator;
+const MAX_ADDRESS_PER_REQUEST = 125;
 
 const {
   ValidateConfigSchema, 
@@ -58,12 +59,20 @@ class PropertyConfigTranslator {
           config.properties.address.items.enumDisplay[Number(i)] = {
             "title": `${addrList[i].name} [Addr:${Number(i).toString(16)}] ${(addrList[i].unit) ? `(${addrList[i].unit})` : ``}`
           };
+          // if(params.properties.hasOwnProperty(`address`) && params.properties.address.length) {
+          //   params.properties.address.sort((a, b) => a - b);
+          //   let maxAddr = Number(params.properties.address[0]) + MAX_ADDRESS_PER_REQUEST - 1;
+          //   let minAddr = Number(params.properties.address[params.properties.address.length - 1]) - MAX_ADDRESS_PER_REQUEST + 1;
+          //   console.log(`>>> range ${minAddr} -> ${maxAddr}`);
+          //   if(Number(i) > maxAddr || Number(i) < minAddr)
+          //     config.properties.address.items.enumDisplay[Number(i)].disabled = true;
+          // }
         }
 
         //  Initial 'title' property.
         console.log(`address: ${params.properties.address}`);
         if(params.properties.hasOwnProperty(`address`) && params.properties.address.length) {
-          params.properties.address.sort((a, b) => a-b);
+          params.properties.address.sort((a, b) => a - b);
           let first = params.properties.address[0];
           let last = params.properties.address[params.properties.address.length - 1];
           console.log(`>> address: ${params.properties.address}`);
