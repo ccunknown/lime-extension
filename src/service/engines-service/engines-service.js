@@ -18,11 +18,8 @@ class EnginesService extends Service {
 
   init(config) {
     console.log(`EnginesService: init() >> `);
-    return new Promise(async (resolve, reject) => {
-      //this.sysportService = (await this.laborsManager.getService(`sysport-service`)).obj;
+    return new Promise((resolve, reject) => {
       this.sysportService = this.laborsManager.getService(`sysport-service`).obj;
-      //let sysport = this.laborsManager.getService(`sysport-service`);
-      //this.sysportService = sysport.obj;
       this.config = (config) ? config : this.config;
       this.engineList = {};
       this.engineTemplateList = {};
@@ -44,20 +41,21 @@ class EnginesService extends Service {
 
   initEngine(config) {
     console.log(`EnginesService: initEngine() >> `);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       config = (config) ? config : this.config;
-      this.engineTemplateList = (await this.getTemplate(null, {"deep": true}));
-      this.engineList = [];
-      let serviceSchema = this.getSchema();
-      //let list = serviceSchema.config.list;
 
-      let list = serviceSchema.list;
-      Object.keys(list).reduce((prevProm, id) => {
+      this.getTemplate(null, {"deep": true})
+      .then((engineTemplateList) => this.engineTemplateList = engineTemplateList)
+      .then(() => {
+        this.engineList = [];
+        return this.getSchema().list;
+      })
+      .then((list) => Object.keys(list).reduce((prevProm, id) => {
         if(list[id]._config && list[id]._config.addToService)
           return this.addToService(id, list[id]);
         else
           return Promise.resolve();
-      }, Promise.resolve())
+      }, Promise.resolve()))
       .then(() => resolve({}))
       .catch((err) => reject(err));
     });
@@ -94,36 +92,36 @@ class EnginesService extends Service {
     });
   }
 
+  loadEngine(config, template) {
+    console.log(`EnginesService: loadEngine`);
+    return new Promise((resolve, reject) => {
+      let path = template.path.replace(/^\//, ``);
+      let Obj = require(`./${path}/engine.js`);
+      let engine = new (Obj)(this, config);
+
+      this.sysportService.get(config.port, {"object": true})
+      .then((sysportSchema) => engine.init(sysportSchema.object))
+      .then(() => engine.start())
+      .then(() => resolve(engine))
+      .catch((err) => reject(err));
+    });
+  }
+
   addToService(id, config, options) {
     console.log(`EnginesService: addToService(${id}) >> `);
-    return new Promise(async (resolve, reject) => {
-      if(!config)
-        config = await this.getConfigEngine(id);
+    return new Promise((resolve, reject) => {
 
-      let template = (await this.getTemplate(null, {"deep": true})).find((elem) => config.template == elem.name);
-      if(template) {
-        let path = template.path.replace(/^\//, ``);
-        let Obj = require(`./${path}/engine.js`);
-        let engine = new (Obj)(this, config);
-
-        this.sysportService.get(config.port, {"object": true})
-        .then((sysportSchema) => engine.init(sysportSchema.object))
-        .then(() => engine.start())
-        .then(() => {
-          this.engineList[id] = engine;
-          return ;
-        })
-        .then(() => this.addToServiceChain(id))
-        // .then(() => this.applyObjectOptions(id, options))
-        .then(() => resolve(config))
-        .catch((err) => {
-          console.log(`>> error name: ${err.name}`);
-          console.log(`>> error message: ${err.message}`);
-          reject(err)
-        });
-      }
-      else
-        reject(new Error(`Engine id "${id}" with template "${config.template}" not found!!!`));
+      ((!config) ? config = this.getConfigEngine(id) : Promise.resolve())
+      .then(() => this.getTemplate(null, {"deep": true}))
+      .then((templateList) => templateList.find((elem) => config.template == elem.name))
+      .then((template) => {
+        return (!template) ? new Error(`template "${config.template}" not found!`) : template;
+      })
+      .then((template) => this.loadEngine(config, template))
+      .then((engine) => this.engineList[id] = engine)
+      .then(() => this.addToServiceChain(id))
+      .then(() => resolve(config))
+      .catch((err) => reject(err));
     });
   }
 
@@ -163,33 +161,9 @@ class EnginesService extends Service {
     });
   }
 
-  // addToServiceChain(id) {
-  //   console.log(`EnginesService: addToServiceChain(${id}) >> `);
-  //   return new Promise((resolve, reject) => {
-  //     let devices = {};
-  //     this.devicesService.getByConfigAttribute(`engine`, id)
-  //     // this.devicesService.getDeviceConfigByAttribute(`engine`, id)
-  //     .then((deviceList) => {
-  //       let prom = [];
-  //       devices = deviceList;
-  //       for(let i in devices)
-  //         prom.push(this.devicesService.removeFromService(i));
-  //       return Promise.all(prom);
-  //     })
-  //     .then(async () => {
-  //       let prom = [];
-  //       for(let i in devices)
-  //         await this.devicesService.addToService(i);
-  //       return ;
-  //     })
-  //     .then(() => resolve())
-  //     .catch((err) => reject(err))
-  //   });
-  // }
-
   remove(id) {
     console.log(`EnginesService: remove("${id}")`);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this.removeFromConfig(id)
       .then(() => this.removeFromService(id))
       .then(() => resolve({}))
@@ -319,7 +293,7 @@ class EnginesService extends Service {
     options = (options) ? options : (typeof id == `object`) ? id : undefined;
     id = (typeof id == `string`) ? id : (options && options.id) ? options.id : undefined;
     console.log(`EnginesService: getConfigEngine(${(id) ? `${id}` : ``}) >> `);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       if(id) {
         this.getSchema({"renew": true})
         .then((conf) => (conf.list.hasOwnProperty(id)) ? resolve(conf.list[id]) : reject(new Errors.ObjectNotFound(id)))
@@ -361,7 +335,7 @@ class EnginesService extends Service {
 
   getEngineConfigWithState(id) {
     console.log(`EnginesService: getEngineConfigWithState(${(id) ? `${id}`: ``})`);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       if(id) {
         if(this.engineList.hasOwnProperty(id)) {
           let schema = JSON.parse(JSON.stringify(this.engineList[id].config));
@@ -373,33 +347,35 @@ class EnginesService extends Service {
       }
       else {
         let schemas = {};
-        try {
-          for(let i in this.engineList)
-            schemas[i] = await this.getEngineConfigWithState(i);
-          resolve(schemas);
-        } catch(err) {
-          reject(err);
-        }
+        Object.keys(this.engineList).reduce((prevProm, id) => {
+          return prevProm
+          .then(() => this.getEngineConfigWithState(id))
+          .then((schema) => schemas[id] = schema)
+          .catch((err) => reject(err));
+        }, Promise.resolve())
+        .then(() => resolve(schemas))
+        .catch((err) => reject(err));
       }
     });
   }
 
   getTemplate(key, options) {
     console.log(`EnginesService: getTemplate(${(key) ? key : ``})`);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let serviceSchema = this.getSchema();
-      let templateList = (await this.getDirectorySchema(serviceSchema.directory, options)).children;
-      if(key) {
-        if(!templateList.find((elem) => elem.name == key))
-          resolve(undefined);
-        else {
-          let engine = JSON.parse(JSON.stringify(templateList.find((elem) => elem.name == key)));
-          resolve(engine);
-        }
-      }
-      else {
-        resolve(templateList);
-      }
+      let templateList = {};
+
+      this.getDirectorySchema(serviceSchema.directory, options)
+      .then((dirSchema) => dirSchema.children)
+      .then((templateList) => {
+        if(key)
+          resolve((!templateList.find((elem) => elem.name == key))
+            ? undefined
+            : JSON.parse(JSON.stringify(templateList.find((elem) => elem.name == key))));
+        else
+          resolve(templateList);
+      })
+      .catch((err) => reject(err));
     });
   }
 

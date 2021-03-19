@@ -165,11 +165,13 @@ class BulkReader {
             this.periodWorkFlag = true;
             if(this.device && this.devicesService) {
               this._periodWork()
-              .then((ret) => done(null, ret));
+              .then((ret) => done(null, ret))
+              .catch((err) => done(err));
             }
             else {
               this.clearPeriodWork()
-              .then(() => done(new this.Errors(ParentObjectUnavailable)));
+              .then(() => done(new this.Errors(ParentObjectUnavailable)))
+              .catch((err) => done(err));
             }
           },
           (err, ret) => {

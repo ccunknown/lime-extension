@@ -24,15 +24,14 @@ export default {
         },
 
         "isDisabled": (param) => {
-          if(param.const)
+          if(param.const || param.disabled)
             return true;
-          return false;
+          else
+            return false;
         },
 
         "isChecked": (arr, val) => {
-          console.log(`isChecked() >> `);
-          console.log(`arr: `, arr);
-          console.log(`val: `, val);
+          console.log(`isChecked(${val}) >> ${(arr.includes(val)) ? `true` : `false`}`);
           return (arr.includes(val)) ? true : false;
         },
 
