@@ -3,7 +3,8 @@ const meta = {
   description: "Test template for SDM120CT from Eastron.",
   tags: [
     "modbus",
-    "modbus-rtu"
+    "modbus-rtu",
+    "modbus-tcp"
   ]
 };
 

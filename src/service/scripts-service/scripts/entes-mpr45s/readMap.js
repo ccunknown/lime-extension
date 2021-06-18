@@ -108,11 +108,6 @@ const config = {
         unit: `W`,
         translator: `function.bufferToFloat32`
       },
-      0x0026: {
-        name: `Sum Active Power`,
-        unit: `W`,
-        translator: `function.bufferToFloat32`
-      },
       0x0028: {
         name: `Reactive power L1`,
         unit: `var`,
@@ -142,24 +137,6 @@ const config = {
         name: `Power Factor L3`,
         unit: ``,
         translator: `function.bufferToUint32Div1000`
-      },
-      0x0050: {
-        name: `Sum Power Factor`,
-        unit: ``
-      },
-      0x00D8: {
-        name: `Total Consumed Energy L1..L3`,
-        unit: `Wh`,
-        translator: `function.bufferToBigUint64`,
-        registerSpec: {
-          size: 16,
-          number: 4
-        }
-      },
-      0x0550: {
-        name: `Total Apperant Power Max Demand`,
-        unit: `VA`,
-        translator: `function.bufferToFloat32`
       }
     }
   }

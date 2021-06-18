@@ -1,4 +1,4 @@
 
-      const meta = {"title":"Entes MPR45S","description":"Power meter script, for meter brand \"Entes\" model \"MPR45S\".","tags":["modbus","modbus-rtu"]};
+      const meta = {"title":"Entes MPR45S V2","description":"Add power factor to script","tags":["modbus","modbus-rtu","modbus-tcp"]};
       module.exports = meta;
     
