@@ -8,7 +8,7 @@ const ConfigTranslator = require(`./config-translator.js`);
 class NervenetMesh extends Device {
   constructor(devicesService, adapter, id, config) {
     super(adapter, id);
-    console.log(`NervenetMesh: constructor(${this.id}) >> `);
+    console.log(`[${this.constructor.name}]`, `constructor(${this.id}) >> `);
     /*
     constructor(adapter, id)
       this.adapter = adapter;
@@ -37,7 +37,7 @@ class NervenetMesh extends Device {
   }
 
   init(config) {
-    console.log(`NervenetMesh: init() >> `);
+    console.log(`[${this.constructor.name}]`, `init() >> `);
     return new Promise(async (resolve, reject) => {
       config = (config) ? config : this.exConf.config;
 
@@ -51,6 +51,7 @@ class NervenetMesh extends Device {
   }
 
   initAttr(schema) {
+    console.log(`[${this.constructor.name}]`, `initAttr() >> `);
     return new Promise(async (resolve, reject) => {
       for(let i in schema)
         this[i] = schema[i];
@@ -59,14 +60,19 @@ class NervenetMesh extends Device {
   }
 
   initProperty() {
-    console.log(`NervenetMesh: initProperty() >> `);
+    console.log(`[${this.constructor.name}]`, `initProperty() >> `);
     return new Promise(async (resolve, reject) => {
       let config = this.exConf.config.properties;
+      console.log(`[${this.constructor.name}]`, `config: ${JSON.stringify(config, null, 2)}`);
       try {
-        for(let i in config) {
-          await this.addProperty(i, config[i]);
-        }
-        resolve();
+        // for(let i in config) {
+        //   await this.addProperty(i, config[i]);
+        // }
+        Object.keys(config).reduce((prevProm, index) => {
+          return prevProm.then(() => this.addProperty(index, config[index]));
+        }, Promise.resolve())
+        .then(() => resolve());
+        // resolve();
       }
       catch(err) {
         reject(err);
@@ -75,6 +81,7 @@ class NervenetMesh extends Device {
   }
 
   initEngine(engineName) {
+    console.log(`[${this.constructor.name}]`, `initEngine() >> `);
     return new Promise((resolve, reject) => {
       let enginesService = this.exConf[`devices-service`].enginesService;
       Promise.resolve(enginesService.get(this.exConf.config.engine, {"object": true}))
@@ -92,7 +99,7 @@ class NervenetMesh extends Device {
   }
 
   getEngine() {
-    console.log(`NervenetMesh: getEngine() >> `);
+    console.log(`[${this.constructor.name}]`, `getEngine() >> `);
     let engine = this.exConf.engine;
     let state = (engine) ? engine.getState() : null;
     if(state != `running`)
@@ -101,7 +108,7 @@ class NervenetMesh extends Device {
   }
 
   getState() {
-    console.log(`NervenetMesh: getState() >> `);
+    console.log(`[${this.constructor.name}]`, `getState() >> `);
     return new Promise((resolve, reject) => {
       let props = this.getPropertyDescriptions();
       let hasRunningProp = false;
@@ -128,12 +135,12 @@ class NervenetMesh extends Device {
   }
 
   getMetrics() {
-    console.log(`NervenetMesh: getMetrics() >> `);
+    console.log(`[${this.constructor.name}]`, `getMetrics() >> `);
     return this.getPropertyMetrics();
   }
 
   getPropertyMetrics(id) {
-    console.log(`NervenetMesh: getPropertyMetrics(${(id) ? `${id}` : ``}) >> `);
+    console.log(`[${this.constructor.name}]`, `getPropertyMetrics(${(id) ? `${id}` : ``}) >> `);
     return new Promise((resolve, reject) => {
       if(id) {
         let property = this.findProperty(id);
@@ -159,7 +166,7 @@ class NervenetMesh extends Device {
   }
 
   start() {
-    console.log(`NervenetMesh: start() >> `);
+    console.log(`[${this.constructor.name}]`, `start() >> `);
     return new Promise((resolve, reject) => {
       this.enableProperties()
       .then(() => {
@@ -173,7 +180,7 @@ class NervenetMesh extends Device {
   }
 
   stop() {
-    console.log(`NervenetMesh: start() >> `);
+    console.log(`[${this.constructor.name}]`, `start() >> `);
     return new Promise((resolve, reject) => {
       this.disableProperties()
       .then(() => resolve())
@@ -186,7 +193,7 @@ class NervenetMesh extends Device {
   }
 
   addProperty(id, config) {
-    console.log(`NervenetMesh: addProperty() >> `);
+    console.log(`[${this.constructor.name}]`, `addProperty() >> `);
     // console.log(`>> config: ${JSON.stringify(config, null, 2)}`);
     return new Promise(async (resolve, reject) => {
       let PropertyObject = require(`./property/${config.template}/property.js`);
@@ -204,7 +211,7 @@ class NervenetMesh extends Device {
   }
 
   enableProperties() {
-    console.log(`NervenetMesh: enableProperties() >> `);
+    console.log(`[${this.constructor.name}]`, `enableProperties() >> `);
     return new Promise((resolve, reject) => {
       let promArr = [];
       let props = this.getPropertyDescriptions();
@@ -221,7 +228,7 @@ class NervenetMesh extends Device {
   }
 
   disableProperties() {
-    console.log(`NervenetMesh: disableProperties() >> `);
+    console.log(`[${this.constructor.name}]`, `disableProperties() >> `);
     return new Promise((resolve, reject) => {
       let promArr = [];
       let props = this.getPropertyDescriptions();

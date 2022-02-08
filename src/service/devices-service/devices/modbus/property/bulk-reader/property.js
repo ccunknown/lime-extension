@@ -1,5 +1,7 @@
 'use strict'
 const PERIOD_WORK_TIMEOUT = 9000;
+// const MAXIMUM_MODBUS_READ_AMOUNT = 255;
+const MAXIMUM_MODBUS_READ_AMOUNT = 10;
 
 const AsyncLock = require('async-lock');
 
@@ -13,6 +15,10 @@ class BulkReader {
     this.device = device;
     this.devicesService = device.exConf[`devices-service`];
     this.timeout = 9000;
+    this.meta = {
+      type: `period-worker`,
+    };
+    this.lastPeriodSuccess = false;
     this.periodWorkFlag = false;
     this.lock = {
       "period": {
@@ -200,62 +206,83 @@ class BulkReader {
       let ip = (this.device.exConf.config.hasOwnProperty(`ip`)) ? this.device.exConf.config.ip : undefined;
       let port = (this.device.exConf.config.hasOwnProperty(`port`)) ? this.device.exConf.config.port : undefined;
       let id = this.device.exConf.config.address;
-      let addrArr = this.config.address;
-      let firstAddr = addrArr[0];
-      let lastAddr = addrArr[addrArr.length-1];
+      // let addrArr = this.config.address;
+      // let firstAddr = addrArr[0];
+      // let lastAddr = addrArr[addrArr.length-1];
       let table = this.config.table;
+      let chunkSize = this.config.size;
 
-      addrArr.sort((a, b) => a-b);
-      let address = addrArr[0];
-      let ntr = lastAddr - firstAddr + script.map[table][lastAddr].registerSpec.number;
-      let offset = firstAddr;
+      // addrArr.sort((a, b) => a-b);
+      // let address = addrArr[0];
+      // let ntr = lastAddr - firstAddr + script.map[table][lastAddr].registerSpec.number;
+      // let offset = firstAddr;
 
       this.metrics.set(`call.last`, (new Date()).toString());
       this.metrics.increase(`call.count`);
 
-      if(script && engine && engine.getState() == "running") {
+      let tmpAddrArr = [...this.config.address];
+      tmpAddrArr.sort((a, b) => a - b);
+      
+      let queryTask = [];
+      let firstAddr = null;
+      while(tmpAddrArr.length) {
+        let arr = [];
+        arr.push(tmpAddrArr.shift());
+        while(tmpAddrArr.length) {
+          if(tmpAddrArr[0] + script.map[table][tmpAddrArr[0]].registerSpec.number - arr[0] <= chunkSize)
+            arr.push(tmpAddrArr.shift());
+          else
+            break;
+        }
         let opt = {
-          "action": "read",
-          "id": id,
-          "address": address,
-          "table": table,
-          "numtoread": ntr
+          action: `read`,
+          id: id,
+          address: arr[0],
+          table: table,
+          numtoread: arr[arr.length - 1] - arr[0] + script.map[table][arr[arr.length - 1]].registerSpec.number
         };
-
         if(ip && port) {
           opt.ip = ip;
           opt.port = port;
         }
+        queryTask.push(opt);
+      }
 
-        engine.act(opt)
-        .then((ret) => {
-          addrArr.forEach((addr) => {
-            let ref = script.map[table][addr];
-            let bytes = (ref.registerSpec.number * ref.registerSpec.size) / 8;
-            let startPoint = (ref.registerSpec.size/8)*(addr - addrArr[0]);
-            let endPoint = startPoint + bytes;
-            let buffVal = Buffer.alloc(bytes, ret.buffer.slice(startPoint, endPoint));
+      console.log(`[${this.constructor.name}]`, `query task: ${JSON.stringify(queryTask, null, 2)}`);
 
-            let value = script.map[table][addr].translator(buffVal, script.map[table][addr]);
+      if(script && engine && engine.getState() == `running`) {
+        queryTask.reduce((prevProm, opt) => {
+          return prevProm
+          .then(() => engine.act(opt))
+          .then((ret) => {
+            let arr = [...this.config.address].filter(e => e >= opt.address && e < opt.address + opt.numtoread);
+            arr.forEach((addr) => {
+              let ref = script.map[table][addr];
+              let bytes = (ref.registerSpec.number * ref.registerSpec.size) / 8;
+              let startPoint = (ref.registerSpec.size/8)*(addr - arr[0]);
+              let endPoint = startPoint + bytes;
+              let buffVal = Buffer.alloc(bytes, ret.buffer.slice(startPoint, endPoint));
 
-            this.metrics.set(`success-call.last`, (new Date()).toString());
-            this.metrics.increase(`success-call.count`);
+              let value = script.map[table][addr].translator(buffVal, script.map[table][addr]);
 
-            this.device.findProperty(this.generatePropertyId(addr)).setCachedValueAndNotify(value);
-          });
-        })
+              this.metrics.set(`success-call.last`, (new Date()).toString());
+              this.metrics.increase(`success-call.count`);
+
+              this.device.findProperty(this.generatePropertyId(addr)).setCachedValueAndNotify(value);
+            })
+            return ;
+          })
+        }, Promise.resolve())
+        .then(() => this.lastPeriodSuccess = true)
         .then(() => resolve())
         .catch((err) => {
           console.log(`BulkReaderProperty: periodWork() >> Error!!!`);
           this.metrics.set(`fail-call.last`, (new Date()).toString());
           this.metrics.increase(`fail-call.count`);
+          this.lastPeriodSuccess = false;
           reject(err);
-        });
+        })
       }
-      else {
-        resolve();
-      }
-      
     });
   }
 }

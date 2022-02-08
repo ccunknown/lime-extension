@@ -1,23 +1,18 @@
 'use strict'
 
-const fs = require(`fs`);
-const Path = require(`path`);
-const SerialPort = require(`serialport`);
-
 const Service = require(`../service`);
-const Database = require('../../lib/my-database');
-const {Defaults, Errors} = require('../../../constants/constants');
+const { Defaults, Errors } = require('../../../constants/constants');
 
 const ConfigTranslator = require(`./config-translator.js`);
 
 class EnginesService extends Service {
   constructor(extension, config, id) {
-    console.log(`EnginesService: contructor() >> `);
     super(extension, config, id);
+    console.log(`[${this.constructor.name}]`, `contructor() >> `);
   }
 
   init(config) {
-    console.log(`EnginesService: init() >> `);
+    console.log(`[${this.constructor.name}]`, `init() >> `);
     return new Promise((resolve, reject) => {
       this.sysportService = this.laborsManager.getService(`sysport-service`).obj;
       this.config = (config) ? config : this.config;
@@ -28,44 +23,60 @@ class EnginesService extends Service {
   }
 
   start() {
-    console.log(`EnginesService: start() >> `);
+    console.log(`[${this.constructor.name}]`, `start() >> `);
     return new Promise((resolve, reject) => {
-      this.devicesService = this.laborsManager.getService(`devices-service`).obj;
-      this.initEngine()
-      .then((result) => console.log(`initEngine: ${JSON.stringify(result, null, 2)}`))
+      // this.devicesService = this.laborsManager.getService(`devices-service`).obj;
+      Promise.resolve()
+      .then(() => this.initEngine())
+      .then((result) => console.log(
+        `[${this.constructor.name}]`, 
+        `initEngine: ${JSON.stringify(result, null, 2)}`
+      ))
       .then(() => this.configTranslator = new ConfigTranslator(this))
+      .then(() => console.log(`[${this.constructor.name}]`, `engine started`))
       .then(() => resolve())
       .catch((err) => reject(err));
     });
   }
 
   initEngine(config) {
-    console.log(`EnginesService: initEngine() >> `);
+    console.log(`[${this.constructor.name}]`, `initEngine() >> `);
     return new Promise((resolve, reject) => {
       config = (config) ? config : this.config;
-
-      this.getTemplate(null, {"deep": true})
+      Promise.resolve()
+      .then(() => this.getTemplate({"deep": true}))
       .then((engineTemplateList) => this.engineTemplateList = engineTemplateList)
       .then(() => {
         this.engineList = [];
-        return this.getSchema().list;
+        return this.getSchema();
       })
+      .then((schema) => schema.list)
       .then((list) => Object.keys(list).reduce((prevProm, id) => {
-        if(list[id]._config && list[id]._config.addToService)
-          return this.addToService(id, list[id]);
-        else
-          return Promise.resolve();
+        return prevProm.then(() => {
+          if(list[id]._config && list[id]._config.addToService)
+            return this.addToService(id, list[id])
+            .catch((err) => console.error((err)));
+          else
+            return Promise.resolve();
+        })
       }, Promise.resolve()))
+      .then(() => console.log(`[${this.constructor.name}]`, `initEngine complete`))
+      // }, Promise.resolve()).then(() => resolve({})))
       .then(() => resolve({}))
       .catch((err) => reject(err));
     });
   }
 
   add(config) {
-    console.log(`EnginesService: add("${config.name}")`);
+    console.log(`[${this.constructor.name}]`, `add("${config.name}")`);
+    console.log(`[${this.constructor.name}]`, `config: ${JSON.stringify(config, null, 2)}`);
     return new Promise((resolve, reject) => {
-      let id = this.generateId();
-      this.addToService(id, config)
+      // let id = this.generateId();
+      let id;
+      Promise.resolve()
+      .then(() => this.generateId())
+      .then((iden) => id = iden)
+      .then(() => this.addToService(id, config))
       .then(() => this.addToConfig(id, config))
       .then(() => {
         let res = {};
@@ -77,7 +88,7 @@ class EnginesService extends Service {
   }
 
   addToConfig(id, config) {
-    console.log(`EnginesService: addToConfig() >> `);
+    console.log(`[${this.constructor.name}]`, `addToConfig() >> `);
     return new Promise((resolve, reject) => {
       this.configTranslator.validate(config)
       .then((validateInfo) => {
@@ -93,8 +104,9 @@ class EnginesService extends Service {
   }
 
   loadEngine(config, template) {
-    console.log(`EnginesService: loadEngine`);
+    console.log(`[${this.constructor.name}]`, `loadEngine`);
     return new Promise((resolve, reject) => {
+      console.log(`[${this.constructor.name}]`, `template: ${JSON.stringify(template, null, 2)}`);
       let path = template.path.replace(/^\//, ``);
       let Obj = require(`./${path}/engine.js`);
       let engine = new (Obj)(this, config);
@@ -108,37 +120,52 @@ class EnginesService extends Service {
   }
 
   addToService(id, config, options) {
-    console.log(`EnginesService: addToService(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `addToService(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `[${id}] config: ${JSON.stringify(config, null, 2)}`);
     return new Promise((resolve, reject) => {
-
-      ((!config) ? config = this.getConfigEngine(id) : Promise.resolve())
-      .then(() => this.getTemplate(null, {"deep": true}))
+      Promise.resolve()
+      .then(() => config ? config : this.getConfigEngine(id))
+      .then((conf) => config = conf)
+      .then(() => this.getTemplate({"deep": true}))
+      .then((templateList) => {
+        console.log(
+          `[${this.constructor.name}]`, 
+          `template list: ${JSON.stringify(templateList)}`
+        );
+        console.log(
+          `[${this.constructor.name}]`,
+          `config template: ${config.template}`
+        )
+        return templateList;
+      })
       .then((templateList) => templateList.find((elem) => config.template == elem.name))
       .then((template) => {
         return (!template) ? new Error(`template "${config.template}" not found!`) : template;
       })
       .then((template) => this.loadEngine(config, template))
       .then((engine) => this.engineList[id] = engine)
-      .then(() => this.addToServiceChain(id))
+      .then(() => options && options.chain && this.addToServiceChain(id))
       .then(() => resolve(config))
       .catch((err) => reject(err));
     });
   }
 
   addToServiceChain(id) {
-    console.log(`EnginesService: addToServiceChain(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `addToServiceChain(${id}) >> `);
     return new Promise((resolve, reject) => {
-      let devices = {};
-      // this.devicesService.getByConfigAttribute(`engine`, id)
-      this.devicesService.getDeviceConfigByAttribute(`engine`, id)
+      let devicesService = null;
+      Promise.resolve()
+      .then(() => this.laborsManager.getService(`devices-service`))
+      .then((service) => devicesService = service.obj)
+      .then(() => devicesService.getDeviceConfigByAttribute(`engine`, id))
       .then((deviceList) => {
         let prom = [];
         Object.keys(deviceList).forEach((id) => {
-          prom.push(this.devicesService.removeFromService(id))
+          prom.push(devicesService.removeFromService(id))
         });
         return Promise.all(prom);
       })
-      .then(() => this.devicesService.getDeviceConfigByAttribute(`engine`, id))
+      .then(() => devicesService.getDeviceConfigByAttribute(`engine`, id))
       .then((deviceList) => Object.keys(deviceList).reduce((prevProm, id) => {
         // return this.devicesService.addToService(id);
         return this.addDeviceToService(id);
@@ -149,12 +176,17 @@ class EnginesService extends Service {
   }
 
   addDeviceToService(id) {
-    console.log(`EnginesService: addDeviceToService(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `addDeviceToService(${id}) >> `);
     return new Promise((resolve, reject) => {
-      this.devicesService.getConfigDevice(id)
-      .then((config) => (config._config && config._config.addToService) ?
-        this.devicesService.addToService(id) :
-        Promise.resolve()
+      let devicesService = null;
+      Promise.resolve()
+      .then(() => this.laborsManager.getService(`devices-service`))
+      .then((service) => devicesService = service.obj)
+      .then(() => devicesService.getConfigDevice(id))
+      .then((config) => 
+        (config._config && config._config.addToService)
+          ? devicesService.addToService(id)
+          : Promise.resolve()
       )
       .then(() => resolve())
       .catch((err) => reject());
@@ -162,7 +194,7 @@ class EnginesService extends Service {
   }
 
   remove(id) {
-    console.log(`EnginesService: remove("${id}")`);
+    console.log(`[${this.constructor.name}]`, `remove("${id}")`);
     return new Promise((resolve, reject) => {
       this.removeFromConfig(id)
       .then(() => this.removeFromService(id))
@@ -172,7 +204,7 @@ class EnginesService extends Service {
   }
 
   removeFromConfig(id) {
-    console.log(`EnginesService: removeFromConfig() >> `);
+    console.log(`[${this.constructor.name}]`, `removeFromConfig() >> `);
     return new Promise((resolve, reject) => {
       this.configManager.deleteConfig(`service-config.engines-service.list.${id}`)
       .then(() => resolve({}))
@@ -181,7 +213,7 @@ class EnginesService extends Service {
   }
 
   removeFromService(id, options) {
-    console.log(`EnginesService: removeFromService() >> `);
+    console.log(`[${this.constructor.name}]`, `removeFromService() >> `);
     return new Promise((resolve, reject) => {
       this.stopEngine(id)
       .then(() => delete this.engineList[id])
@@ -192,7 +224,7 @@ class EnginesService extends Service {
   }
 
   update(id, config) {
-    console.log(`EnginesService: update(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `update(${id}) >> `);
     return new Promise((resolve, reject) => {
       this.updateToConfig(id, config)
       .then(() => this.updateToService(id, config))
@@ -206,7 +238,7 @@ class EnginesService extends Service {
   }
 
   updateToConfig(id, config) {
-    console.log(`EnginesService: updateToConfig(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `updateToConfig(${id}) >> `);
     return new Promise((resolve, reject) => {
       this.configTranslator.validate(config)
       .then((validateInfo) => {
@@ -222,7 +254,7 @@ class EnginesService extends Service {
   }
 
   updateToService(id, config) {
-    console.log(`EnginesService: updateToService(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `updateToService(${id}) >> `);
     return new Promise((resolve, reject) => {
       this.removeFromService(id)
       .then(() => this.addToService(id, config))
@@ -233,7 +265,7 @@ class EnginesService extends Service {
   }
 
   startEngine(id) {
-    console.log(`EnginesService: startEngine("${id}") >> `);
+    console.log(`[${this.constructor.name}]`, `startEngine("${id}") >> `);
     return new Promise((resolve, reject) => {
       let engine = this.get(id, {"object": true});
       if(engine) {
@@ -248,7 +280,7 @@ class EnginesService extends Service {
   }
 
   stopEngine(id) {
-    console.log(`EnginesService: stopEngine("${id}") >> `);
+    console.log(`[${this.constructor.name}]`, `stopEngine("${id}") >> `);
     return new Promise((resolve, reject) => {
       let engine = this.get(id, {"object": true});
       if(engine) {
@@ -257,7 +289,7 @@ class EnginesService extends Service {
         .catch((err) => reject(err));
       }
       else {
-        console.warn(`Object with id "${id}" not found!!!`);
+        console.warn(`[${this.constructor.name}]`, `Object with id "${id}" not found!!!`);
         resolve();
       }
     });
@@ -266,13 +298,19 @@ class EnginesService extends Service {
   get(id, options) {
     options = (options) ? options : (typeof id == `object`) ? id : undefined;
     id = (typeof id == `string`) ? id : (options && options.id) ? options.id : undefined;
-    console.log(`EnginesService: get(${(id) ? `${id}` : ``}) >> `);
+    console.log(`[${this.constructor.name}]`, `get(${(id) ? `${id}` : ``}) >> `);
     // return (options && options.object) ? this.getServiceEngine(id, options) : this.getConfigEngine(id, options);
-    return (options && options.object) ? ((id) ? this.engineList[id] : this.engineList) : this.getConfigEngine(id, options);
+    return (options && options.object) 
+    ? (
+        (id) 
+          ? this.engineList[id] 
+          : this.engineList
+      ) 
+    : this.getConfigEngine(id, options);
   }
 
   getByConfigAttribute(attr, val) {
-    console.log(`EnginesService: getByConfigAttribute(${attr}, ${val}) >> `);
+    console.log(`[${this.constructor.name}]`, `getByConfigAttribute(${attr}, ${val}) >> `);
     return new Promise((resolve, reject) => {
       this.get()
       .then((engines) => {
@@ -281,7 +319,7 @@ class EnginesService extends Service {
           if(engines[i].hasOwnProperty(attr) && engines[i][attr] == val)
             result[i] = engines[i];
         }
-        console.log(`>> result: ${JSON.stringify(result, null, 2)}`);
+        console.log(`[${this.constructor.name}]`, `>> result: ${JSON.stringify(result, null, 2)}`);
         return result;
       })
       .then((res) => resolve(res))
@@ -292,7 +330,7 @@ class EnginesService extends Service {
   getConfigEngine(id, options) {
     options = (options) ? options : (typeof id == `object`) ? id : undefined;
     id = (typeof id == `string`) ? id : (options && options.id) ? options.id : undefined;
-    console.log(`EnginesService: getConfigEngine(${(id) ? `${id}` : ``}) >> `);
+    console.log(`[${this.constructor.name}]`, `getConfigEngine(${(id) ? `${id}` : ``}) >> `);
     return new Promise((resolve, reject) => {
       if(id) {
         this.getSchema({"renew": true})
@@ -302,7 +340,7 @@ class EnginesService extends Service {
       else {
         this.getSchema({"renew": true})
         .then((conf) => {
-          console.log(`>> conf: ${JSON.stringify(conf.list, null, 2)}`);
+          console.log(`[${this.constructor.name}]`, `>> conf: ${JSON.stringify(conf.list, null, 2)}`);
           resolve(conf.list)
         })
         .catch((err) => reject(err));
@@ -311,7 +349,7 @@ class EnginesService extends Service {
   }
 
   getServiceEngine(id) {
-    console.log(`EnginesService: getServiceEngine(${(id) ? `${id}` : ``})`);
+    console.log(`[${this.constructor.name}]`, `getServiceEngine(${(id) ? `${id}` : ``})`);
     return new Promise((resolve, reject) => {
       let config = null;
       this.getConfigEngine(id)
@@ -334,7 +372,7 @@ class EnginesService extends Service {
   }
 
   getEngineConfigWithState(id) {
-    console.log(`EnginesService: getEngineConfigWithState(${(id) ? `${id}`: ``})`);
+    console.log(`[${this.constructor.name}]`, `getEngineConfigWithState(${(id) ? `${id}`: ``})`);
     return new Promise((resolve, reject) => {
       if(id) {
         if(this.engineList.hasOwnProperty(id)) {
@@ -360,18 +398,22 @@ class EnginesService extends Service {
   }
 
   getTemplate(key, options) {
-    console.log(`EnginesService: getTemplate(${(key) ? key : ``})`);
+    options = options ? options : (typeof key === `object`) ? key : {};
+    key = typeof key === `string` ? key : null;
+    console.log(`[${this.constructor.name}]`, `getTemplate(${(key) ? key : ``})`);
     return new Promise((resolve, reject) => {
-      let serviceSchema = this.getSchema();
-      let templateList = {};
-
-      this.getDirectorySchema(serviceSchema.directory, options)
+      let serviceSchema;
+      Promise.resolve()
+      .then(() => this.getSchema())
+      .then((schema) => serviceSchema = schema)
+      .then(() => this.getDirectorySchema(serviceSchema.directory, options))
       .then((dirSchema) => dirSchema.children)
       .then((templateList) => {
         if(key)
           resolve((!templateList.find((elem) => elem.name == key))
             ? undefined
-            : JSON.parse(JSON.stringify(templateList.find((elem) => elem.name == key))));
+            : JSON.parse(JSON.stringify(templateList.find((elem) => elem.name == key)))
+          );
         else
           resolve(templateList);
       })
@@ -380,7 +422,7 @@ class EnginesService extends Service {
   }
 
   generateConfigSchema(params) {
-    console.log(`EnginesService: generateConfigSchema() >> `);
+    console.log(`[${this.constructor.name}]`, `generateConfigSchema() >> `);
     return new Promise((resolve, reject) => {
       this.configTranslator.generateConfigSchema(params)
       .then((schema) => resolve(schema))
@@ -389,15 +431,25 @@ class EnginesService extends Service {
   }
 
   generateId() {
-    console.log(`EnginesService: generateId() >> `);
-    let id;
-    let maxIndex = 10000;
-    for(let i = 1;i < maxIndex;i++) {
-      id = `engine-${i}`;
-      if(!this.engineList.hasOwnProperty(id))
-        break;
-    }
-    return id;
+    console.log(`[${this.constructor.name}]`, `generateId() >> `);
+    return new Promise((resolve, reject) => {
+      let id;
+      let maxIndex = 10000;
+      Promise.resolve()
+      .then(() => this.getSchema({ renew: true }))
+      .then((config) => config.list)
+      .then((list) => {
+        for(let i = 1;i < maxIndex;i++) {
+          console.log(`[${this.constructor.name}]`, `id list: ${Object.keys(list)}`);
+          id = `engine-${i}`;
+          if(!list.hasOwnProperty(id))
+            break;
+        }
+        return id;
+      })
+      .then((ret) => resolve(ret))
+      .catch((err) => reject(err));
+    })
   }
 }
 

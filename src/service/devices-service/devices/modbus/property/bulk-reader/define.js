@@ -26,6 +26,13 @@ const ValidateConfigSchema = {
       "title": "Period (ms)",
       "default": 10000,
       "minimum": 1000
+    },
+    "size": {
+      "type": `number`,
+      "title": `Chunk size`,
+      "default": 255,
+      "minimum": 1,
+      "maximum": 255
     }
   }
 };

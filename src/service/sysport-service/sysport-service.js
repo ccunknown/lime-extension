@@ -11,13 +11,13 @@ const SerialPort = require(`serialport`);
 
 class SysportService extends Service {
   constructor(extension, config, id) {
-    console.log(`SysportService: contructor() >> `);
     super(extension, config, id);
+    console.log(`[${this.constructor.name}]`, `contructor() >> `);
   }
 
   init(config) {
-    console.log(`SysportService: init() >> `);
-    return new Promise(async (resolve, reject) => {
+    console.log(`[${this.constructor.name}]`, `init() >> `);
+    return new Promise((resolve, reject) => {
       this.config = (config) ? config : this.config;
       this.portList = {};
       resolve();
@@ -25,29 +25,39 @@ class SysportService extends Service {
   }
 
   start(config) {
-    return new Promise(async (resolve, reject) => {
-      console.log(`SysportService: start() >> `);
+    return new Promise((resolve, reject) => {
+      console.log(`[${this.constructor.name}]`, `start() >> `);
       config = (config) ? config : this.config;
       this.portList = {};
-      this.enginesService = this.laborsManager.getService(`engines-service`).obj;
+      // this.enginesService = this.laborsManager.getService(`engines-service`).obj;
       this.configTranslator = new ConfigTranslator(this);
       //console.log(`sysport config : ${JSON.stringify(this.config, null, 2)}`);
       let serviceSchema = this.getSchema();
-      console.log(JSON.stringify(serviceSchema));
+      console.log(`[${this.constructor.name}]`, JSON.stringify(serviceSchema));
       //let list = serviceSchema.config.list;
       let list = serviceSchema.list;
-      for(let i in list) {
-        await this.addToService(i, list[i]);
-      }
-      resolve();
+      Object.keys(list).reduce((prevProm, id) => {
+        return prevProm
+        .then(() => this.addToService(id, list[id]))
+        .catch((err) => console.error(err));
+      }, Promise.resolve())
+      .then(() => resolve())
+      .catch((err) => reject(err));
+      // for(let i in list) {
+      //   await this.addToService(i, list[i]);
+      // }
+      // resolve();
     });
   }
 
   add(config) {
-    console.log(`SysportService: add() >> `);
+    console.log(`[${this.constructor.name}]`, `add() >> `);
     return new Promise((resolve, reject) => {
-      let id = this.generateId();
-      this.addToConfig(id, config)
+      let id = null;
+      Promise.resolve()
+      .then(() => this.generateId())
+      .then((generatedId) => id = generatedId)
+      .then(() => this.addToConfig(id, config))
       .then(() => this.addToService(id, config))
       .then(() => {
         let res = {};
@@ -59,7 +69,7 @@ class SysportService extends Service {
   }
 
   addToConfig(id, config) {
-    console.log(`SysportService: addToConfig() >> `);
+    console.log(`[${this.constructor.name}]`, `addToConfig() >> `);
     return new Promise((resolve, reject) => {
       this.configTranslator.validate(config)
       .then((validateInfo) => {
@@ -75,7 +85,7 @@ class SysportService extends Service {
   }
 
   addToService(id, schema, options) {
-    console.log(`SysportService: addToService("${id}": "${schema.path}") >> `);
+    console.log(`[${this.constructor.name}]`, `addToService("${id}": "${schema.path}") >> `);
     return new Promise((resolve, reject) => {
       ((this.portList[id]) ? this.removeFromService(id) : Promise.resolve())
       .then(() => {
@@ -85,7 +95,7 @@ class SysportService extends Service {
         };
         port.object.removeAllListeners();
         port.object.on("close", (err) => {
-          console.log(`Port "${id}" error : `);
+          console.log(`[${this.constructor.name}]`, `Port "${id}" error : `);
           console.error(err);
         });
         this.portList[id] = port;
@@ -97,21 +107,25 @@ class SysportService extends Service {
   }
 
   addToServiceChain(id) {
-    console.log(`SysportService: addToServiceChain(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `addToServiceChain(${id}) >> `);
     return new Promise((resolve, reject) => {
       let engines = {};
-      this.enginesService.getByConfigAttribute(`port`, id)
+      let enginesService = null;
+      Promise.resolve()
+      .then(() => this.laborsManager.getService(`engines-service`))
+      .then((service) => enginesService = service.obj)
+      .then(() => enginesService.getByConfigAttribute(`port`, id))
       .then((list) => engines = list)
       .then(() => {
         let prom = [];
         for(let i in engines)
-          prom.push(this.enginesService.removeFromService(i));
+          prom.push(enginesService.removeFromService(i));
         return Promise.all(prom);
       })
       .then(() => {
         let prom = [];
         for(let i in engines)
-          prom.push(this.enginesService.addToService(i));
+          prom.push(enginesService.addToService(i));
         return Promise.all(prom);
       })
       .then(() => resolve())
@@ -120,7 +134,7 @@ class SysportService extends Service {
   }
 
   remove(id) {
-    console.log(`SysportService: remove(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `remove(${id}) >> `);
     return new Promise((resolve, reject) => {
       this.removeFromConfig(id)
       .then(() => this.removeFromService(id))
@@ -130,7 +144,7 @@ class SysportService extends Service {
   }
 
   removeFromConfig(id) {
-    console.log(`SysportService: removeFromConfig(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `removeFromConfig(${id}) >> `);
     return new Promise((resolve, reject) => {
       this.configManager.deleteConfig(`service-config.sysport-service.list.${id}`)
       .then(() => resolve())
@@ -139,7 +153,7 @@ class SysportService extends Service {
   }
 
   removeFromService(id) {
-    console.log(`SysportService: removeFromService(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `removeFromService(${id}) >> `);
     return new Promise((resolve, reject) => {
       let port = this.portList[id];
       if(!port)
@@ -160,7 +174,7 @@ class SysportService extends Service {
   }
 
   update(id, config) {
-    console.log(`SysportService: update(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `update(${id}) >> `);
     return new Promise((resolve, reject) => {
       this.updateConfig(id, config)
       .then(() => this.updateService(id, config))
@@ -174,7 +188,7 @@ class SysportService extends Service {
   }
 
   updateConfig(id, config) {
-    console.log(`SysportService: updateConfig(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `updateConfig(${id}) >> `);
     return new Promise((resolve, reject) => {
       this.configTranslator.validate(config)
       .then((validateInfo) => {
@@ -190,7 +204,7 @@ class SysportService extends Service {
   }
 
   updateService(id, config) {
-    console.log(`SysportService: updateService(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `updateService(${id}) >> `);
     return new Promise((resolve, reject) => {
       this.removeFromService(id)
       .then(() => this.addToService(id, config, {"chain": true}))
@@ -202,9 +216,9 @@ class SysportService extends Service {
   get(id, options) {
     options = (options) ? options : (typeof id == `object`) ? id : undefined;
     id = (typeof id == `string`) ? id : (options && options.id) ? options.id : undefined;
-    console.log(`SysportService: get(${(id) ? `"${id}"` : ``}) >> `);
+    console.log(`[${this.constructor.name}]`, `get(${(id) ? `"${id}"` : ``}) >> `);
     for(let i in this.portList)
-      console.log(`port id: ${i}`);
+      console.log(`[${this.constructor.name}]`, `port id: ${i}`);
     return new Promise(async (resolve, reject) => {
       if(options && options.object == true)
         resolve((id) ? this.portList[id] : this.portList);
@@ -230,7 +244,7 @@ class SysportService extends Service {
   }
 
   getSerialPortList() {
-    console.log(`SysportService: getSerialPortList() >> `);
+    console.log(`[${this.constructor.name}]`, `getSerialPortList() >> `);
     return new Promise((resolve, reject) => {
       let portList = [];
       SerialPort.list()
@@ -242,8 +256,8 @@ class SysportService extends Service {
             manufacturer: (port.manufacturer) ? port.manufacturer : null
           });
         });
-        console.log(`port: ${JSON.stringify(ports, null, 2)}`);
-        console.log(`portList: ${JSON.stringify(portList, null, 2)}`);
+        console.log(`[${this.constructor.name}]`, `port: ${JSON.stringify(ports, null, 2)}`);
+        console.log(`[${this.constructor.name}]`, `portList: ${JSON.stringify(portList, null, 2)}`);
         resolve(portList);
       })
       .catch((err) => {
@@ -253,7 +267,7 @@ class SysportService extends Service {
   }
 
   generateConfigSchema(params) {
-    console.log(`SysportService: generateConfigSchema() >> `);
+    console.log(`[${this.constructor.name}]`, `generateConfigSchema() >> `);
     return new Promise(async (resolve, reject) => {
       let config = await this.configTranslator.generateConfigSchema(params);
       resolve(config);
@@ -261,15 +275,25 @@ class SysportService extends Service {
   }
 
   generateId() {
-    console.log(`SysportService: generateId() >> `);
-    let id;
-    let maxIndex = 10000;
-    for(let i = 1;i < maxIndex;i++) {
-      id = `port-${i}`;
-      if(!this.portList.hasOwnProperty(id))
-        break;
-    }
-    return id;
+    console.log(`[${this.constructor.name}]`, `generateId() >> `);
+    return new Promise((resolve, reject) => {
+      let id;
+      let maxIndex = 10000;
+      Promise.resolve()
+      .then(() => this.getSchema({ renew: true }))
+      .then((config) => config.list)
+      .then((list) => {
+        for(let i = 1;i < maxIndex;i++) {
+          console.log(`[${this.constructor.name}]`, `id list: ${Object.keys(list)}`);
+          id = `port-${i}`;
+          if(!list.hasOwnProperty(id))
+            break;
+        }
+        return id;
+      })
+      .then((ret) => resolve(ret))
+      .catch((err) => reject(err));
+    })
   }
 }
 

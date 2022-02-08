@@ -36,7 +36,7 @@ class DevicesService extends Service {
   }
 
   init(config) {
-    console.log(`DevicesService: init() >> `);
+    console.log(`[${this.constructor.name}]`, `init() >> `);
     return new Promise((resolve, reject) => {
       this.config = (config) ? config : this.config;
       this.initAdapter();
@@ -47,29 +47,33 @@ class DevicesService extends Service {
   }
 
   initAdapter() {
-    console.log(`DevicesService: initAdapter() >> `);
+    console.log(`[${this.constructor.name}]`, `initAdapter() >> `);
     this.adapter = new vAdapter(this.addonManager, this.manifest.id, this.manifest.name, this);
     this.adapter.extEventEmitter.removeAllListeners(`remove`);
     this.adapter.extEventEmitter.on(`remove`, (device) => this.onAdapterDeviceRemove(device));
   }
 
   onAdapterDeviceRemove(id) {
-    console.log(`DevicesService: onAdapterDeviceRemove() >> `);
-    let device = this.adapter.getDevice(id);
-    device.disableProperties();
+    console.log(`[${this.constructor.name}]`, `onAdapterDeviceRemove() >> `);
+    // let device = this.adapter.getDevice(id);
+    this.removeFromService(id);
+    // device.disableProperties();
     return ;
   }
 
   initDevices() {
-    console.log(`DevicesService: initDevices() >> `);
+    console.log(`[${this.constructor.name}]`, `initDevices() >> `);
     return new Promise((resolve, reject) => {
       let serviceSchema = this.getSchema();
       let list = serviceSchema.list;
 
       Object.keys(list).reduce((prevProm, id) => {
-        return (list[id]._config && list[id]._config.addToService) ? 
-          this.addToService(id, list[id]) : 
-          Promise.resolve();
+        return prevProm
+          .then(() => (list[id]._config && list[id]._config.enable)
+            ? this.addToService(id, list[id])
+            : Promise.resolve()
+          )
+          .catch((err) => console.error(err));
       }, Promise.resolve())
       .then(() => resolve())
       .catch((err) => reject(err));
@@ -77,7 +81,7 @@ class DevicesService extends Service {
   }
 
   start() {
-    console.log(`DevicesService: start() >> `);    
+    console.log(`[${this.constructor.name}]`, `start() >> `);    
     return new Promise((resolve, reject) => {
       this.scriptsService = this.laborsManager.getService(`scripts-service`).obj;
       this.enginesService = this.laborsManager.getService(`engines-service`).obj;
@@ -89,7 +93,7 @@ class DevicesService extends Service {
   }
 
   stop() {
-    console.log(`DevicesService: stop() >> `);
+    console.log(`[${this.constructor.name}]`, `stop() >> `);
     return new Promise((resolve, reject) => {
       this.getServiceDevice()
       .then((services) => {
@@ -104,7 +108,7 @@ class DevicesService extends Service {
   }
 
   startDevice(id) {
-    console.log(`DevicesService: startDevice(${id})`);
+    console.log(`[${this.constructor.name}]`, `startDevice(${id})`);
     return new Promise((resolve, reject) => {
       let device = this.adapter.getDevice(id);
       if(!device)
@@ -118,7 +122,7 @@ class DevicesService extends Service {
   }
 
   stopDevice(id) {
-    console.log(`DevicesService: stopDevice(${id})`);
+    console.log(`[${this.constructor.name}]`, `stopDevice(${id})`);
     return new Promise((resolve, reject) => {
       let device = this.adapter.getDevice(id);
       if(!device)
@@ -132,15 +136,17 @@ class DevicesService extends Service {
   }
 
   add(config) {
-    console.log(`DevicesService: add() >> `);
+    console.log(`[${this.constructor.name}]`, `add() >> `);
     // console.log(`config: ${JSON.stringify(config, null, 2)}`);
     return new Promise((resolve, reject) => {
-      let id, respond = {};
+      let id;
       this.configTranslator.validate(config)
       .then(() => this.getTemplate(config.template, {"deep": true}))
-      .then((template) => (template) ? 
-        this.generateId() : 
-        new Error(`Template '${config.template}' not found!!!`))
+      .then((template) =>
+        (template)
+          ? this.generateId()
+          : new Error(`Template '${config.template}' not found!!!`)
+      )
       .then((i) => id = i)
       .then(() => this.addToConfig(id, config))
       .then(() => this.addToService(id, config))
@@ -152,16 +158,18 @@ class DevicesService extends Service {
   }
 
   addToService(id, config, options) {
-    console.log(`DevicesService: addToService(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `addToService(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `[${id}] config: ${JSON.stringify(config, null, 2)}`);
     return new Promise((resolve, reject) => {
       // console.log(`add: ${JSON.stringify(config, null, 2)}`);
-
-      //  Check duplicate.
+      //  Initial
       let device = this.adapter.getDevice(id);
-      ((device) ? Promise.resolve() : this.removeFromService(id))
+      Promise.resolve()
+      //  Check duplicate.
+      .then(() => (device) ? Promise.resolve() : this.removeFromService(id))
       //  Identify config.
       .then(() => (config) ? Promise.resolve(config) : this.getConfigDevice(id))
-      .then((conf) => config = conf)
+      .then((conf) => config = JSON.parse(JSON.stringify(conf)))
       //  Get device template.
       .then(() => this.getTemplate(config.template, {"deep": true}))
       .then((template) => {
@@ -176,12 +184,14 @@ class DevicesService extends Service {
       .then(() => this.adapter.handleDeviceAdded(device))
       // .then(() => this.applyObjectOptions(id, options))
       .then(() => resolve(device.asThing()))
-      .catch((err) => reject(err));
+      .catch((err) => {
+        reject(err)
+      });
     });
   }
 
   addToConfig(id, config) {
-    console.log(`devicesService: addToConfig(id) >> `);
+    console.log(`[${this.constructor.name}]`, `addToConfig(id) >> `);
     return new Promise((resolve, reject) => {
       this.configManager.addToConfig(config, `service-config.devices-service.list.${id}`)
       .then((res) => resolve(res))
@@ -190,7 +200,7 @@ class DevicesService extends Service {
   }
 
   remove(id) {
-    console.log(`DevicesService: removeDevice() >> `);
+    console.log(`[${this.constructor.name}]`, `removeDevice() >> `);
     return new Promise((resolve, reject) => {
       this.removeFromConfig(id)
       .then(() => this.removeFromService(id))
@@ -200,7 +210,7 @@ class DevicesService extends Service {
   }
 
   removeFromConfig(id) {
-    console.log(`DevicesService: removeFromConfig(${id}) >> `);
+    console.log(`[${this.constructor.name}]`, `removeFromConfig(${id}) >> `);
     return new Promise((resolve, reject) => {
       this.configManager.deleteConfig(`service-config.devices-service.list.${id}`)
       .then(() => resolve({}))
@@ -208,14 +218,13 @@ class DevicesService extends Service {
     });
   }
 
-  removeFromService(id, options) {
-    console.log(`DevicesService: removeFromService(${id}) >> `);
+  removeFromService(id) {
+    console.log(`[${this.constructor.name}]`, `removeFromService(${id}) >> `);
     return new Promise((resolve, reject) => {
       let device = this.adapter.getDevice(id);
       if(device) {
         device.disableProperties()
         .then(() => this.adapter.handleDeviceRemoved(device))
-        // .then(() => this.applyObjectOptions(id, options))
         .then(() => resolve({}))
         .catch((err) => reject(err));
       }
@@ -227,7 +236,7 @@ class DevicesService extends Service {
   }
 
   update(id, config) {
-    console.log(`DevicesService: update(${(id) ? `${id}` : ``}) >> `);
+    console.log(`[${this.constructor.name}]`, `update(${(id) ? `${id}` : ``}) >> `);
     return new Promise((resolve, reject) => {
       this.configTranslator.validate(config)
       // .then((valid) => (valid.errors && valid.errors.length) ? 
@@ -241,7 +250,7 @@ class DevicesService extends Service {
   }
 
   get(id, options) {
-    console.log(`DevicesService: get(${id})`);
+    console.log(`[${this.constructor.name}]`, `get(${id})`);
     return new Promise((resolve, reject) => {
       if(options && options.object)
         resolve((id) ? this.adapter.getDevice(id) : this.adapter.getDevices());
@@ -261,7 +270,7 @@ class DevicesService extends Service {
   }
 
   getByConfigAttribute(attr, value) {
-    console.log(`DevicesService: getByConfigAttribute(${attr}, ${value})`);
+    console.log(`[${this.constructor.name}]`, `getByConfigAttribute(${attr}, ${value})`);
     return new Promise((resolve, reject) => {
       let devices = this.adapter.getDevices();
 
@@ -276,43 +285,78 @@ class DevicesService extends Service {
   }
 
   getConfigDevice(id) {
-    console.log(`DevicesService: getConfigDevice(${(id) ? `${id}` : ``})`);
+    console.log(`[${this.constructor.name}]`, `getConfigDevice(${(id) ? `${id}` : ``})`);
     return new Promise((resolve, reject) => {
       this.getSchema({"renew": true})
       .then((conf) => {
         // console.log(`>> getSchema(): ${JSON.stringify(conf, null, 2)}`);
         let list = conf.list;
-        resolve((id) ? (list.hasOwnProperty(id)) ? list[id] : {} : list);
+        resolve(
+          (id)
+          ? (list.hasOwnProperty(id))
+            ? list[id]
+            : {}
+          : list
+        );
       })
       .catch((err) => reject(err));
     });
   }
 
+  // getServiceDevice(id) {
+  //   console.log(`[${this.constructor.name}]`, `getServiceDevice(${(id) ? `${id}` : ``})`);
+  //   return new Promise((resolve, reject) => {
+  //     let config = null;
+  //     let service = null;
+  //     this.getConfigDevice(id)
+  //     .then((conf) => {
+  //       config = conf;
+  //       return this.getDeviceConfigWithState(id);
+  //     })
+  //     .then((serv) => service = serv)
+  //     .then(() => {
+  //       let result = JSON.parse(JSON.stringify(config));
+  //       console.log(`>> result: ${JSON.stringify(result, null, 2)}`);
+  //       if(id)
+  //         result.state = (service) ? service.state : `not in service`;
+  //       else {
+  //         for(let i in result) {
+  //           if(service.hasOwnProperty(i))
+  //             result[i].state = service[i].state;
+  //           else
+  //             result[i].state = `not in service`;
+  //         }
+  //       }
+  //       return result;
+  //     })
+  //     .then((res) => resolve(res))
+  //     .catch((err) => reject(err));
+  //   });
+  // }
+
   getServiceDevice(id) {
-    console.log(`DevicesService: getServiceDevice(${(id) ? `${id}` : ``})`);
+    console.log(`[${this.constructor.name}]`, `getServiceDevice(${(id) ? `${id}` : ``})`);
     return new Promise((resolve, reject) => {
       let config = null;
-      let service = null;
+      let state = null;
       this.getConfigDevice(id)
       .then((conf) => {
         config = conf;
-        return this.getDeviceConfigWithState(id);
+        // return this.getDeviceConfigWithState(id);
+        return this.getDeviceState(id);
       })
-      .then((serv) => {
-        service = serv;
-        return ;
-      })
+      .then((s) => state = s)
       .then(() => {
         let result = JSON.parse(JSON.stringify(config));
         console.log(`>> result: ${JSON.stringify(result, null, 2)}`);
         if(id)
-          result.state = (service) ? service.state : `not in service`;
+          result.state = state;
         else {
           for(let i in result) {
-            if(service.hasOwnProperty(i))
-              result[i].state = service[i].state;
+            if(state.hasOwnProperty(i))
+              result[i].state = state[i];
             else
-              result[i].state = `not in service`;
+              result[i].state = `undefined`;
           }
         }
         return result;
@@ -322,13 +366,81 @@ class DevicesService extends Service {
     });
   }
 
+  getDeviceState(id) {
+    console.log(`[${this.constructor.name}]`, `getDeviceState(${id || ``})`);
+    return new Promise((resolve, reject) => {
+      if(id) {
+        let device = this.adapter.getDevice(id);
+        let config = null;
+        let subCondition = {};
+        Promise.resolve()
+        .then(() => this.getConfigDevice(id))
+        .then((conf) => config = conf)
+        //  Valid ?
+        .then(() => this.isValidConfig(config))
+        .then((valid) => subCondition.valid = valid)
+        //  Enable ?
+        .then(() => subCondition.enable = config._config.enable)
+        //  In adapter ?
+        .then(() => subCondition.inadapter = device ? true : false)
+        //  Device state ?
+        .then(() => (device) ? device.getState() : null)
+        .then((deviceState) => subCondition.device = deviceState)
+        //  Summary
+        .then(() => {
+          console.log(
+            `[${this.constructor.name}]`, 
+            `${JSON.stringify(subCondition, null, 2)}`
+          );
+          return (
+            subCondition.inadapter
+            ? `${subCondition.device}`
+            : subCondition.valid
+              ? subCondition.enable
+                ? `corrupted`
+                : `disabled`
+              : `invalid-schema`
+          );
+        })
+        .then((ret) => resolve(ret))
+        .catch((err) => reject(err));
+      }
+      else {
+        let result = {};
+        Promise.resolve()
+        .then(() => this.getConfigDevice())
+        .then((config) => Object.keys(config).reduce((prevProm, id) => {
+          return prevProm
+          .then(() => this.getDeviceState(id))
+          .then((state) => result[id] = state);
+        }, Promise.resolve()))
+        .then(() => resolve(result))
+        .catch((err) => reject(err));
+      }
+    })
+  }
+
+  isValidConfig(config) {
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+      .then(() => this.configTranslator.validate(config))
+      .then(() => resolve(true))
+      .catch((err) => {
+        (err.name === `InvalidConfigSchema`)
+        ? resolve(false)
+        : reject(err);
+      });
+    })
+  }
+
   getDeviceConfigWithState(id) {
-    console.log(`DevicesService: getDeviceConfigWithState(${(id) ? `${id}`: ``})`);
+    console.log(`[${this.constructor.name}]`, `getDeviceConfigWithState(${(id) ? `${id}`: ``})`);
     return new Promise((resolve, reject) => {
       if(id) {
         let device = this.adapter.getDevice(id);
         let schema = JSON.parse(JSON.stringify(device.exConf.config));
-        device.getState()
+        Promise.resolve()
+        .then(() => device.getState())
         .then((state) => {
           schema.state = state;
           resolve(schema);
@@ -349,8 +461,9 @@ class DevicesService extends Service {
       }
     });
   }
+
   getDeviceConfigByAttribute(attr, val) {
-    console.log(`DevicesService: getDeviceConfigByAttribute(${attr}, ${val}) >> `);
+    console.log(`[${this.constructor.name}]`, `getDeviceConfigByAttribute(${attr}, ${val}) >> `);
   // getConfigDeviceByAttribute(attr, val) {
   //   console.log(`DevicesService: getConfigDeviceByAttribute(${attr}, ${val}) >> `);
     return new Promise((resolve, reject) => {
@@ -368,7 +481,7 @@ class DevicesService extends Service {
   }
 
   generateConfigSchema(params) {
-    console.log(`DevicesService: generateConfigSchema() >> `);
+    console.log(`[${this.constructor.name}]`, `generateConfigSchema() >> `);
     return new Promise((resolve, reject) => {
       this.configTranslator.generateConfigSchema(params)
       .then((config) => resolve(config))
@@ -377,7 +490,7 @@ class DevicesService extends Service {
   }
 
   generatePropertyId(params) {
-    console.log(`DevicesService: generatePropertyId() >> `);
+    console.log(`[${this.constructor.name}]`, `generatePropertyId() >> `);
     return new Promise((resolve, reject) => {
       this.configTranslator.generatePropertyId(params)
       .then((result) => resolve(result))
@@ -386,7 +499,7 @@ class DevicesService extends Service {
   }
 
   translateConfig(config) {
-    console.log(`DevicesService: getConfigTranslation() >> `);
+    console.log(`[${this.constructor.name}]`, `getConfigTranslation() >> `);
     return new Promise((resolve, reject) => {
       this.configTranslator.translate(config)
       .then((translated) => resolve(translated))
@@ -395,7 +508,7 @@ class DevicesService extends Service {
   }
 
   getTemplate(name, options) {
-    console.log(`DevicesService: getTemplate(${(name) ? name : ``})`);
+    console.log(`[${this.constructor.name}]`, `getTemplate(${(name) ? name : ``})`);
     return new Promise((resolve, reject) => {
       let serviceSchema = this.getSchema();
       if(name) {
@@ -418,7 +531,7 @@ class DevicesService extends Service {
   }
 
   getCompatibleScript(tagArr) {
-    console.log(`ModbusDevice: getCompatibleScript() >> `);
+    console.log(`[${this.constructor.name}]`, `getCompatibleScript() >> `);
     return new Promise((resolve, reject) => {
       this.scriptsService.get(null, {"deep": true})
       .then((scripts) => {
@@ -434,7 +547,7 @@ class DevicesService extends Service {
   }
 
   getCompatibleEngine(tagArr) {
-    console.log(`DevicesService: getCompatibleEngine(${tagArr.toString()}) >> `);
+    console.log(`[${this.constructor.name}]`, `getCompatibleEngine(${tagArr.toString()}) >> `);
     return new Promise((resolve, reject) => {
       this.enginesService.getSchema({"renew": true})
       .then((schema) => {
@@ -448,7 +561,7 @@ class DevicesService extends Service {
   }
 
   getEngineTemplateName(engineName) {
-    console.log(`DevicesService: getEngineTemplateName(${engineName})`);
+    console.log(`[${this.constructor.name}]`, `getEngineTemplateName(${engineName})`);
     return new Promise((resolve, reject) => {
       this.enginesService.getSchema({"renew": true})
       .then((config) => config.list.hasOwnProperty(engineName) ? config.list[engineName].template : null)
@@ -458,22 +571,25 @@ class DevicesService extends Service {
   }
 
   generateId() {
-    console.log(`DevicesService: generateId() >> `);
+    console.log(`[${this.constructor.name}]`, `generateId() >> `);
     return new Promise((resolve, reject) => {
-      this.getSchema({"renew": true})
-      .then((deviceConf) => {
-        let id;
-        let maxIndex = 10000;
+      let id;
+      let maxIndex = 10000;
+      Promise.resolve()
+      .then(() => this.getSchema({ renew: true }))
+      .then((config) => config.list)
+      .then((list) => {
         for(let i = 1;i < maxIndex;i++) {
+          console.log(`[${this.constructor.name}]`, `id list: ${Object.keys(list)}`);
           id = `lime-device-${i}`;
-          if(!(deviceConf.list.hasOwnProperty(id)))
+          if(!list.hasOwnProperty(id))
             break;
         }
         return id;
       })
-      .then((id) => resolve(id))
+      .then((ret) => resolve(ret))
       .catch((err) => reject(err));
-    });
+    })
   }
 }
 
@@ -524,7 +640,7 @@ class vAdapter extends Adapter {
   }
 
   unload() {
-    console.log(`vAdapter: unload() >> `);
+    console.log(`[${this.constructor.name}]`, `unload() >> `);
     return new Promise((resolve, reject) => {
       this.devicesService.stop()
       .then(() => console.log(`>> devices-service stopped.`))

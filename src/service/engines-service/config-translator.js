@@ -7,6 +7,7 @@ const {
 
 class ServiceConfigTranslator {
   constructor(enginesService) {
+    console.log(`[${this.constructor.name}]`, `constructor() >> `)
     this.enginesService = enginesService;
     this.validator = new Validator();
   }

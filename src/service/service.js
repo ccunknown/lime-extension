@@ -44,7 +44,8 @@ class Service extends EventEmitter {
       "patchConfig": (id, config) => {
         console.log(`${this.id}: objectFunctions: patchConfig`);
         return new Promise((resolve, reject) => {
-          if(config && config.hasOwnProperty(`addToService`)) {
+          // if(config && config.hasOwnProperty(`addToService`)) {
+          if(config) {
             Promise.resolve(JSON.parse(JSON.stringify(config)))
             .then((conf) => this.configManager.updateConfig(config, `service-config.${this.id}.list.${id}._config`))
             .then(() => resolve())
@@ -59,7 +60,7 @@ class Service extends EventEmitter {
   }
 
   applyObjectOptions(id, options = {}) {
-    console.log(`Service: applyObjectOptions() >> `);
+    console.log(`[${this.constructor.name}]`, `applyObjectOptions() >> `);
     // console.log(`Service: applyObjectOptions(${id}) >> `);
     return new Promise((resolve, reject) => {
       Object.keys(options).reduce((prevProm, key) => 
@@ -73,9 +74,9 @@ class Service extends EventEmitter {
   }
 
   getSchema(options) {
-    console.log(`Service: getSchema() >> `);
+    console.log(`[${this.constructor.name}]`, `getSchema() >> `);
     if(options && options.renew)
-      return new Promise(async (resolve, reject) => {
+      return new Promise((resolve, reject) => {
         this.getConfig(options)
         .then((config) => resolve(config[`service-config`][this.id]))
         .catch((err) => reject(err));
@@ -102,7 +103,7 @@ class Service extends EventEmitter {
   }
 
   reloadConfig() {
-    console.log(`Service: reloadConfig() >> `);
+    console.log(`[${this.constructor.name}]`, `reloadConfig() >> `);
     return new Promise(async (resolve, reject) => {
       this.config = JSON.parse(JSON.stringify(await this.configManager.getConfig()));
       resolve(this.config);

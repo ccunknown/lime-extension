@@ -293,13 +293,13 @@ class RoutesManager extends APIHandler{
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
               else if(cmd == `add-to-service`) {
-                devicesService.objectFunctions.patchConfig(id, {"addToService": true})
+                devicesService.objectFunctions.patchConfig(id, {"enable": true})
                 .then(() => devicesService.addToService(id))
                 .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
               else if(cmd == `remove-from-service`) {
-                devicesService.objectFunctions.patchConfig(id, {"addToService": false})
+                devicesService.objectFunctions.patchConfig(id, {"enable": false})
                 .then(() => devicesService.removeFromService(id))
                 .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -540,7 +540,7 @@ class RoutesManager extends APIHandler{
         "method": {
           "GET": (req) => {
             return new Promise((resolve, reject) => {
-              let id = req.path.split(`/`).pop();
+              let id = decodeURI(req.path.split(`/`).pop());
               this.laborsManager.getService(`engines-service`).obj.get(id)
               .then((engine) => resolve(this.makeJsonRespond(JSON.stringify(engine))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -548,7 +548,7 @@ class RoutesManager extends APIHandler{
           },
           "PUT": (req) => {
             return new Promise((resolve, reject) => {
-              let id = req.path.split(`/`).pop();
+              let id = decodeURI(req.path.split(`/`).pop());
               this.laborsManager.getService(`engines-service`).obj.update(id, req.body)
               .then((engine) => resolve(this.makeJsonRespond(JSON.stringify(engine))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -556,7 +556,7 @@ class RoutesManager extends APIHandler{
           },
           "DELETE": (req) => {
             return new Promise((resolve, reject) => {
-              let id = req.path.split(`/`).pop();
+              let id = decodeURI(req.path.split(`/`).pop());
               this.laborsManager.getService(`engines-service`).obj.remove(id)
               .then((engine) => resolve(this.makeJsonRespond(JSON.stringify(engine))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -624,7 +624,7 @@ class RoutesManager extends APIHandler{
         "method": {
           "GET": (req) => {
             return new Promise((resolve, reject) => {
-              let id = req.path.split(`/`).pop();
+              let id = decodeURI(req.path.split(`/`).pop());
               this.laborsManager.getService(`sysport-service`).obj.get(id)
               .then((ports) => resolve(this.makeJsonRespond(JSON.stringify(ports))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -632,7 +632,7 @@ class RoutesManager extends APIHandler{
           },
           "PUT": (req) => {
             return new Promise((resolve, reject) => {
-              let id = req.path.split(`/`).pop();
+              let id = decodeURI(req.path.split(`/`).pop());
               this.laborsManager.getService(`sysport-service`).obj.update(id, req.body)
               .then((ports) => resolve(this.makeJsonRespond(JSON.stringify(ports))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -640,7 +640,7 @@ class RoutesManager extends APIHandler{
           },
           "DELETE": (req) => {
             return new Promise((resolve, reject) => {
-              let id = req.path.split(`/`).pop();
+              let id = decodeURI(req.path.split(`/`).pop());
               this.laborsManager.getService(`sysport-service`).obj.remove(id)
               .then((ports) => resolve(this.makeJsonRespond(JSON.stringify(ports))))
               .catch((err) => resolve(this.catchErrorRespond(err)));

@@ -1,7 +1,7 @@
 'use strict'
 
 const Path = require(`path`);
-const {Device} = require(`gateway-addon`);
+const { Device } = require(`gateway-addon`);
 
 const ConfigTranslator = require(`./config-translator.js`);
 const ScriptBuilder = require(`./script-builder.js`);
@@ -127,7 +127,7 @@ class ModbusDevice extends Device {
       for(let i in props) {
         let prop = this.findProperty(i);
         prop = (prop.master) ? prop.master : prop;
-        console.log(`${i} period: ${prop.period && true}`);
+        console.log(`${i} period: ${ prop.period && true }`);
         if(prop.period && true)
           hasRunningProp = true;
         else
