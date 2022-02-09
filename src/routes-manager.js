@@ -294,6 +294,12 @@ class RoutesManager extends APIHandler{
               }
               else if(cmd == `add-to-service`) {
                 devicesService.objectFunctions.patchConfig(id, {"enable": true})
+                .then(() => devicesService.addToService(id, null, { chain: true }))
+                .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+              }
+              else if(cmd == `add-to-service-chain`) {
+                devicesService.objectFunctions.patchConfig(id, {"enable": true})
                 .then(() => devicesService.addToService(id))
                 .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
                 .catch((err) => resolve(this.catchErrorRespond(err)));

@@ -14,7 +14,7 @@ class ModbusRtu {
     this.config = config;
     this.event = new EventEmitter();
     this.client = new ModbusRTU();
-    this.state = `stop`;
+    this.state = `stopped`;
     this.lock = {
       "act": {
         "key": `act-lock`,
@@ -123,7 +123,7 @@ class ModbusRtu {
     return new Promise((resolve, reject) => {
       this.client.close(() => {
         if(this.state != `restarting`)
-          this.emit(`stop`, this);
+          this.emit(`stopped`, this);
         resolve();
       });
     });

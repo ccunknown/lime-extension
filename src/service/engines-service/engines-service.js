@@ -360,10 +360,10 @@ class EnginesService extends Service {
       .then((service) => {
         let result = JSON.parse(JSON.stringify(config));
         if(id)
-          result.state = (service) ? service.state : `not in service`;
+          result.state = (service) ? service.state : `disabled`;
         else
           for(let i in result)
-            result[i].state = (service.hasOwnProperty(i)) ? service[i].state : `not in service`;
+            result[i].state = (service.hasOwnProperty(i)) ? service[i].state : `disabled`;
         return result;
       })
       .then((res) => resolve(res))

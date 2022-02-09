@@ -1,5 +1,8 @@
 'use strict'
 
+const MAXIMUM_MODBUS_READ_AMOUNT = 10;
+const WARNING_MESSAGE_STACK_SIZE = 20;
+
 const Path = require(`path`);
 const { Device } = require(`gateway-addon`);
 
@@ -33,6 +36,14 @@ class ModbusDevice extends Device {
       "engine": null,
       "script": null
     };
+
+    this.log = [
+      // {
+      //   "timestamp": "ISO time string eg.: 2011-10-05T14:48:00.000Z",
+      //   "type": "info, warning, error",
+      //   "message": "any message"
+      // }
+    ];
 
     this.configTranslator = new ConfigTranslator(this.exConf[`devices-service`]);
     this.scriptBuilder = new ScriptBuilder();
@@ -109,8 +120,9 @@ class ModbusDevice extends Device {
   getEngine() {
     let engine = this.exConf.engine;
     let state = (engine) ? engine.getState() : null;
-    if(state != `running`)
-      this.disableProperties();
+    // if(state != `running`)
+    //   this.disableProperties();
+    // return (state == `running`) ? engine : null;
     return (state == `running`) ? engine : null;
   }
 
@@ -254,6 +266,14 @@ class ModbusDevice extends Device {
       .catch((err) => reject(err));
     });
   }
+
+  /*
+    logObj: {
+      "timestamp": "ISO time string eg.: 2011-10-05T14:48:00.000Z",
+      "type": "info, warning, error",
+      "message": "any message"
+    }
+  */
 }
 
 module.exports = ModbusDevice;

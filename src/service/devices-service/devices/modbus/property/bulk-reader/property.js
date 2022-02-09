@@ -1,7 +1,6 @@
 'use strict'
 const PERIOD_WORK_TIMEOUT = 9000;
 // const MAXIMUM_MODBUS_READ_AMOUNT = 255;
-const MAXIMUM_MODBUS_READ_AMOUNT = 10;
 
 const AsyncLock = require('async-lock');
 
@@ -54,7 +53,13 @@ class BulkReader {
       "fail-call": {
         "count": 0,
         "last": null
-      }
+      },
+      "warning": [
+        // {
+        //   timestamp: "isoTimeString",
+        //   message: "message"
+        // }
+      ]
     });
   }
 
@@ -194,6 +199,10 @@ class BulkReader {
     return `${this.id}-${Number(address).toString(16)}`;
   }
 
+  addWarning() {
+
+  }
+
   _periodWork() {
     // console.log(`${this.id}: DefaultProperty: _periodWork() >> `);
     return new Promise(async (resolve, reject) => {
@@ -282,6 +291,9 @@ class BulkReader {
           this.lastPeriodSuccess = false;
           reject(err);
         })
+      }
+      else if(engine == null) {
+        this.warning
       }
     });
   }
