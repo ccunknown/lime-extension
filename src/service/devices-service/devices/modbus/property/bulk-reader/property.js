@@ -215,16 +215,8 @@ class BulkReader {
       let ip = (this.device.exConf.config.hasOwnProperty(`ip`)) ? this.device.exConf.config.ip : undefined;
       let port = (this.device.exConf.config.hasOwnProperty(`port`)) ? this.device.exConf.config.port : undefined;
       let id = this.device.exConf.config.address;
-      // let addrArr = this.config.address;
-      // let firstAddr = addrArr[0];
-      // let lastAddr = addrArr[addrArr.length-1];
       let table = this.config.table;
       let chunkSize = this.config.size;
-
-      // addrArr.sort((a, b) => a-b);
-      // let address = addrArr[0];
-      // let ntr = lastAddr - firstAddr + script.map[table][lastAddr].registerSpec.number;
-      // let offset = firstAddr;
 
       this.metrics.set(`call.last`, (new Date()).toString());
       this.metrics.increase(`call.count`);
@@ -257,14 +249,16 @@ class BulkReader {
         queryTask.push(opt);
       }
 
-      console.log(`[${this.constructor.name}]`, `query task: ${JSON.stringify(queryTask, null, 2)}`);
-
       if(script && engine && engine.getState() == `running`) {
         queryTask.reduce((prevProm, opt) => {
           return prevProm
           .then(() => engine.act(opt))
           .then((ret) => {
-            let arr = [...this.config.address].filter(e => e >= opt.address && e < opt.address + opt.numtoread);
+            console.log(`[${this.constructor.name}]`, `opt: ${opt.action} [id: ${opt.id}] [${opt.table}: ${opt.address}] -> ${opt.numtoread} word`);
+            console.log(`[${this.constructor.name}]`, `raw result: 0x${ret.buffer.toString(`hex`)}`);
+            let arr = [...this.config.address]
+            .filter(e => (e >= opt.address && e < (opt.address + opt.numtoread)))
+            .sort((a, b) => a - b);
             arr.forEach((addr) => {
               let ref = script.map[table][addr];
               let bytes = (ref.registerSpec.number * ref.registerSpec.size) / 8;
@@ -273,6 +267,8 @@ class BulkReader {
               let buffVal = Buffer.alloc(bytes, ret.buffer.slice(startPoint, endPoint));
 
               let value = script.map[table][addr].translator(buffVal, script.map[table][addr]);
+
+              console.log(`[${this.constructor.name}]`, `[${addr}/${addr.toString(16)}] ${ref.name}: ${value}`);
 
               this.metrics.set(`success-call.last`, (new Date()).toString());
               this.metrics.increase(`success-call.count`);
@@ -293,7 +289,7 @@ class BulkReader {
         })
       }
       else if(engine == null) {
-        this.warning
+        // 
       }
     });
   }
