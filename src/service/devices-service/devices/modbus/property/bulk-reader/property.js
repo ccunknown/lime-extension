@@ -268,7 +268,7 @@ class BulkReader {
 
               let value = script.map[table][addr].translator(buffVal, script.map[table][addr]);
 
-              console.log(`[${this.constructor.name}]`, `[${addr}/${addr.toString(16)}] ${ref.name}: ${value}`);
+              // console.log(`[${this.constructor.name}]`, `[${addr}/${addr.toString(16)}] ${ref.name}: ${value}`);
 
               this.metrics.set(`success-call.last`, (new Date()).toString());
               this.metrics.increase(`success-call.count`);
