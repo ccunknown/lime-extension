@@ -2,12 +2,15 @@
 
 const MAXIMUM_MODBUS_READ_AMOUNT = 10;
 const WARNING_MESSAGE_STACK_SIZE = 20;
+const DEFAULT_START_RETRY_NUMBER = 2;
+const DEFAULT_START_RETRY_DELAY = 60000;
 
 const Path = require(`path`);
 const { Device } = require(`gateway-addon`);
 
 const ConfigTranslator = require(`./config-translator.js`);
 const ScriptBuilder = require(`./script-builder.js`);
+const { resolvePtr } = require("dns");
 
 class ModbusDevice extends Device {
   constructor(devicesService, adapter, id, config) {
@@ -34,7 +37,8 @@ class ModbusDevice extends Device {
       "devices-service": devicesService,
       "config": config,
       "engine": null,
-      "script": null
+      "script": null,
+      "startRetryment": {}
     };
 
     this.log = [
@@ -49,10 +53,9 @@ class ModbusDevice extends Device {
     this.scriptBuilder = new ScriptBuilder();
   }
 
-  init(config) {
+  init(config = this.exConf.config) {
     console.log(`ModbusDevice: init() >> `);
     return new Promise((resolve, reject) => {
-      config = (config) ? config : this.exConf.config;
       this.configTranslator.translate(config)
       .then((schema) => this.initAttr(schema))
       .then(() => this.initEngine(config.engine))
@@ -72,12 +75,12 @@ class ModbusDevice extends Device {
     });
   }
 
-  initProperty(id, config) {
+  initProperty(script) {
     console.log(`ModbusDevice: initProperty() >> `);
     return new Promise((resolve, reject) => {
-      let config = this.exConf.config.properties;
-      Object.keys(config).reduce((prevProm, id) => {
-        return prevProm.then(() => this.addProperty(id, config[id]));
+      let propertiesConfig = this.exConf.config.properties;
+      Object.keys(propertiesConfig).reduce((prevProm, id) => {
+        return prevProm.then(() => this.addProperty(id, propertiesConfig[id]));
       }, Promise.resolve())
       .then(() => resolve())
       .catch((err) => reject(err));
@@ -131,11 +134,12 @@ class ModbusDevice extends Device {
   }
 
   getState() {
-    console.log(`ModbusDevice: getState() >> `);
+    console.log(`[${this.constructor.name}]: getState() >> `);
     return new Promise((resolve, reject) => {
       let props = this.getPropertyDescriptions();
       let hasRunningProp = false;
       let hasStoppedProp = false;
+      let hasStartPending = Object.values(this.exConf.startRetryment).find(e => e) ? true : false;
       for(let i in props) {
         let prop = this.findProperty(i);
         prop = (prop.master) ? prop.master : prop;
@@ -149,10 +153,18 @@ class ModbusDevice extends Device {
         // else
         //   hasStoppedProp = true;
       }
-      let state = (hasRunningProp && hasStoppedProp) ? `semi-running` :
-        (hasRunningProp) ? `running` :
-        (hasStoppedProp) ? `stopped` :
-        `no-property`;
+      console.log(`hasStartPending:`, JSON.stringify(this.exConf.startRetryment, null, 2));
+      let state =
+        (hasRunningProp && !hasStoppedProp)
+        ? `running`
+        : (hasRunningProp)
+          ? `semi-running`
+          : (hasStartPending)
+            ? `pending`
+            : (hasStoppedProp)
+              ? `stopped`
+              : `no-property`;
+      console.log(`[${this.constructor.name}]`, `state:`, state);
       resolve(state);
     });
   }
@@ -203,7 +215,7 @@ class ModbusDevice extends Device {
   }
 
   stop() {
-    console.log(`ModbusDevice: start() >> `);
+    console.log(`ModbusDevice: stop() >> `);
     return new Promise((resolve, reject) => {
       this.disableProperties()
       .then(() => resolve())
@@ -215,21 +227,74 @@ class ModbusDevice extends Device {
     });
   }
 
-  addProperty(id, config) {
-    console.log(`ModbusDevice: addProperty() >> `);
+  addProperty(id, config, remainingRetry = 0) {
+    console.log(`[${this.constructor.name}]: addProperty() >> `);
     // console.log(`>> config: ${JSON.stringify(config, null, 2)}`);
     return new Promise((resolve, reject) => {
       let PropertyObject = require(`./property/${config.template}/property.js`);
       let property = new PropertyObject(this, id, config);
       try {
-        property.init()
-        .then(() => property.start())
+        Promise.resolve()
+        .then(() => property.init())
+        .then(() => this.startPropertyRetry(
+          property, 
+          this.exConf.config.retry
+            ? this.exConf.config.retryNumber 
+            : 0,
+          this.exConf.config.retry
+            ? this.exConf.config.retryDelay 
+            : undefined
+        ))
         // .then(() => this.properties.set(id, property))
         .then(() => resolve())
         .catch((err) => reject(err));
       } catch(err) {
         reject(err);
       }
+    });
+  }
+
+  startPropertyRetry(
+    property, 
+    retry = DEFAULT_START_RETRY_NUMBER, 
+    delay = DEFAULT_START_RETRY_DELAY
+  ) {
+    console.log(`[${this.constructor.name}]`, `startPropertyRetry(${property.id}, ${retry}) >> `);
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+      .then(() => this.startProperty(property))
+      .then((ret) => {
+        if(ret) {
+          this.exConf.startRetryment[property.id] = false;
+          resolve(`started`);
+        }
+        else {
+          if(retry) {
+            this.exConf.startRetryment[property.id] = true;
+            setTimeout(() => this.startPropertyRetry(property, retry == -1 ? -1 : retry - 1), delay);
+            resolve(`pending`);
+          }
+          else {
+            this.exConf.startRetryment[property.id] = false;
+            console.error(new Error(`Reach maximum retry number to start property[${property.id}].`));
+            resolve(`stoped`);
+          }
+        }
+      })
+      .catch((err) => reject(err));
+    });
+  }
+
+  startProperty(property) {
+    console.log(`[${this.constructor.name}]`, `startProperty(${property.id}) >> `);
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+      .then(() => property.start())
+      .then(() => resolve(true))
+      .catch((err) => {
+        console.error(err);
+        resolve(false);
+      });
     });
   }
 

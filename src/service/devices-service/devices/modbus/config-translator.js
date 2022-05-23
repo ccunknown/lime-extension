@@ -136,6 +136,15 @@ class DeviceConfigTranslator {
       .then(() => this.devicesService.getDirectorySchema(`property`, {"deep": true, "absolute": `${__dirname}`}))
       .then((dirSchema) => dirSchema.children)
       .then((propDirSchema) => config.properties.properties.patternProperties[this.propIdPattern].properties.template.enum = propDirSchema.map((elem) => elem.name))
+
+      // Initial 'Retry' group attribute.
+      .then(() => {
+        if(!params.retry) {
+          delete config.properties[`retryNumber`];
+          delete config.properties[`retryDelay`];
+        }
+      })
+
       .then(() => resolve(config))
       .catch((err) => reject(err));
     });

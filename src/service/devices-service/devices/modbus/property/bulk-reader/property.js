@@ -254,8 +254,8 @@ class BulkReader {
           return prevProm
           .then(() => engine.act(opt))
           .then((ret) => {
-            console.log(`[${this.constructor.name}]`, `opt: ${opt.action} [id: ${opt.id}] [${opt.table}: ${opt.address}] -> ${opt.numtoread} word`);
-            console.log(`[${this.constructor.name}]`, `raw result: 0x${ret.buffer.toString(`hex`)}`);
+            // console.log(`[${this.constructor.name}]`, `opt: ${opt.action} [id: ${opt.id}] [${opt.table}: ${opt.address}] -> ${opt.numtoread} word`);
+            // console.log(`[${this.constructor.name}]`, `raw result: 0x${ret.buffer.toString(`hex`)}`);
             let arr = [...this.config.address]
             .filter(e => (e >= opt.address && e < (opt.address + opt.numtoread)))
             .sort((a, b) => a - b);
