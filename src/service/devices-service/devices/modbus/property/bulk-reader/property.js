@@ -74,7 +74,7 @@ class BulkReader {
   initProperty(bulkConf) {
     console.log(`BulkReaderProperty: initProperty() >> `);
     return new Promise((resolve, reject) => {
-      console.log(`bulkConf: ${JSON.stringify(bulkConf, null, 2)}`)
+      // console.log(`bulkConf: ${JSON.stringify(bulkConf, null, 2)}`)
       let confJson = {};
       bulkConf.address.forEach((addr) => {
         let id = this.generatePropertyId(addr);
@@ -84,7 +84,7 @@ class BulkReader {
         config.address = addr;
         confJson[id] = config;
       });
-      console.log(`confJson: ${JSON.stringify(confJson, null, 2)}`);
+      // console.log(`confJson: ${JSON.stringify(confJson, null, 2)}`);
       Object.keys(confJson).reduce((prevProm, id) => {
         return this.addProperty(id, confJson[id]);
       }, Promise.resolve())
@@ -101,7 +101,7 @@ class BulkReader {
       conf.address = [conf.address];
       this.configTranslator.translate(conf, fullMap)
       .then((translated) => {
-        console.log(`${id}: ${JSON.stringify(translated, null, 2)}`);
+        // console.log(`${id}: ${JSON.stringify(translated, null, 2)}`);
         return new PropertyUnit(this.device, this, id, translated);
       })
       .then((prop) => this.device.properties.set(id, prop))

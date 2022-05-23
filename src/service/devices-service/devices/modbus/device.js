@@ -60,7 +60,7 @@ class ModbusDevice extends Device {
       .then((schema) => this.initAttr(schema))
       .then(() => this.initEngine(config.engine))
       .then(() => this.initScript(config.script))
-      .then((script) => this.initProperty(script))
+      .then((script) => this.initProperty())
       .then(() => resolve())
       .catch((err) => reject(err));
     });
@@ -75,7 +75,7 @@ class ModbusDevice extends Device {
     });
   }
 
-  initProperty(script) {
+  initProperty() {
     console.log(`ModbusDevice: initProperty() >> `);
     return new Promise((resolve, reject) => {
       let propertiesConfig = this.exConf.config.properties;
@@ -139,7 +139,7 @@ class ModbusDevice extends Device {
       let props = this.getPropertyDescriptions();
       let hasRunningProp = false;
       let hasStoppedProp = false;
-      let hasStartPending = Object.values(this.exConf.startRetryment).find(e => e) ? true : false;
+      let hasStartPending = Object.values(this.exConf.startRetryment).find(e => e.timeout) ? true : false;
       for(let i in props) {
         let prop = this.findProperty(i);
         prop = (prop.master) ? prop.master : prop;
@@ -153,7 +153,7 @@ class ModbusDevice extends Device {
         // else
         //   hasStoppedProp = true;
       }
-      console.log(`hasStartPending:`, JSON.stringify(this.exConf.startRetryment, null, 2));
+      // console.log(`hasStartPending:`, JSON.stringify(this.exConf.startRetryment, null, 2));
       let state =
         (hasRunningProp && !hasStoppedProp)
         ? `running`
@@ -217,7 +217,9 @@ class ModbusDevice extends Device {
   stop() {
     console.log(`ModbusDevice: stop() >> `);
     return new Promise((resolve, reject) => {
-      this.disableProperties()
+      Promise.resolve()
+      .then(() => this.stopPropertyRetry())
+      .then(() => this.disableProperties())
       .then(() => resolve())
       .catch((err) => {
         this.state = `error`;
@@ -227,7 +229,7 @@ class ModbusDevice extends Device {
     });
   }
 
-  addProperty(id, config, remainingRetry = 0) {
+  addProperty(id, config) {
     console.log(`[${this.constructor.name}]: addProperty() >> `);
     // console.log(`>> config: ${JSON.stringify(config, null, 2)}`);
     return new Promise((resolve, reject) => {
@@ -265,24 +267,52 @@ class ModbusDevice extends Device {
       .then(() => this.startProperty(property))
       .then((ret) => {
         if(ret) {
-          this.exConf.startRetryment[property.id] = false;
+          this.exConf.startRetryment[property.id] = { timeout: false };
           resolve(`started`);
         }
         else {
           if(retry) {
-            this.exConf.startRetryment[property.id] = true;
-            setTimeout(() => this.startPropertyRetry(property, retry == -1 ? -1 : retry - 1), delay);
+            // this.exConf.startRetryment[property.id] = true;
+            this.exConf.startRetryment[property.id] = {
+              timeout: retry
+              ? setTimeout(
+                  () => this.startPropertyRetry(
+                    property, 
+                    retry == -1 
+                    ? -1 
+                    : retry - 1
+                  ),
+                  delay
+                )
+              : undefined
+            };
+            // setTimeout(() => this.startPropertyRetry(property, retry == -1 ? -1 : retry - 1), delay);
             resolve(`pending`);
           }
           else {
-            this.exConf.startRetryment[property.id] = false;
+            this.exConf.startRetryment[property.id] = { timeout: false };
             console.error(new Error(`Reach maximum retry number to start property[${property.id}].`));
-            resolve(`stoped`);
+            resolve(`stopped`);
           }
         }
       })
       .catch((err) => reject(err));
     });
+  }
+
+  stopPropertyRetry(propertyId) {
+    console.log(`[${this.constructor.name}]`, `stopPropertyRetry() >> `);
+    if(propertyId) {
+      this.exConf.startRetryment[propertyId] &&
+      this.exConf.startRetryment[propertyId].timeout &&
+      clearTimeout(this.exConf.startRetryment[propertyId].timeout);
+      this.exConf.startRetryment[propertyId].timeout = undefined;
+    }
+    else {
+      Object.keys(this.exConf.startRetryment).forEach(id => {
+        this.stopPropertyRetry(id);
+      });
+    }
   }
 
   startProperty(property) {

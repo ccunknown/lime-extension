@@ -86,6 +86,18 @@ const AttributeList = [
     "attrs": {
       "placeholder": "Modbus address"
     }
+  },
+  {
+    "target": `retryNumber`,
+    "attrs": {
+      "placeholder": "-1 for infinite retryment."
+    }
+  },
+  {
+    "target": `retryDelay`,
+    "attrs": {
+      "placeholder": "Delay (ms) before new retryment."
+    }
   }
 ];
 
