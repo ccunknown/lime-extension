@@ -113,7 +113,8 @@ class BulkReader {
   start() {
     console.log(`${this.id}: BulkReaderProperty: start() >> `);
     return new Promise((resolve, reject) => {
-      this.metrics.set(`start`, (new Date()).toString())
+      Promise.resolve()
+      .then(() => this.metrics.set(`start`, (new Date()).toString()))
       .then(() => this.setPeriodWork())
       .then((res) => resolve(res))
       .catch((err) => reject(err));

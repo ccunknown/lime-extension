@@ -333,11 +333,29 @@ class ModbusDevice extends Device {
     return new Promise((resolve, reject) => {
       let promArr = [];
       let props = this.getPropertyDescriptions();
+      let propMasterIdArr = [];
+      let retry =
+        this.exConf.config.retry
+        ? this.exConf.config.retryNumber 
+        : 0;
+      let retryDelay =
+        this.exConf.config.retry
+        ? this.exConf.config.retryDelay 
+        : undefined
       // console.log(`Properties : ${JSON.stringify(props, null, 2)}`);
       for(let i in props) {
         let prop = this.findProperty(i);
-        prop = (prop.master) ? prop.master : prop;
-        promArr.push(prop.start());
+        if(prop.master) {
+          if(!propMasterIdArr.includes(prop.master.id)) {
+            propMasterIdArr.push(prop.master.id);
+            promArr.push(this.startPropertyRetry(prop.master, retry, retryDelay));
+          }
+        }
+        else {
+          promArr.push(this.startPropertyRetry(prop, retry, retryDelay));
+        }
+        // prop = (prop.master) ? prop.master : prop;
+        // promArr.push(prop.start());
       }
       Promise.all(promArr)
       .then(() => resolve())

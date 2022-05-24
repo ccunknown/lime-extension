@@ -43,6 +43,7 @@ v-on:change="$emit('change', Number($event.target.value))"
 v-else-if="fn.typeIdentify(param) == 'checkbox'"
 :type="fn.typeIdentify(param)" 
 :disabled="fn.isDisabled(param)"
+:checked="value"
 v-on:input="$emit('input', $event.target.checked)"
 v-on:change="$emit('change', $event.target.checked)"
 >

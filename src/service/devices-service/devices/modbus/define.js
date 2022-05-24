@@ -21,6 +21,13 @@ const ValidateConfigSchema = {
       "title": "Device Port Number",
       "default": 502
     },
+    
+    "address": {
+      "type": "number",
+      "title": "Modbus Address",
+      "default": 1,
+      "minimum": 0
+    },
 
     "retry": {
       "type": "boolean",
@@ -40,12 +47,6 @@ const ValidateConfigSchema = {
       "minimum": 1000
     },
 
-    "address": {
-      "type": "number",
-      "title": "Modbus Address",
-      "default": 1,
-      "minimum": 0
-    },
     "properties": {
       "type": "object",
       "title": "Property",
