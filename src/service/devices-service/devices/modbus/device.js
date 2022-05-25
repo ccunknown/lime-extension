@@ -15,7 +15,7 @@ const { resolvePtr } = require("dns");
 class ModbusDevice extends Device {
   constructor(devicesService, adapter, id, config) {
     super(adapter, id);
-    console.log(`ModbusDevice: constructor(${this.id}) >> `);
+    console.log(`[${this.constructor.name}]`, `constructor(${this.id}) >> `);
     /*
     constructor(adapter, id)
       this.adapter = adapter;
@@ -38,7 +38,10 @@ class ModbusDevice extends Device {
       "config": config,
       "engine": null,
       "script": null,
-      "startRetryment": {}
+      "startRetryment": {},
+      "state": {
+        "last": `unload`
+      }
     };
 
     this.log = [
@@ -54,7 +57,7 @@ class ModbusDevice extends Device {
   }
 
   init(config = this.exConf.config) {
-    console.log(`ModbusDevice: init() >> `);
+    console.log(`[${this.constructor.name}]`, `init() >> `);
     return new Promise((resolve, reject) => {
       this.configTranslator.translate(config)
       .then((schema) => this.initAttr(schema))
@@ -67,7 +70,7 @@ class ModbusDevice extends Device {
   }
 
   initAttr(schema) {
-    console.log(`ModbusDevice: initAttr() >> `);
+    console.log(`[${this.constructor.name}]`, `initAttr() >> `);
     return new Promise((resolve, reject) => {
       for(let i in schema)
         this[i] = schema[i];
@@ -76,7 +79,7 @@ class ModbusDevice extends Device {
   }
 
   initProperty() {
-    console.log(`ModbusDevice: initProperty() >> `);
+    console.log(`[${this.constructor.name}]`, `initProperty() >> `);
     return new Promise((resolve, reject) => {
       let propertiesConfig = this.exConf.config.properties;
       Object.keys(propertiesConfig).reduce((prevProm, id) => {
@@ -96,7 +99,7 @@ class ModbusDevice extends Device {
           throw new Error(`Engine "${engineName}" not in service.`);
         engine.event.on(`running`, () => this.getScript() ? this.enableProperties() : null);
         engine.event.on(`error`, () => {
-          console.log(`ModbusDevice: on engine error >> `);
+          console.log(`[${this.constructor.name}]`, `on engine error >> `);
           this.disableProperties();
         });
         this.exConf.engine = engine;
@@ -134,48 +137,60 @@ class ModbusDevice extends Device {
   }
 
   getState() {
-    console.log(`[${this.constructor.name}]: getState() >> `);
-    return new Promise((resolve, reject) => {
-      let props = this.getPropertyDescriptions();
-      let hasRunningProp = false;
-      let hasStoppedProp = false;
-      let hasStartPending = Object.values(this.exConf.startRetryment).find(e => e.timeout) ? true : false;
-      for(let i in props) {
-        let prop = this.findProperty(i);
-        prop = (prop.master) ? prop.master : prop;
-        console.log(`${i} period: ${ prop.period && true }`);
-        if(prop.period && true)
-          hasRunningProp = true;
-        else
-          hasStoppedProp = true;
-        // if((prop.isRunning) ? prop.isRunning() : (prop.period && true))
-        //   hasRunningProp = true;
-        // else
-        //   hasStoppedProp = true;
-      }
-      // console.log(`hasStartPending:`, JSON.stringify(this.exConf.startRetryment, null, 2));
-      let state =
-        (hasRunningProp && !hasStoppedProp)
-        ? `running`
-        : (hasRunningProp)
-          ? `semi-running`
-          : (hasStartPending)
-            ? `pending`
-            : (hasStoppedProp)
-              ? `stopped`
-              : `no-property`;
-      console.log(`[${this.constructor.name}]`, `state:`, state);
-      resolve(state);
-    });
+    console.log(`[${this.constructor.name}]`, `getState() >> `);
+    // return new Promise((resolve, reject) => {
+    //   Promise.resolve()
+    //   .then(() => this._getState())
+    //   .then((state) => {
+    //     this.exConf.lastState = state;
+    //     return state;
+    //   })
+    //   .then((ret) => resolve(ret))
+    //   .catch((err) => reject(err));
+    // });
+    let state = this._getState();
+    this.exConf.lastState = state;
+    return state;
+  }
+
+  _getState() {
+    // return new Promise((resolve, reject) => {
+    let props = this.getPropertyDescriptions();
+    let hasRunningProp = false;
+    let hasStoppedProp = false;
+    let hasStartPending = Object.values(this.exConf.startRetryment).find(e => e.timeout) ? true : false;
+    for(let i in props) {
+      let prop = this.findProperty(i);
+      prop = (prop.master) ? prop.master : prop;
+      console.log(`${i} period: ${ prop.period && true }`);
+      if(prop.period && true)
+        hasRunningProp = true;
+      else
+        hasStoppedProp = true;
+    }
+    let state =
+      (hasRunningProp && !hasStoppedProp)
+      ? `running`
+      : (hasRunningProp)
+        ? `semi-running`
+        : (hasStartPending)
+          ? `pending`
+          : (hasStoppedProp)
+            ? `stopped`
+            : `no-property`;
+    console.log(`[${this.constructor.name}]`, `state:`, state);
+    return state;
+      // resolve(state);
+    // });
   }
 
   getMetrics() {
-    console.log(`ModbusDevice: getMetrics() >> `);
+    console.log(`[${this.constructor.name}]`, `getMetrics() >> `);
     return this.getPropertyMetrics();
   }
 
   getPropertyMetrics(id) {
-    console.log(`ModbusDevice: getPropertyMetrics(${(id) ? `${id}` : ``}) >> `);
+    console.log(`[${this.constructor.name}]`, `getPropertyMetrics(${(id) ? `${id}` : ``}) >> `);
     return new Promise((resolve, reject) => {
       if(id) {
         let property = this.findProperty(id);
@@ -201,7 +216,7 @@ class ModbusDevice extends Device {
   }
 
   start() {
-    console.log(`ModbusDevice: start() >> `);
+    console.log(`[${this.constructor.name}]`, `start() >> `);
     return new Promise((resolve, reject) => {
       this.enableProperties()
       .then(() => {
@@ -215,7 +230,7 @@ class ModbusDevice extends Device {
   }
 
   stop() {
-    console.log(`ModbusDevice: stop() >> `);
+    console.log(`[${this.constructor.name}]`, `stop() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
       .then(() => this.stopPropertyRetry())
@@ -268,6 +283,7 @@ class ModbusDevice extends Device {
       .then((ret) => {
         if(ret) {
           this.exConf.startRetryment[property.id] = { timeout: false };
+          this.afterRetryProcess();
           resolve(`started`);
         }
         else {
@@ -278,9 +294,7 @@ class ModbusDevice extends Device {
               ? setTimeout(
                   () => this.startPropertyRetry(
                     property, 
-                    retry == -1 
-                    ? -1 
-                    : retry - 1
+                    retry == -1 ? -1 : retry - 1
                   ),
                   delay
                 )
@@ -292,9 +306,11 @@ class ModbusDevice extends Device {
           else {
             this.exConf.startRetryment[property.id] = { timeout: false };
             console.error(new Error(`Reach maximum retry number to start property[${property.id}].`));
+            this.afterRetryProcess();
             resolve(`stopped`);
           }
         }
+        // this.afterRetryProcess();
       })
       .catch((err) => reject(err));
     });
@@ -328,8 +344,35 @@ class ModbusDevice extends Device {
     });
   }
 
+  afterRetryProcess() {
+    console.log(`[${this.constructor.name}]`, `afterPendingProcess() >> `);
+    // Check any property on pending state ?
+    let props = this.getPropertyDescriptions();
+    let hasRunningProp = false;
+    let hasStoppedProp = false;
+    let hasStartPending = Object.values(this.exConf.startRetryment).find(e => e.timeout) ? true : false;
+    for(let i in props) {
+      let prop = this.findProperty(i);
+      prop = (prop.master) ? prop.master : prop;
+      console.log(`${i} period: ${ prop.period && true }`);
+      if(prop.period && true)
+        hasRunningProp = true;
+      else
+        hasStoppedProp = true;
+    }
+    if(hasStartPending) {
+      return ;
+    }
+    else if(hasRunningProp) {
+      return ;
+    }
+    else if(hasStoppedProp) {
+      this.exConf[`devices-service`].removeFromService(this.id);
+    }
+  }
+
   enableProperties() {
-    console.log(`ModbusDevice: enableProperties() >> `);
+    console.log(`[${this.constructor.name}]`, `enableProperties() >> `);
     return new Promise((resolve, reject) => {
       let promArr = [];
       let props = this.getPropertyDescriptions();
@@ -364,7 +407,7 @@ class ModbusDevice extends Device {
   }
 
   disableProperties() {
-    console.log(`ModbusDevice: disableProperties() >> `);
+    console.log(`[${this.constructor.name}]`, `disableProperties() >> `);
     return new Promise((resolve, reject) => {
       let promArr = [];
       let props = this.getPropertyDescriptions();

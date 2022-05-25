@@ -276,7 +276,7 @@ class DevicesService extends Service {
 
       let result = {};
       for(let i in devices) {
-        console.log(`>> exConf: ${JSON.stringify(devices[i].exConf.config, null, 2)}`);
+        // console.log(`>> exConf: ${JSON.stringify(devices[i].exConf.config, null, 2)}`);
         if(devices[i].exConf.config.hasOwnProperty(attr) && devices[i].exConf.config[attr] == value)
           result[i] = devices[i];
       }
@@ -303,37 +303,6 @@ class DevicesService extends Service {
     });
   }
 
-  // getServiceDevice(id) {
-  //   console.log(`[${this.constructor.name}]`, `getServiceDevice(${(id) ? `${id}` : ``})`);
-  //   return new Promise((resolve, reject) => {
-  //     let config = null;
-  //     let service = null;
-  //     this.getConfigDevice(id)
-  //     .then((conf) => {
-  //       config = conf;
-  //       return this.getDeviceConfigWithState(id);
-  //     })
-  //     .then((serv) => service = serv)
-  //     .then(() => {
-  //       let result = JSON.parse(JSON.stringify(config));
-  //       console.log(`>> result: ${JSON.stringify(result, null, 2)}`);
-  //       if(id)
-  //         result.state = (service) ? service.state : `not in service`;
-  //       else {
-  //         for(let i in result) {
-  //           if(service.hasOwnProperty(i))
-  //             result[i].state = service[i].state;
-  //           else
-  //             result[i].state = `not in service`;
-  //         }
-  //       }
-  //       return result;
-  //     })
-  //     .then((res) => resolve(res))
-  //     .catch((err) => reject(err));
-  //   });
-  // }
-
   getServiceDevice(id) {
     console.log(`[${this.constructor.name}]`, `getServiceDevice(${(id) ? `${id}` : ``})`);
     return new Promise((resolve, reject) => {
@@ -348,7 +317,7 @@ class DevicesService extends Service {
       .then((s) => state = s)
       .then(() => {
         let result = JSON.parse(JSON.stringify(config));
-        console.log(`>> result: ${JSON.stringify(result, null, 2)}`);
+        // console.log(`>> result: ${JSON.stringify(result, null, 2)}`);
         if(id)
           result.state = state;
         else {
@@ -430,7 +399,7 @@ class DevicesService extends Service {
         ? resolve(false)
         : reject(err);
       });
-    })
+    });
   }
 
   getDeviceConfigWithState(id) {

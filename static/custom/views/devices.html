@@ -258,9 +258,9 @@
                   <span 
                   class="" 
                   :class="{
-                    'bg-success text-light': item.state == 'running',
+                    'bg-success text-light': ['running', 'semi-running'].includes(item.state),
                     'bg-warning text-dark': item.state == 'pending',
-                    'bg-danger text-light': !['running', 'pending'].includes(item.state)
+                    'bg-danger text-light': !['running', 'semi-running', 'pending'].includes(item.state)
                   }">
                     {{item.state}}
                   </span>
