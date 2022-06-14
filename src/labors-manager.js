@@ -40,10 +40,13 @@ class LaborsManager {
               console.log(`[${this.constructor.name}]`, `service : ${id}`);
               this.serviceList[id] = service;
             })
-            .then(() => service.obj.init());
+            // .then(() => service.obj.init());
         }, Promise.resolve())
         .catch((err) => reject(err));
       })
+      .then(() => Object.keys(this.serviceList).reduce((prevProm, id) => {
+        return prevProm.then(() => this.serviceList[id].obj.init());
+      }, Promise.resolve()))
       .then(() => console.log(`[${this.constructor.name}]`, `services load complete`))
       .then(() => resolve())
       .catch((err) => reject(err));

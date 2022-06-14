@@ -41,7 +41,10 @@
                 "extension-script-api",
                 "extension-script-raid",
                 "extension-script-ui",
-                "extension-script-page"
+                "extension-script-page",
+                "extension-script-webrtc-channel-pair",
+                "extension-script-webrtc-session",
+                "extension-script-webrtc-rtcpeer"
               ]
             },
             {
@@ -108,6 +111,26 @@
         "path": "/core/js/page.js",
         "object-name": "ExtensionPage",
         "core": "page"
+      },
+      "extension-script-webrtc-rtcpeer": {
+        "type": "core-script",
+        "path": "/core/js/webrtc/rtcpeer.js",
+        "object-name": "ExtensionRTCPeer",
+        "core": "rtcPeer",
+      },
+      "extension-script-webrtc-session": {
+        "type": "global-script",
+        "path": "/core/js/webrtc/session.js",
+        "object-name": "ExtensionRTCSession",
+        // "windowObj": "ExtensionRTCSession",
+        // "core": "rtcSession"
+      },
+      "extension-script-webrtc-channel-pair": {
+        "type": "global-script",
+        "path": "/core/js/webrtc/channel-pair.js",
+        "object-name": "ExtensionRTCChannelPair",
+        // "windowObj": "ExtensionRTCChannelPair",
+        // "core": "rtcChannelPair"
       },
 
       "extension-view-resource": {

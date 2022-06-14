@@ -32,7 +32,9 @@ export default class ExtensionLoader {
         case "string":
           //console.log(`load string`);
           if(schema.define.hasOwnProperty(obj)) {
-            if(schema.define[obj][`object-name`])
+            if(schema.define[obj].type == `global-script`)
+              result[obj] = await this.loadGlobalScriptSync(schema.define[obj].path, schema.define[obj][`object-name`]);
+            else if(schema.define[obj][`object-name`])
               result[obj] = await this.loadObject(`${schema.define[obj].path}`);
             else if(!schema.define[obj][`windowObj`] || !window.hasOwnProperty(schema.define[obj][`windowObj`]))
               result[obj] = await this.loadResource(`${schema.define[obj].path}`);
@@ -75,7 +77,7 @@ export default class ExtensionLoader {
 
   loadResource(path) {
     //console.log(`loadResource() : ${path}`);
-    let prefix = `/extensions/${this.schema.extension.full}`;
+    // let prefix = `/extensions/${this.schema.extension.full}`;
     //path = (path.startsWith(prefix) || path.startsWith(`http`)) ? path : [prefix, `static`, path].join("/").replace(/\/+/g, "/");
     path = this.path(`${path}`);
     console.log(`path: ${path}`);
@@ -93,7 +95,7 @@ export default class ExtensionLoader {
 
   loadObject(path) {
     return new Promise(async (resolve, reject) => {
-      let prefix = `/extensions/${this.schema.extension.full}`;
+      // let prefix = `/extensions/${this.schema.extension.full}`;
       //path = (path.startsWith(prefix) || path.startsWith(`http`)) ? path : [prefix, `static`, path].join("/").replace(/\/+/g, "/");
       path = this.path(`${path}`);
       //console.log(`object : ${path} : `);
@@ -109,6 +111,20 @@ export default class ExtensionLoader {
       //console.log(`${src} : `);
       //console.log(obj);
       resolve(null);
+    });
+  }
+
+  loadGlobalScriptSync(src, objectName) {
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+      .then(() => import(this.path(src)))
+      // .then((obj) => {
+      //   this.console.log(obj.default);
+      //   return obj;
+      // })
+      .then((obj) => window[objectName] = obj.default)
+      .then((ret) => resolve(ret))
+      .catch((err) => reject(err));
     });
   }
 

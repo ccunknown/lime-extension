@@ -57,6 +57,7 @@
     "mustache": "^4.0.1",
     "rimraf": "^3.0.2",
     "serialport": "^8.0.7",
-    "sqlite3": "^5.0.0"
+    "sqlite3": "^5.0.0",
+    "wrtc": "^0.4.7"
   }
 }

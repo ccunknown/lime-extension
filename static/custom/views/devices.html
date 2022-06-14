@@ -195,43 +195,94 @@
                     <i class="fas fa-bars fa-lg"></i>
                   </button>
                   <div class="dropdown-menu bg-dark text-light">
-                    <a @click="fn.showMetrics(id)" class="dropdown-item d-flex text-light" href="#">
+                    <a 
+                      @click="fn.showMetrics(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
                       <div class="miso-icon-box-16">
                         <i class="fas fa-chart-bar fa-lg"></i>
                       </div>
                       <span>Metrics</span>
                     </a>
-                    <a v-if="['stopped', 'semi-running'].includes(item.state)" @click="fn.start(id)" class="dropdown-item d-flex text-light" href="#">
+                    <a 
+                      v-if="[
+                        'stopped',
+                        'semi-running'
+                      ].includes(item.state)" 
+                      @click="fn.start(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
                       <div class="miso-icon-box-16">
                         <i class="fas fa-play fa-lg"></i>
                       </div>
                       <span>Start</span>
                     </a>
-                    <a v-if="['running', 'semi-running', 'pending'].includes(item.state)" @click="fn.stop(id)" class="dropdown-item d-flex text-light" href="#">
+                    <a
+                      v-if="[
+                        'running', 
+                        'semi-running', 
+                        'pending', 
+                        'continuous-fail'
+                      ].includes(item.state)" 
+                      @click="fn.stop(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
                       <div class="miso-icon-box-16">
                         <i class="fas fa-stop fa-lg"></i>
                       </div>
                       <span>Stop</span>
                     </a>
-                    <a v-if="['disabled', 'corrupted'].includes(item.state)" @click="fn.addToService(id)" class="dropdown-item d-flex text-light" href="#">
+                    <a 
+                      v-if="[
+                        'disabled', 
+                        'corrupted'
+                      ].includes(item.state)" 
+                      @click="fn.addToService(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
                       <div class="miso-icon-box-16">
                         <i class="fas fa-history fa-lg"></i>
                       </div>
                       <span>Add to Service</span>
                     </a>
-                    <a v-if="['running', 'semi-running', 'stopped', 'no-property', 'corrupted'].includes(item.state)" @click="fn.removeFromService(id)" class="dropdown-item d-flex text-light" href="#">
+                    <a 
+                      v-if="[
+                        'running', 
+                        'semi-running', 
+                        'pending',
+                        'continuous-fail',
+                        'stopped', 
+                        'no-property', 
+                        'corrupted'
+                      ].includes(item.state)" 
+                      @click="fn.removeFromService(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
                       <div class="miso-icon-box-16">
                         <i class="fas fa-caret-down fa-lg"></i>
                       </div>
                       <span>Remove from Service</span>
                     </a>
-                    <a @click="fn.edit(id)" class="dropdown-item d-flex text-light" href="#">
+                    <a 
+                      @click="fn.edit(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
                       <div class="miso-icon-box-16">
                         <i class="fas fa-edit fa-lg"></i>
                       </div>
                       <span>Edit</span>
                     </a>
-                    <a @click="fn.remove(id)" class="dropdown-item d-flex text-light" href="#">
+                    <a 
+                      @click="fn.remove(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
                       <div class="miso-icon-box-16">
                         <i class="fas fa-trash fa-lg"></i>
                       </div>
@@ -246,25 +297,27 @@
               <p class="card-text text-light">
                 {{item.description}}
               </p>
-              <div class="text-truncate d-flex mt-2">
-                <span class="header-item text-truncate mr-2">
-                  <span class="bg-dark text-light">template</span>
-                  <span class="bg-info text-light">{{item.template}}</span>
-                </span>
-              </div>
-              <div class="text-truncate d-flex mt-2">
-                <span class="header-item text-truncate mr-2">
-                  <span class="bg-dark text-light">status</span>
-                  <span 
-                  class="" 
-                  :class="{
-                    'bg-success text-light': ['running', 'semi-running'].includes(item.state),
-                    'bg-warning text-dark': item.state == 'pending',
-                    'bg-danger text-light': !['running', 'semi-running', 'pending'].includes(item.state)
-                  }">
-                    {{item.state}}
+              <div>
+                <div class="text-truncate d-flex mt-2">
+                  <span class="header-item text-truncate mr-2">
+                    <span class="bg-dark text-light">template</span>
+                    <span class="bg-info text-light">{{item.template}}</span>
                   </span>
-                </span>
+                </div>
+                <div class="text-truncate d-flex mt-2">
+                  <span class="header-item text-truncate mr-2">
+                    <span class="bg-dark text-light">status</span>
+                    <span 
+                    class="" 
+                    :class="{
+                      'bg-success text-light': ['running', 'semi-running'].includes(item.state),
+                      'bg-warning text-dark': item.state == 'pending',
+                      'bg-danger text-light': !['running', 'semi-running', 'pending'].includes(item.state)
+                    }">
+                      {{item.state}}
+                    </span>
+                  </span>
+                </div>
               </div>
             </div>
           </div>

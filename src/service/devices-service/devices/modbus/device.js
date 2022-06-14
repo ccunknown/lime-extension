@@ -1,16 +1,17 @@
 'use strict'
 
-const MAXIMUM_MODBUS_READ_AMOUNT = 10;
-const WARNING_MESSAGE_STACK_SIZE = 20;
-const DEFAULT_START_RETRY_NUMBER = 2;
-const DEFAULT_START_RETRY_DELAY = 60000;
+// const DEFAULT_START_RETRY_NUMBER = 2;
+// const DEFAULT_START_RETRY_DELAY = 60000;
+const MAX_CONTINUOUS_FAIL_CHANGE_STATE = 3;
 
 const Path = require(`path`);
 const { Device } = require(`gateway-addon`);
 
 const ConfigTranslator = require(`./config-translator.js`);
 const ScriptBuilder = require(`./script-builder.js`);
-const { resolvePtr } = require("dns");
+// const { resolvePtr } = require("dns");
+
+const DefaultConfig = require(`./defalt-config`);
 
 class ModbusDevice extends Device {
   constructor(devicesService, adapter, id, config) {
@@ -138,50 +139,48 @@ class ModbusDevice extends Device {
 
   getState() {
     console.log(`[${this.constructor.name}]`, `getState() >> `);
-    // return new Promise((resolve, reject) => {
-    //   Promise.resolve()
-    //   .then(() => this._getState())
-    //   .then((state) => {
-    //     this.exConf.lastState = state;
-    //     return state;
-    //   })
-    //   .then((ret) => resolve(ret))
-    //   .catch((err) => reject(err));
-    // });
     let state = this._getState();
-    this.exConf.lastState = state;
+    if(state != this.exConf.state.last)
+      this.exConf["devices-service"].onDeviceStateChange(this.id, state);
+    this.exConf.state.last = state;
     return state;
   }
 
   _getState() {
-    // return new Promise((resolve, reject) => {
     let props = this.getPropertyDescriptions();
     let hasRunningProp = false;
     let hasStoppedProp = false;
+    let hasContinuousFail = false;
     let hasStartPending = Object.values(this.exConf.startRetryment).find(e => e.timeout) ? true : false;
     for(let i in props) {
       let prop = this.findProperty(i);
       prop = (prop.master) ? prop.master : prop;
-      console.log(`${i} period: ${ prop.period && true }`);
-      if(prop.period && true)
-        hasRunningProp = true;
+      // console.log(`${i} period: ${ prop.period && true }`);
+      if(prop.period && true) {
+        // hasRunningProp = true;
+        // if(prop.continuousFail > MAX_CONTINUOUS_FAIL_CHANGE_STATE)
+        if(prop.continuousFail >= DefaultConfig.property.continuousFail.max)
+          hasContinuousFail = true;
+        else
+          hasRunningProp = true;
+      }
       else
         hasStoppedProp = true;
     }
     let state =
-      (hasRunningProp && !hasStoppedProp)
+      (hasRunningProp && !hasStoppedProp && !hasContinuousFail)
       ? `running`
       : (hasRunningProp)
         ? `semi-running`
         : (hasStartPending)
           ? `pending`
-          : (hasStoppedProp)
-            ? `stopped`
-            : `no-property`;
+          : (hasContinuousFail)
+            ? `continuous-fail`
+            : (hasStoppedProp)
+              ? `stopped`
+              : `no-property`;
     console.log(`[${this.constructor.name}]`, `state:`, state);
     return state;
-      // resolve(state);
-    // });
   }
 
   getMetrics() {
@@ -218,10 +217,10 @@ class ModbusDevice extends Device {
   start() {
     console.log(`[${this.constructor.name}]`, `start() >> `);
     return new Promise((resolve, reject) => {
-      this.enableProperties()
-      .then(() => {
-        resolve()
-      })
+      Promise.resolve()
+      .then(() => this.enableProperties())
+      // .then(() => this.getState())
+      .then((ret) => resolve(ret))
       .catch((err) => {
         this.error = err;
         reject(err);
@@ -235,7 +234,8 @@ class ModbusDevice extends Device {
       Promise.resolve()
       .then(() => this.stopPropertyRetry())
       .then(() => this.disableProperties())
-      .then(() => resolve())
+      // .then(() => this.getState())
+      .then((ret) => resolve(ret))
       .catch((err) => {
         this.state = `error`;
         this.error = err;
@@ -273,8 +273,10 @@ class ModbusDevice extends Device {
 
   startPropertyRetry(
     property, 
-    retry = DEFAULT_START_RETRY_NUMBER, 
-    delay = DEFAULT_START_RETRY_DELAY
+    // retry = DEFAULT_START_RETRY_NUMBER, 
+    // delay = DEFAULT_START_RETRY_DELAY
+    retry = DefaultConfig.device.startRetry.number,
+    delay = DefaultConfig.device.startRetry.delay
   ) {
     console.log(`[${this.constructor.name}]`, `startPropertyRetry(${property.id}, ${retry}) >> `);
     return new Promise((resolve, reject) => {
@@ -354,21 +356,22 @@ class ModbusDevice extends Device {
     for(let i in props) {
       let prop = this.findProperty(i);
       prop = (prop.master) ? prop.master : prop;
-      console.log(`${i} period: ${ prop.period && true }`);
+      // console.log(`${i} period: ${ prop.period && true }`);
       if(prop.period && true)
         hasRunningProp = true;
       else
         hasStoppedProp = true;
     }
     if(hasStartPending) {
-      return ;
+      // return ;
     }
     else if(hasRunningProp) {
-      return ;
+      // return ;
     }
     else if(hasStoppedProp) {
       this.exConf[`devices-service`].removeFromService(this.id);
     }
+    return this.getState();
   }
 
   enableProperties() {
@@ -401,6 +404,7 @@ class ModbusDevice extends Device {
         // promArr.push(prop.start());
       }
       Promise.all(promArr)
+      .then(() => this.getState())
       .then(() => resolve())
       .catch((err) => reject(err));
     });
@@ -418,6 +422,7 @@ class ModbusDevice extends Device {
         promArr.push(prop.stop());
       }
       Promise.all(promArr)
+      .then(() => this.getState())
       .then(() => resolve())
       .catch((err) => reject(err));
     });

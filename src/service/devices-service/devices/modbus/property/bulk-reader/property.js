@@ -6,6 +6,7 @@ const AsyncLock = require('async-lock');
 
 const ConfigTranslator = require(`./config-translator.js`);
 const PropertyUnit = require(`./propertyUnit.js`);
+const DefaultConfig = require(`../../defalt-config`);
 
 class BulkReader {
   constructor(device, id, config) {
@@ -19,6 +20,7 @@ class BulkReader {
     };
     this.lastPeriodSuccess = false;
     this.periodWorkFlag = false;
+    this.continuousFail = 0;
     this.lock = {
       "period": {
         "key": `period`,
@@ -52,7 +54,8 @@ class BulkReader {
       },
       "fail-call": {
         "count": 0,
-        "last": null
+        "last": null,
+        "last-err-message": ``
       },
       "warning": [
         // {
@@ -271,21 +274,17 @@ class BulkReader {
 
               // console.log(`[${this.constructor.name}]`, `[${addr}/${addr.toString(16)}] ${ref.name}: ${value}`);
 
-              this.metrics.set(`success-call.last`, (new Date()).toString());
-              this.metrics.increase(`success-call.count`);
-
+              
               this.device.findProperty(this.generatePropertyId(addr)).setCachedValueAndNotify(value);
             })
             return ;
           })
         }, Promise.resolve())
-        .then(() => this.lastPeriodSuccess = true)
+        .then(() => this.onPeriodSuccess())
         .then(() => resolve())
         .catch((err) => {
           console.log(`BulkReaderProperty: periodWork() >> Error!!!`);
-          this.metrics.set(`fail-call.last`, (new Date()).toString());
-          this.metrics.increase(`fail-call.count`);
-          this.lastPeriodSuccess = false;
+          this.onPeriodFail(err);
           reject(err);
         })
       }
@@ -293,6 +292,30 @@ class BulkReader {
         // 
       }
     });
+  }
+
+  onPeriodSuccess() {
+    // console.log(`[${this.constructor.name}]`, `onPeriodSuccess(id: ${this.id})`);
+    let lastContinuousFail = this.continuousFail;
+    let timestamp = (new Date()).toString();
+    this.metrics.set(`success-call.last`, timestamp);
+    this.metrics.increase(`success-call.count`);
+    this.lastPeriodSuccess = true;
+    this.continuousFail = 0;
+    if(lastContinuousFail >= DefaultConfig.property.continuousFail.max)
+      this.device.getState();
+  }
+
+  onPeriodFail(err) {
+    console.log(`[${this.constructor.name}]`, `onPeriodFail(id: ${this.id})`);
+    let timestamp = (new Date()).toString();
+    this.metrics.set(`fail-call.last`, timestamp);
+    this.metrics.increase(`fail-call.count`);
+    this.metrics.set(`last-err-message`, err.toString());
+    this.lastPeriodSuccess = false;
+    this.continuousFail = this.continuousFail + 1;
+    if(this.continuousFail == DefaultConfig.property.continuousFail.max)
+      this.device.getState();
   }
 }
 

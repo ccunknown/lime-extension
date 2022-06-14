@@ -653,8 +653,141 @@ class RoutesManager extends APIHandler{
             });
           }
         }
-      }
+      },
 
+
+
+      /***  Resource : /rtcpeer/session  ***/
+      {
+        "resource": /\/rtcpeer\/session/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              let rtcpeerService = this.laborsManager.getService(`rtcpeer-service`).obj;
+              Promise.resolve()
+              .then(() => rtcpeerService.getSession())
+              .then((ret) => resolve(this.makeJsonRespond(JSON.stringify(ret))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            })
+          },
+          "POST": (req) => {
+            return new Promise((resolve, reject) => {
+              let rtcpeerService = this.laborsManager.getService(`rtcpeer-service`).obj;
+              Promise.resolve()
+              .then(() => rtcpeerService.createSession(req.body.config))
+              .then((session) => { return { id: session.id }; })
+              .then((ret) => resolve(this.makeJsonRespond(JSON.stringify(ret))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            })
+          },
+          "DELETE": (req) => {
+            return new Promise((resolve, reject) => {
+              let rtcpeerService = this.laborsManager.getService(`rtcpeer-service`).obj;
+              Promise.resolve()
+              .then(() => rtcpeerService.deleteSession())
+              .then(() => rtcpeerService.getSession())
+              .then((ret) => resolve(this.makeJsonRespond(JSON.stringify(ret))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            })
+          }
+        }
+      },
+
+      /***  Resource : /rtcpeer/session/{sessionId}  ***/
+      {
+        "resource": /\/rtcpeer\/session\/[^/]+/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              let rtcpeerService = this.laborsManager.getService(`rtcpeer-service`).obj;
+              let id = this.getPathElement(req.path);
+              Promise.resolve()
+              .then(() => rtcpeerService.getSession(id))
+              .then((ret) => resolve(this.makeJsonRespond(JSON.stringify(ret))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          "DELETE": (req) => {
+            return new Promise((resolve, reject) => {
+              let rtcpeerService = this.laborsManager.getService(`rtcpeer-service`).obj;
+              let id = this.getPathElement(req.path);
+              Promise.resolve()
+              .then(() => rtcpeerService.deleteSession(id))
+              .then((ret) => resolve(this.makeJsonRespond(JSON.stringify(ret))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /rtcpeer/session/{sessionId}/offer  ***/
+      {
+        "resource": /\/rtcpeer\/session\/[^/]+\/offer/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              let rtcpeerService = this.laborsManager.getService(`rtcpeer-service`).obj;
+              let id = this.getPathElement(req.path, 2);
+              Promise.resolve()
+              .then(() => rtcpeerService.getOffer(id))
+              .then((ret) => resolve(this.makeJsonRespond(JSON.stringify(ret))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /rtcpeer/session/{sessionId}/offer-candidate  ***/
+      {
+        "resource": /\/rtcpeer\/session\/[^/]+\/offer-candidate/,
+        "method": {
+          "GET": (req) => {
+            return new Promise((resolve, reject) => {
+              let rtcpeerService = this.laborsManager.getService(`rtcpeer-service`).obj;
+              let id = this.getPathElement(req.path, 2);
+              Promise.resolve()
+              .then(() => rtcpeerService.getOfferCandidate(id))
+              .then((ret) => resolve(this.makeJsonRespond(JSON.stringify(ret))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /rtcpeer/session/{sessionId}/answer  ***/
+      {
+        "resource": /\/rtcpeer\/session\/[^/]+\/answer/,
+        "method": {
+          "POST": (req) => {
+            return new Promise((resolve, reject) => {
+              let rtcpeerService = this.laborsManager.getService(`rtcpeer-service`).obj;
+              let id = this.getPathElement(req.path, 2);
+              console.log(`req body:`, JSON.stringify(req.body));
+              Promise.resolve()
+              .then(() => rtcpeerService.addAnswer(id, req.body))
+              .then((ret) => resolve(this.makeJsonRespond(JSON.stringify(ret))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      },
+
+      /***  Resource : /rtcpeer/session/{sessionId}/answer-candidate  ***/
+      {
+        "resource": /\/rtcpeer\/session\/[^/]+\/answer-candidate/,
+        "method": {
+          "POST": (req) => {
+            return new Promise((resolve, reject) => {
+              let rtcpeerService = this.laborsManager.getService(`rtcpeer-service`).obj;
+              let id = this.getPathElement(req.path, 2);
+              Promise.resolve()
+              .then(() => rtcpeerService.addAnswerCandidate(id, req.body))
+              .then((ret) => resolve(this.makeJsonRespond(JSON.stringify(ret))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          }
+        }
+      }
     ];
   }
 
@@ -697,6 +830,13 @@ class RoutesManager extends APIHandler{
 
   reqVerify(req, method, path) {
     return (req.method === method && req.path === path);
+  }
+
+  getPathElement(path, index) {
+    let pathArr = path.replace(/^\//, ``).replace(/\/$/, ``).split(`/`);
+    if(index && index > pathArr.length)
+      return null;
+    return pathArr[index ? index : pathArr.length - 1];
   }
 
   getParameters(req) {

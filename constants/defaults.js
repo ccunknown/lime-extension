@@ -34,6 +34,13 @@ var Defaults = {
         "enable": true,
         "status": "unknow",
         "description": "A combination of script and engine to define what was device should be."
+      },
+      // Rtcpeer Service
+      "rtcpeer-service": {
+        "path": "/rtcpeer-service/rtcpeer-service.js",
+        "enable": true,
+        "status": "unknow",
+        "description": "Client - Server communitaction service using WEBRTC."
       }
     },
     "service-config": {
@@ -55,6 +62,33 @@ var Defaults = {
       "devices-service": {
         "directory": "/devices",
         "list": {}
+      },
+      // Rtcpeer Service
+      "rtcpeer-service": {
+        "peerConnectionConfig": {
+          "iceServers": [
+            {
+              "urls": [
+                "stun:stun1.l.google.com:19302",
+                "stun:stun2.l.google.com:19302"
+              ]
+            }
+          ],
+          "iceCandidatePoolSize": 10
+        },
+        "session": {
+          "handshake": {
+            // Handshake interval.
+            "period": 3000,
+            // Counter of continuous fail handshake to be abort session.
+            "abortcountdown": 5
+          }
+        },
+        "channel": {
+          "callrespond": {
+            "timeout": 3000
+          }
+        }
       }
     }
   },
@@ -246,86 +280,23 @@ var Defaults = {
                       }
                     }
                   }
-                  // ".+": {
-                  //   "type": "object",
-                  //   "required": ["id", "name", "type", "@context", "@type", "config", "properties"],
-                  //   "additionalProperties": false,
-                  //   "properties": {
-                  //     "id": {
-                  //       "type": "string"
-                  //     },
-                  //     "name": {
-                  //       "type": "string"
-                  //     },
-                  //     "type": {
-                  //       "type": "array",
-                  //       "default": [],
-                  //       "items": {
-                  //         "type": "string"
-                  //       }
-                  //     },
-                  //     "description": {
-                  //       "type": "string"
-                  //     },
-                  //     "@context": {
-                  //       "type": "string"
-                  //     },
-                  //     "@type": {
-                  //       "type": "array",
-                  //       "items": {
-                  //         "type": "string"
-                  //       }
-                  //     },
-                  //     "config": {
-                  //       "type": "object",
-                  //       "required": ["engine", "script"],
-                  //       "additionalProperties": true,
-                  //       "properties": {
-                  //         "device": {
-                  //           "type": "string"
-                  //         }
-                  //       }
-                  //     },
-                  //     "properties": {
-                  //       "type": "object",
-                  //       "patternProperties": {
-                  //         "^.+$": {
-                  //           "type": "object",
-                  //           "required": ["name", "type", "value", "readOnly", "config"],
-                  //           "additionalProperties": false,
-                  //           "properties": {
-                  //             "name": {
-                  //               "type": "string"
-                  //             },
-                  //             "label": {
-                  //               "type": "string"
-                  //             },
-                  //             "title": {
-                  //               "type": "string"
-                  //             },
-                  //             "type": {
-                  //               "type": "string",
-                  //               "enum": ["string", "number", "boolean"]
-                  //             },
-                  //             "value": {
-                  //               "type": ["string", null, "number", "boolean"]
-                  //             },
-                  //             "unit": {
-                  //               "type": "string"
-                  //             },
-                  //             "readOnly": {
-                  //               "type": "boolean"
-                  //             },
-                  //             "config": {
-                  //               "type": "object"
-                  //             }
-                  //           }
-                  //         }
-                  //       }
-                  //     }
-                  //   }
-                  // }
                 }
+              }
+            }
+          },
+          //  RTCPeer Service
+          "rtcpeer-service": {
+            "type": "object",
+            "required": ["peerConnectionConfig", "session", "channel"],
+            "properties": {
+              "peerConnectionConfig": {
+                "type": "object"
+              },
+              "session": {
+                "type": "object"
+              },
+              "channel": {
+                "type": "object"
               }
             }
           }

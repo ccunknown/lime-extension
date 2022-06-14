@@ -33,6 +33,10 @@ class DevicesService extends Service {
       this.config = JSON.parse(JSON.stringify(config));
       this.id = id;
     */
+    this.deviceState = {
+      period: null,
+      state: {}
+    };
   }
 
   init(config) {
@@ -42,6 +46,7 @@ class DevicesService extends Service {
       this.initAdapter();
       this.scriptsService = this.laborsManager.getService(`scripts-service`).obj;
       this.enginesService = this.laborsManager.getService(`engines-service`).obj;
+      this.rtcpeerService = this.laborsManager.getService(`rtcpeer-service`).obj;
       resolve();
     });
   }
@@ -80,13 +85,24 @@ class DevicesService extends Service {
     });
   }
 
+  onDeviceStateChange(id, state) {
+    console.log(`[${this.constructor.name}]`, `onDeviceStateChange(${id}, ${state}) >> `);
+    Promise.resolve()
+    .then(() => this.getServiceDevice(id))
+    .then((schema) => this.rtcpeerService.publish(
+      `/service/devices-service/service-device/${id}`,
+      schema
+    ));
+  }
+
   start() {
     console.log(`[${this.constructor.name}]`, `start() >> `);    
     return new Promise((resolve, reject) => {
       this.scriptsService = this.laborsManager.getService(`scripts-service`).obj;
       this.enginesService = this.laborsManager.getService(`engines-service`).obj;
       this.configTranslator = new ConfigTranslator(this);
-      this.initDevices()
+      Promise.resolve()
+      .then(() => this.initDevices())
       .then(() => resolve())
       .catch((err) => reject(err));
     });
@@ -183,7 +199,9 @@ class DevicesService extends Service {
       .then(() => device.init())
       .then(() => this.adapter.handleDeviceAdded(device))
       // .then(() => this.applyObjectOptions(id, options))
-      .then(() => resolve(device.asThing()))
+      .then(() => device.getState())
+      .then(() => device.asThing())
+      .then((ret) => resolve(ret))
       .catch((err) => {
         reject(err)
       });
@@ -366,7 +384,9 @@ class DevicesService extends Service {
             ? `${subCondition.device}`
             : subCondition.valid
               ? subCondition.enable
-                ? `corrupted`
+                ? subCondition.device == `pending`
+                  ? `${subCondition.device}`
+                  : `corrupted`
                 : `disabled`
               : `invalid-schema`
           );

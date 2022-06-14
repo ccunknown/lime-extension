@@ -37,8 +37,7 @@ const ValidateConfigSchema = {
     "retryNumber": {
       "type": "number",
       "title": "Number for retryment",
-      "default": 2,
-      "minimum": -1
+      "default": 2
     },
     "retryDelay": {
       "type": "number",

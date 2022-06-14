@@ -18,16 +18,18 @@ export default class ExtensionMain extends window.Extension {
 
   init() {
     return new Promise((resolve, reject) => {
-      this.initLoader()
+      Promise.resolve()
+      .then(() => this.initLoader())
       .then(() => this.initCoreObject())
       .then(() => this.initWindowObject())
       .then(() => this.api.getConfig())
       .then((config) => {
-        this.console.log(`get config`);
         this.config = config;
-        this.console.log(this.config);
-        this.ui.render(this.config);
+        this.console.log(`config`, this.config);
       })
+      .then(() => this.initRTCPeer())
+      .then(() => this.ui.render(this.config))
+      // .then(() => this.rtcpeer.init(config[`service-config`][`rtcpeer-service`].config))
       .then(() => resolve())
       .catch((err) => reject(err));
     });
@@ -49,6 +51,7 @@ export default class ExtensionMain extends window.Extension {
       this.collector = new (this.loader.getCoreObject(`collector`))(this);
       this.api = new (this.loader.getCoreObject(`api`))(this);
       this.ui = new (this.loader.getCoreObject(`ui`))(this);
+      this.rtcpeer = new (this.loader.getCoreObject(`rtcPeer`))();
 
       // await this.ui.init();
       // await this.collector.init();
@@ -72,6 +75,27 @@ export default class ExtensionMain extends window.Extension {
         this.console.warn(`window.${name} already exist!`);
       }
       resolve();
+    });
+  }
+
+  initRTCPeer() {
+    this.console.log(`initRTCPeer() >> `);
+    let config = JSON.parse(JSON.stringify({
+      peerConnectionConfig: this.config[`service-config`][`rtcpeer-service`],
+      apiOptions: {
+        endpoint: `/${this.loader.define[`url-prefix`].split(`/`).filter(e => e.length).join(`/`)}/api/rtcpeer`,
+        headers: window.API.headers()
+      }
+      // apiEndpoint: `/${this.loader.define[`url-prefix`].split(`/`).filter(e => e.length).join(`/`)}/api`
+    }));
+    // config.apiEndpoint = `/${this.loader.define[`url-prefix`].split(`/`).filter(e => e.length).join(`/`)}/api`;
+    // return this.rtcpeer.init(config);
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+      .then(() => this.rtcpeer.init(config))
+      .then(() => this.rtcpeer.start())
+      .then((ret) => resolve(ret))
+      .catch((err) => reject(err));
     });
   }
 

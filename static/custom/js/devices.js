@@ -4,16 +4,46 @@ export default class PageDevices {
     this.console = this.extension.console;
     this.api = this.extension.api;
     this.ui = this.extension.ui;
+    this.lastConfig = ``;
   }
 
   init(config) {
     this.console.trace(`init() >> `);
     return new Promise(async (resolve, reject) => {
-      this.initCustomRest()
+      Promise.resolve()
+      .then(() => this.initCustomRest())
       .then(() => this.initVue())
+      // .then(() => this.initInterval())
+      .then(() => this.initRTCPeerSubscribe())
       .then(() => resolve())
       .catch((err) => reject(err));
     });
+  }
+
+  initRTCPeerSubscribe() {
+    console.log(`initRTCPeerSubscribe() >>>>>>>>>>>>>>>>>>>>>>>>>>>>> `);
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+      .then(() => this.extension.rtcpeer.addSubscribe(
+        `/service/devices-service/service-device/.+`,
+        this.onDeviceSchemaChange.bind(this)
+      ))
+      .then((ret) => resolve(ret))
+      .catch((err) => reject(err));
+    });
+  }
+
+  onDeviceSchemaChange(topic, data) {
+    let deviceId = topic.split(`/`).filter(e => e.length).pop();
+    this.console.log(
+      `[${this.constructor.name}]`, 
+      `onDeviceSchemaChange(${deviceId}) >> `
+    );
+    this.console.log(data);
+    let config = this.vue.resource.config;
+    this.console.log(config[deviceId]);
+    config[deviceId] = data;
+    this.vue.resource.config = config;
   }
 
   initCustomRest() {
@@ -26,7 +56,8 @@ export default class PageDevices {
         "resource-title": "Device"
       };
       let customRest = null;
-      this.ui.getCustomObject(`custom-rest`, {}, this.extension, meta)
+      Promise.resolve()
+      .then(() => this.ui.getCustomObject(`custom-rest`, {}, this.extension, meta))
       .then((object) => customRest = object)
       .then(() => customRest.init())
       .then(() => this.rest = customRest)
@@ -63,6 +94,29 @@ export default class PageDevices {
       }
     });
   }
+
+  // initInterval() {
+  //   this.console.trace(`initInterval()`);
+  //   this.interval = setInterval(() => this.intervalTask(), 5000);
+  // }
+
+  // intervalTask() {
+  //   this.console.log(`[${this.constructor.name}]`, `intervalTask()`);
+  //   return new Promise((resolve, reject) => {
+  //     Promise.resolve()
+  //     .then(() => this.api.rest.getJson(`/extensions/lime-extension/api/service/devices-service/service-device`))
+  //     // .then(() => this.rest.getServicedItem())
+  //     .then((config) => {
+  //       if(JSON.stringify(config) != JSON.stringify(this.lastConfig)) {
+  //         this.console.log(config);
+  //         this.vue.resource.config = config;
+  //         this.lastConfig = config;
+  //       }
+  //     })
+  //     .then((ret) => resolve(ret))
+  //     .catch((err) => reject(err));
+  //   });
+  // }
 
   initVue() {
     this.console.trace(`initVue()`);
