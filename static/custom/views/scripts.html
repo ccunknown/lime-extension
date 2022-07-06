@@ -1,151 +1,258 @@
 <div class="miso-slide-container" id="extension-lime-content-scripts-section">
 
   <div class="miso-slide-slide" :class="{hide: ui.slider.hide}">
-    <div class="card text-dark border-warning w-100">
+    <div class="miso-slide-slide" :class="{hide: ui.slider.slider.hide}">
+      <div class="card text-dark border-warning w-100">
 
-      <div class="card-header bg-warning border-warning">
-        <div class="d-flex justify-content-between">
-          <!-- Icon & Title -->
-          <div class="text-truncate">
-            <i class="fas fa-file-code mr-2"></i>
-            <b>Scripts</b>
-          </div>
-          <!-- Header Button -->
-          <div class="">
-            <button v-if="ui.slider.edit" class="btn btn-success" @click="fn.save()">
-              <i class="fas fa-save fa-lg"></i>
-              <b>Save</b>
-            </button>
-            <button class="btn btn-danger" @click="fn.renderBase()">
-              <i class="fas fa-undo fa-lg"></i>
-              <b>Back</b>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card-body bg-dark">
-
-        <div 
-        v-if="!ui.slider.ready"
-        class="">
-          <div class="d-flex flex-column justify-content-center">
-            <br>
-            <div class="text-light">
-              <center>
-                Please wait, this process will take a while.
-              </center>
+        <div class="card-header bg-warning border-warning">
+          <div class="d-flex justify-content-between">
+            <!-- Icon & Title -->
+            <div class="text-truncate">
+              <i class="fas fa-file-code mr-2"></i>
+              <b>Scripts</b>
             </div>
-            <br>
-            <div class="progress">
-              <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100">
-              </div>
+            <!-- Header Button -->
+            <div class="">
+              <button class="btn btn-success" @click="fn.save2()">
+                <i class="fas fa-save fa-lg"></i>
+                <b>Save</b>
+              </button>
+              <button class="btn btn-danger" @click="fn.view(ui.current.slider.name)">
+                <i class="fas fa-undo fa-lg"></i>
+                <b>Back</b>
+              </button>
             </div>
           </div>
         </div>
 
-        <div 
-        v-if="ui.slider.ready"
-        class="miso-form-container align-items-center col-sm-12 col-md-10 col-lg-8 w-100">
+        <div class="card-body bg-dark">
 
-          <div class="miso-badge-header-group align-items-end w-100">
-            <label class="miso-label-badge badge-info font-size-inherit">General</label>
-            <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
-              
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Name</label>
-                <input 
-                type="text" 
-                v-model="ui.slider.form.name"
-                :disabled="!ui.slider.edit" 
-                class="miso-badge-union border-secondary">
+          <!-- <div 
+            v-if="!ui.slider.slider.ready"
+            class=""
+          > -->
+          <div 
+            class=""
+            :class="{hide: ui.slider.slider.ready}"
+          >
+            <div class="d-flex flex-column justify-content-center">
+              <br>
+              <div class="text-light">
+                <center>
+                  Please wait, this process will take a while.
+                </center>
               </div>
-
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Title</label>
-                <input 
-                type="text" 
-                v-model="ui.slider.form.meta.title"
-                :disabled="!ui.slider.edit"
-                class="miso-badge-union border-secondary">
-              </div>
-
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Description</label>
-                <textarea
-                v-model="ui.slider.form.meta.description"
-                :disabled="!ui.slider.edit"
-                class="miso-badge-union border-secondary no-resize"
-                rows="4"
-                type="text">
-                </textarea>
-              </div>
-
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">Tags</label>
-                <template>
-                  <vue-tags-input
-                    v-model="ui.tag"
-                    class="miso-badge-union border-secondary"
-                    :tags="ui.slider.form.meta.tags"
-                    :add-on-key="[13, 32]"
-                    :disabled="!ui.slider.edit"
-                    @tags-changed="(newTags) => ui.slider.form.meta.tags = newTags"
-                  />
-                </template>
-              </div>
-
-            </div>
-          </div>
-
-          <div class="miso-badge-header-group align-items-end w-100">
-            <label class="miso-label-badge badge-info font-size-inherit">Files</label>
-            <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
-
-              <div class="miso-badge-header-group grow-1">
-                <label class="miso-label-badge badge-secondary">script</label>
-                <div class="miso-badge-union border-secondary">
-                  <div class="list-group w-100">
-                    <template
-                    v-for="file in ui.slider.form.children">
-                      <div class="list-group-item list-group-item-action bg-transparent text-light d-flex justify-content-between">
-                        <div class="grow-1 d-flex flex-column">
-                          <span>{{file.name}}</span>
-                          <div v-if="!file.base64" class="mr-3">
-                            <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100 p-1"></div>
-                          </div>
-                        </div>
-                        <span>
-                          <button v-if="!ui.slider.edit" class="btn btn-success" @click="fn.download(file.name)">
-                            <i class="fas fa-download fa-lg"></i>
-                          </button>
-                          <button v-if="ui.slider.edit" class="btn btn-info" @click="fn.previewFile(file.name)">
-                            <i class="far fa-file-alt fa-lg"></i>
-                          </button>
-                          <button v-if="ui.slider.edit" class="btn btn-danger" @click="fn.removeFile(file.name)">
-                            <i class="fas fa-trash fa-lg"></i>
-                          </button>
-                        </span>
-                      </div>
-                    </template>
-                  </div>
-                  <input 
-                  type="file" 
-                  @change="fn.onSelectFile"
-                  onclick="this.value=null" 
-                  :disabled="!ui.slider.edit"
-                  multiple
-                  class="w-100">
+              <br>
+              <div class="progress">
+                <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100">
                 </div>
               </div>
+            </div>
+          </div>
 
+          <!-- <div 
+            v-if="ui.slider.slider.ready"
+            class="miso-form-container align-items-center col-sm-12 col-md-10 col-lg-8 w-100"
+          > -->
+          <!-- <div 
+            v-if="ui.slider.slider.ready"
+            class="miso-form-container align-items-center w-100"
+          > -->
+          <div
+            class="miso-form-container align-items-center w-100"
+            :class="{hide: !ui.slider.slider.ready}"
+          >
+            <div class="mb-2 d-flex w-100">
+              <!-- <div
+                class="btn-group"
+              >
+                <button 
+                  v-for="(context, fname) in ui.slider.slider.editor" 
+                  type="button" 
+                  class="btn btn-secondary"
+                  @click="fn.swapFile(fname)"
+                >
+                  {{fname}}
+                </button>
+              </div> -->
+              <div
+                id="extension-lime-content-scripts-slider-slider-file-bar"
+                class="btn-group btn-group-toggle"
+                data-toggle="buttons"
+              >
+                <label
+                  v-for="(context, fname) in ui.slider.slider.editor" 
+                  class="btn btn-secondary"
+                >
+                  <input type="radio" name="options" @click="fn.swapFile(fname)">
+                  {{fname}}
+                </label>
+              </div>
+            </div>
+            <div
+              id="extension-lime-content-scripts-slider-slider-monaco-container"
+              class="w-100"
+              style="min-height: 400px;"
+            >
             </div>
           </div>
 
         </div>
 
       </div>
+    </div>
 
+    <div class="miso-slide-base">
+      <div class="card text-dark border-warning w-100">
+
+        <div class="card-header bg-warning border-warning">
+          <div class="d-flex justify-content-between">
+            <!-- Icon & Title -->
+            <div class="text-truncate">
+              <i class="fas fa-file-code mr-2"></i>
+              <b>Scripts: </b>
+            </div>
+            <!-- Header Button -->
+            <div class="">
+              <button v-if="ui.slider.edit" class="btn btn-success" @click="fn.save()">
+                <i class="fas fa-save fa-lg"></i>
+                <b>Save</b>
+              </button>
+              <button v-if="!ui.slider.edit" class="btn btn-warning" @click="fn.renderSlider2()">
+                <i class="fas fa-edit fa-lg"></i>
+                <b>Edit</b>
+              </button>
+              <button class="btn btn-danger" @click="fn.renderBase()">
+                <i class="fas fa-undo fa-lg"></i>
+                <b>Back</b>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body bg-dark">
+
+          <div 
+          v-if="!ui.slider.ready"
+          class="">
+            <div class="d-flex flex-column justify-content-center">
+              <br>
+              <div class="text-light">
+                <center>
+                  Please wait, this process will take a while.
+                </center>
+              </div>
+              <br>
+              <div class="progress">
+                <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div 
+          v-if="ui.slider.ready"
+          class="miso-form-container align-items-center col-sm-12 col-md-10 col-lg-8 w-100">
+
+            <div class="miso-badge-header-group align-items-end w-100">
+              <label class="miso-label-badge badge-info font-size-inherit">General</label>
+              <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
+                
+                <div class="miso-badge-header-group grow-1">
+                  <label class="miso-label-badge badge-secondary">Name</label>
+                  <input 
+                  type="text" 
+                  v-model="ui.slider.form.name"
+                  :disabled="!ui.slider.edit" 
+                  class="miso-badge-union border-secondary">
+                </div>
+
+                <div class="miso-badge-header-group grow-1">
+                  <label class="miso-label-badge badge-secondary">Title</label>
+                  <input 
+                  type="text" 
+                  v-model="ui.slider.form.meta.title"
+                  :disabled="!ui.slider.edit"
+                  class="miso-badge-union border-secondary">
+                </div>
+
+                <div class="miso-badge-header-group grow-1">
+                  <label class="miso-label-badge badge-secondary">Description</label>
+                  <textarea
+                  v-model="ui.slider.form.meta.description"
+                  :disabled="!ui.slider.edit"
+                  class="miso-badge-union border-secondary no-resize"
+                  rows="4"
+                  type="text">
+                  </textarea>
+                </div>
+
+                <div class="miso-badge-header-group grow-1">
+                  <label class="miso-label-badge badge-secondary">Tags</label>
+                  <template>
+                    <vue-tags-input
+                      v-model="ui.tag"
+                      class="miso-badge-union border-secondary"
+                      :tags="ui.slider.form.meta.tags"
+                      :add-on-key="[13, 32]"
+                      :disabled="!ui.slider.edit"
+                      @tags-changed="(newTags) => ui.slider.form.meta.tags = newTags"
+                    />
+                  </template>
+                </div>
+
+              </div>
+            </div>
+
+            <div class="miso-badge-header-group align-items-end w-100">
+              <label class="miso-label-badge badge-info font-size-inherit">Files</label>
+              <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
+
+                <div class="miso-badge-header-group grow-1">
+                  <label class="miso-label-badge badge-secondary">script</label>
+                  <div class="miso-badge-union border-secondary">
+                    <div class="list-group w-100">
+                      <template
+                      v-for="file in ui.slider.form.children">
+                        <div class="list-group-item list-group-item-action bg-transparent text-light d-flex justify-content-between">
+                          <div class="grow-1 d-flex flex-column">
+                            <span>{{file.name}}</span>
+                            <div v-if="!file.base64" class="mr-3">
+                              <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100 p-1"></div>
+                            </div>
+                          </div>
+                          <span>
+                            <button v-if="!ui.slider.edit" class="btn btn-success" @click="fn.download(file.name)">
+                              <i class="fas fa-download fa-lg"></i>
+                            </button>
+                            <button v-if="ui.slider.edit" class="btn btn-info" @click="fn.previewFile(file.name)">
+                              <i class="far fa-file-alt fa-lg"></i>
+                            </button>
+                            <button v-if="ui.slider.edit" class="btn btn-danger" @click="fn.removeFile(file.name)">
+                              <i class="fas fa-trash fa-lg"></i>
+                            </button>
+                          </span>
+                        </div>
+                      </template>
+                    </div>
+                    <input 
+                    type="file" 
+                    @change="fn.onSelectFile"
+                    onclick="this.value=null" 
+                    :disabled="!ui.slider.edit"
+                    multiple
+                    class="w-100">
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
     </div>
   </div>
   
