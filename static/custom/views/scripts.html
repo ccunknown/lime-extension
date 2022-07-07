@@ -27,10 +27,6 @@
 
         <div class="card-body bg-dark">
 
-          <!-- <div 
-            v-if="!ui.slider.slider.ready"
-            class=""
-          > -->
           <div 
             class=""
             :class="{hide: ui.slider.slider.ready}"
@@ -50,31 +46,11 @@
             </div>
           </div>
 
-          <!-- <div 
-            v-if="ui.slider.slider.ready"
-            class="miso-form-container align-items-center col-sm-12 col-md-10 col-lg-8 w-100"
-          > -->
-          <!-- <div 
-            v-if="ui.slider.slider.ready"
-            class="miso-form-container align-items-center w-100"
-          > -->
           <div
             class="miso-form-container align-items-center w-100"
             :class="{hide: !ui.slider.slider.ready}"
           >
             <div class="mb-2 d-flex w-100">
-              <!-- <div
-                class="btn-group"
-              >
-                <button 
-                  v-for="(context, fname) in ui.slider.slider.editor" 
-                  type="button" 
-                  class="btn btn-secondary"
-                  @click="fn.swapFile(fname)"
-                >
-                  {{fname}}
-                </button>
-              </div> -->
               <div
                 id="extension-lime-content-scripts-slider-slider-file-bar"
                 class="btn-group btn-group-toggle"
@@ -114,11 +90,19 @@
             </div>
             <!-- Header Button -->
             <div class="">
-              <button v-if="ui.slider.edit" class="btn btn-success" @click="fn.save()">
+              <button 
+                class="btn btn-success" 
+                :class="{hide: !ui.slider.edit}"
+                @click="fn.save()"
+              >
                 <i class="fas fa-save fa-lg"></i>
                 <b>Save</b>
               </button>
-              <button v-if="!ui.slider.edit" class="btn btn-warning" @click="fn.renderSlider2()">
+              <button 
+                class="btn btn-warning" 
+                :class="{hide: ui.slider.edit}"
+                @click="fn.renderSlider2()"
+              >
                 <i class="fas fa-edit fa-lg"></i>
                 <b>Edit</b>
               </button>
@@ -133,8 +117,9 @@
         <div class="card-body bg-dark">
 
           <div 
-          v-if="!ui.slider.ready"
-          class="">
+            class=""
+            :class="{hide: ui.slider.ready}"
+          >
             <div class="d-flex flex-column justify-content-center">
               <br>
               <div class="text-light">
@@ -151,8 +136,9 @@
           </div>
 
           <div 
-          v-if="ui.slider.ready"
-          class="miso-form-container align-items-center col-sm-12 col-md-10 col-lg-8 w-100">
+            v-if="ui.slider.ready"
+            class="miso-form-container align-items-center col-sm-12 col-md-10 col-lg-8 w-100"
+          >
 
             <div class="miso-badge-header-group align-items-end w-100">
               <label class="miso-label-badge badge-info font-size-inherit">General</label>
@@ -217,18 +203,26 @@
                         <div class="list-group-item list-group-item-action bg-transparent text-light d-flex justify-content-between">
                           <div class="grow-1 d-flex flex-column">
                             <span>{{file.name}}</span>
-                            <div v-if="!file.base64" class="mr-3">
+                            <div
+                              class="mr-3"
+                              :class="{hide: file.base64}"
+                            >
                               <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100 p-1"></div>
                             </div>
                           </div>
                           <span>
-                            <button v-if="!ui.slider.edit" class="btn btn-success" @click="fn.download(file.name)">
+                            <button 
+                              class="btn btn-success" 
+                              :class="{hide: ui.slider.edit}"
+                              @click="fn.download(file.name)"
+                            >
                               <i class="fas fa-download fa-lg"></i>
                             </button>
-                            <button v-if="ui.slider.edit" class="btn btn-info" @click="fn.previewFile(file.name)">
-                              <i class="far fa-file-alt fa-lg"></i>
-                            </button>
-                            <button v-if="ui.slider.edit" class="btn btn-danger" @click="fn.removeFile(file.name)">
+                            <button 
+                              class="btn btn-danger" 
+                              :class="{hide: !ui.slider.edit}"
+                              @click="fn.removeFile(file.name)"
+                            >
                               <i class="fas fa-trash fa-lg"></i>
                             </button>
                           </span>
@@ -272,8 +266,9 @@
       <div class="card-body bg-dark">
         <!-- Base Body Loader -->
         <div 
-        v-if="!ui.base.ready"
-        class="">
+          class=""
+          :class="{hide: ui.base.ready}"
+        >
           <div class="d-flex flex-column justify-content-center">
             <br>
             <div class="text-light">
@@ -343,7 +338,9 @@
     </div>
   </div>
 
-  <pre v-if="loader.extension.debug">
+  <pre
+    :class="{hide: !loader.extension.debug}"
+  >
     <code class="text-light">
       resource: {{resource}}
     </code>

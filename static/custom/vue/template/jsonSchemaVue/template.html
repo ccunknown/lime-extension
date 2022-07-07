@@ -1,9 +1,9 @@
 <select
-v-if="fn.typeIdentify(param) == 'select'"
-:disabled="fn.isDisabled(param)"
-v-bind:value="value"
-v-on:input="$emit('input', (param.type == 'number') ? Number($event.target.value) : $event.target.value)"
-v-on:change="$emit('change', (param.type == 'number') ? Number($event.target.value) : $event.target.value)"
+  v-if="fn.typeIdentify(param) == 'select'"
+  :disabled="fn.isDisabled(param)"
+  v-bind:value="value"
+  v-on:input="$emit('input', (param.type == 'number') ? Number($event.target.value) : $event.target.value)"
+  v-on:change="$emit('change', (param.type == 'number') ? Number($event.target.value) : $event.target.value)"
 >
   <template v-for="option in param.enum">
     <option :value="option" :disabled="(param.enumDisplay && param.enumDisplay[`${option}`] && param.enumDisplay[`${option}`].disabled) ? true : false">
@@ -13,74 +13,78 @@ v-on:change="$emit('change', (param.type == 'number') ? Number($event.target.val
 </select>
 
 <textarea
-v-else-if="fn.typeIdentify(param) == 'textarea'"
-:disabled="fn.isDisabled(param)"
-v-bind:value="value"
-v-on:input="$emit('input', $event.target.value)"
-v-on:change="$emit('change', $event.target.value)"
-rows="4">
+  v-else-if="fn.typeIdentify(param) == 'textarea'"
+  :disabled="fn.isDisabled(param)"
+  v-bind:value="value"
+  v-on:input="$emit('input', $event.target.value)"
+  v-on:change="$emit('change', $event.target.value)"
+  rows="4"
+>
 </textarea>
 
 <input 
-v-else-if="fn.typeIdentify(param) == 'text'"
-:type="fn.typeIdentify(param)" 
-:disabled="fn.isDisabled(param)"
-v-bind:value="value"
-v-on:input="$emit('input', $event.target.value)"
-v-on:change="$emit('change', $event.target.value)"
+  v-else-if="fn.typeIdentify(param) == 'text'"
+  :type="fn.typeIdentify(param)" 
+  :disabled="fn.isDisabled(param)"
+  v-bind:value="value"
+  v-on:input="$emit('input', $event.target.value)"
+  v-on:change="$emit('change', $event.target.value)"
 >
 
 <input 
-v-else-if="fn.typeIdentify(param) == 'number'"
-:type="fn.typeIdentify(param)" 
-:disabled="fn.isDisabled(param)"
-v-bind:value="value"
-v-on:input="$emit('input', Number($event.target.value))"
-v-on:change="$emit('change', Number($event.target.value))"
+  v-else-if="fn.typeIdentify(param) == 'number'"
+  :type="fn.typeIdentify(param)" 
+  :disabled="fn.isDisabled(param)"
+  v-bind:value="value"
+  v-on:input="$emit('input', Number($event.target.value))"
+  v-on:change="$emit('change', Number($event.target.value))"
 >
 
-<input 
-v-else-if="fn.typeIdentify(param) == 'checkbox'"
-:type="fn.typeIdentify(param)" 
-:disabled="fn.isDisabled(param)"
-:checked="value"
-v-on:input="$emit('input', $event.target.checked)"
-v-on:change="$emit('change', $event.target.checked)"
+<div
+  v-else-if="fn.typeIdentify(param) == 'checkbox'"
 >
+  <input 
+    :type="fn.typeIdentify(param)" 
+    :disabled="fn.isDisabled(param)"
+    :checked="value"
+    v-on:input="$emit('input', $event.target.checked)"
+    v-on:change="$emit('change', $event.target.checked)"
+  >
+</div>
 
 <div v-else-if="fn.typeIdentify(param) == 'checklist'" style="padding: 2px; max-height: 150px; overflow: auto;">
   <template v-for="(addr) in param.items.enum">
     <input 
-    type="checkbox" 
-    :disabled="fn.isDisabled(param)"
-    :value="addr"
-    v-on:input="$emit('input', 
-      ($event.target.checked) ? 
-        fn.check(value, 
-          (param.items.type == 'number') ? 
-            Number($event.target.value) : 
-            $event.target.value
-        ) :
-        fn.uncheck(value, 
-          (param.items.type == 'number') ? 
-            Number($event.target.value) : 
-            $event.target.value
-        )
-    )"
-    v-on:change="$emit('change', 
-      ($event.target.checked) ? 
-        fn.check(value, 
-          (param.items.type == 'number') ? 
-            Number($event.target.value) : 
-            $event.target.value
-        ) :
-        fn.uncheck(value, 
-          (param.items.type == 'number') ? 
-            Number($event.target.value) : 
-            $event.target.value
-        )
-    )"
-    :checked="fn.isChecked(value, addr)"
+      type="checkbox" 
+      :disabled="fn.isDisabled(param)"
+      :value="addr"
+      v-on:input="$emit('input', 
+        ($event.target.checked) ? 
+          fn.check(value, 
+            (param.items.type == 'number') ? 
+              Number($event.target.value) : 
+              $event.target.value
+          ) :
+          fn.uncheck(value, 
+            (param.items.type == 'number') ? 
+              Number($event.target.value) : 
+              $event.target.value
+          )
+      )"
+      v-on:change="$emit('change', 
+        ($event.target.checked) ? 
+          fn.check(value, 
+            (param.items.type == 'number') ? 
+              Number($event.target.value) : 
+              $event.target.value
+          ) :
+          fn.uncheck(value, 
+            (param.items.type == 'number') ? 
+              Number($event.target.value) : 
+              $event.target.value
+          )
+      )"
+      :checked="fn.isChecked(value, addr)"
     >
     <span>{{(param.items.enumDisplay && param.items.enumDisplay[`${addr}`] && param.items.enumDisplay[`${addr}`].title) ? param.items.enumDisplay[`${addr}`].title : addr}}</span>
     <br>

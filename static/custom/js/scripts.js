@@ -4,6 +4,7 @@ export default class PageScripts {
     this.console = this.extension.console;
     this.api = this.extension.api;
     this.ui = this.extension.ui;
+    this.urlPrefix = this.extension.loader.define[`url-prefix`];
   }
 
   init(config) {
@@ -11,11 +12,8 @@ export default class PageScripts {
     return new Promise(async (resolve, reject) => {
       Promise.resolve()
       .then(() => this.initVue())
-      // .then(() => initEditor())
       .then(() => resolve())
       .catch((err) => reject(err));
-      // await this.initVue();
-      // resolve();
     });
   }
 
@@ -24,7 +22,6 @@ export default class PageScripts {
     return new Promise(async (resolve, reject) => {
       let id = this.ui.said(`content.scripts.section`);
       this.console.log(`id : ${id}`);
-      // let schema = await this.getSchema();
 
       this.vue = new Vue({
         "el": `#${id}`,
@@ -52,8 +49,6 @@ export default class PageScripts {
               "ready": false,
               "edit": true,
               "form": {},
-              // "form": this.ui.generateData(this.ui.shortJsonElement(schema, `.+`)),
-              //"formTemplate": this.ui.generateVueData(this.ui.shortJsonElement(schema, `.+`))
               "slider": {
                 "fname": null,
                 "hide": true,
@@ -79,7 +74,6 @@ export default class PageScripts {
             "renderBase": () => {},
             "renderSlider": () => {},
             "onSelectFile": () => {},
-            "previewFile": () => {},
             "removeFile": () => {},
             "addTag": () => {},
             "getTag": () => {},
@@ -176,9 +170,6 @@ export default class PageScripts {
             resolve();
           });
         },
-        "previewFile": (name) => {
-          this.console.log(`previewFile(${name})`);
-        },
         "removeFile": (name) => {
           this.console.log(`removeFile(${name})`);
           this.vue.ui.slider.form.children = this.vue.ui.slider.form.children.filter((elem) => elem.name != name);
@@ -223,98 +214,6 @@ export default class PageScripts {
     });
   }
 
-  initEditor(text = ``) {
-    return new Promise((resolve, reject) => {
-      Promise.resolve()
-      .then(() => this.loadJsScriptSync(`/extensions/lime-extension/static/resource/js/require.min.js`))
-      .then(() => {
-        require.config({ paths: { 'vs': '/extensions/lime-extension/static/resource/monaco/min/vs' }});
-        window.MonacoEnvironment = { getWorkerUrl: () => proxy };
-        let proxy = URL.createObjectURL(new Blob([`
-          self.MonacoEnvironment = {
-            baseUrl: '${window.location.origin}/extensions/lime-extension/static/resource/monaco/min/'
-          };
-          importScripts('${window.location.origin}/extensions/lime-extension/static/resource/monaco/min/vs/base/worker/workerMain.js');
-        `], { type: 'text/javascript' }));
-      })
-      .then(() => require(
-        ["vs/editor/editor.main"],
-        (monaco) => {
-          this.editor = monaco.editor.create(
-            document.getElementById('extension-lime-content-scripts-slider-slider-monaco-container'), 
-            {
-              value: text,
-              language: 'javascript',
-              theme: 'vs-dark',
-              automaticLayout: true
-            }
-          );
-        }
-      ))
-      .then(() => this.waitForEditorReady())
-      .then((ret) => resolve(ret))
-      .catch((err) => reject(err));
-    });
-  }
-
-  waitForEditorReady() {
-    return new Promise((resolve, reject) => {
-      let fn = () => {
-        if(this.editor)
-          resolve();
-        else
-          setTimeout(fn, 100);
-      }
-      fn();
-    })
-  }
-
-  swapFile(fname) {
-    // this.console.log(`swap() >> `)
-    if(!this.editor)
-      return;
-    // Keep old value.
-    if(this.vue.ui.slider.slider.current) {
-      this.vue.ui.slider.slider.editor[this.vue.ui.slider.slider.current] = this.editor.getValue();
-    }
-    // Set new value.
-    fname && this.editor.setValue(this.vue.ui.slider.slider.editor[fname]);
-    fname && (this.vue.ui.slider.slider.current = fname);
-    // Reset scroll position.
-    this.editor.setScrollPosition({scrollTop: 0});
-  }
-
-  loadJsScriptSync(src) {
-    return new Promise((resolve, reject) => {
-      var s = document.createElement('script');
-      s.src = src;
-      s.type = "text/javascript";
-      s.async = false;
-
-      s.addEventListener("load", () => {
-        resolve();
-      });
-
-      s.addEventListener("error", (err) => {
-        console.log(`loadScriptSync("${src}"") : error`);
-        reject(err);
-      });
-
-      document.getElementsByTagName('head')[0].appendChild(s);
-    })
-  }
-
-  readFile(file) {
-    return new Promise((resolve, reject) => {
-      let reader = new FileReader();
-      reader.onload = (event) => {
-        //this.console.log(event.target.result);
-        resolve(event.target.result);
-      };
-      reader.readAsText(file);
-    });
-  }
-
   render(base = true) {
     this.console.log(`render()`);
     return new Promise(async (resolve, reject) => {
@@ -335,7 +234,6 @@ export default class PageScripts {
       this.vue.ui.base.ready = false;
       this.vue.ui.slider.hide = true;
       this.vue.ui.slider.slider.hide = true;
-      // this.vue.ui.slider.show = `base`;
 
       let config = await this.getConfig();
       this.vue.resource.config = config;
@@ -403,6 +301,10 @@ export default class PageScripts {
     });
   }
 
+
+  /*
+    Editor tool.
+  */
   renderSlider2() {
     this.console.log(`PageScripts: renderSlider2() >> `);
     return new Promise((resolve, reject) => {
@@ -411,10 +313,6 @@ export default class PageScripts {
         this.vue.ui.slider.slider.ready = false;
         this.vue.ui.slider.slider.hide = false;
         this.vue.ui.slider.slider.current = null;
-      })
-      .then(() => {
-        this.vue.ui.slider.slider.form = this.vue.ui.slider.form;
-        this.console.log(this.vue.ui.slider.slider.form);
       })
       // Translate file from `this.vue.ui.slider.form` to `this.vue.ui.slider.slider.editor`.
       .then(() => {
@@ -433,19 +331,98 @@ export default class PageScripts {
         });
         this.console.log(`child:`, this.vue.ui.slider.slider.editor);
       })
-      // .then(() => this.console.log(`editor:`, this.editor))
       .then((text = ``) => this.editor ? this.editor.setValue(text) : this.initEditor(text))
-      // Click first file (retry).
+      // Click first file.
       .then(() => {
         let children = document.getElementById(`extension-lime-content-scripts-slider-slider-file-bar`).children;
         children.length && children[0].click();
       })
-      .then((ret) => resolve(ret))
+      .then(() => resolve())
       .catch((err) => reject(err))
       .finally(() => {
         this.vue.ui.slider.slider.ready = true;
       });
     });
+  }
+
+  initEditor(text = ``) {
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+      .then(() => this.loadJsScriptSync(`${this.urlPrefix}/static/resource/js/require.min.js`))
+      .then(() => {
+        require.config({ paths: { 'vs': `${this.urlPrefix}/static/resource/monaco/min/vs` }});
+        window.MonacoEnvironment = { getWorkerUrl: () => proxy };
+        let proxy = URL.createObjectURL(new Blob([`
+          self.MonacoEnvironment = {
+            baseUrl: '${window.location.origin}${this.urlPrefix}/static/resource/monaco/min/'
+          };
+          importScripts('${window.location.origin}${this.urlPrefix}/static/resource/monaco/min/vs/base/worker/workerMain.js');
+        `], { type: 'text/javascript' }));
+      })
+      .then(() => require(
+        ["vs/editor/editor.main"],
+        (monaco) => {
+          this.editor = monaco.editor.create(
+            document.getElementById('extension-lime-content-scripts-slider-slider-monaco-container'), 
+            {
+              value: text,
+              language: 'javascript',
+              theme: 'vs-dark',
+              automaticLayout: true
+            }
+          );
+        }
+      ))
+      .then(() => this.waitForEditorReady())
+      .then(() => resolve())
+      .catch((err) => reject(err));
+    });
+  }
+
+  loadJsScriptSync(src) {
+    return new Promise((resolve, reject) => {
+      var s = document.createElement('script');
+      s.src = src;
+      s.type = "text/javascript";
+      s.async = false;
+
+      s.addEventListener("load", () => {
+        resolve();
+      });
+
+      s.addEventListener("error", (err) => {
+        console.log(`loadScriptSync("${src}"") : error`);
+        reject(err);
+      });
+
+      document.getElementsByTagName('head')[0].appendChild(s);
+    })
+  }
+
+  waitForEditorReady() {
+    return new Promise((resolve, reject) => {
+      let fn = () => {
+        if(this.editor)
+          resolve();
+        else
+          setTimeout(fn, 100);
+      }
+      fn();
+    })
+  }
+
+  swapFile(fname) {
+    if(!this.editor)
+      return;
+    // Keep old value.
+    if(this.vue.ui.slider.slider.current) {
+      this.vue.ui.slider.slider.editor[this.vue.ui.slider.slider.current] = this.editor.getValue();
+    }
+    // Set new value.
+    fname && this.editor.setValue(this.vue.ui.slider.slider.editor[fname]);
+    fname && (this.vue.ui.slider.slider.current = fname);
+    // Reset scroll position.
+    this.editor.setScrollPosition({scrollTop: 0});
   }
   
   saveEdit() {
@@ -454,16 +431,12 @@ export default class PageScripts {
       Promise.resolve()
       .then(() => this.swapFile())
       .then(() => {
-        let form = JSON.parse(JSON.stringify(this.vue.ui.slider.slider.form));
+        let form = JSON.parse(JSON.stringify(this.vue.ui.slider.form));
         let edit = JSON.parse(JSON.stringify(this.vue.ui.slider.slider.editor));
-        this.console.log(`edit:`, edit);
         if(form.meta && edit.metadata) {
           form.meta = JSON.parse(edit.metadata);
           delete edit.metadata;
         }
-        this.console.log(`original form:`, this.vue.ui.slider.form);
-        this.console.log(`copy form:`, this.vue.ui.slider.slider.form);
-        this.console.log(`form:`, form);
         Object.keys(edit).forEach(key => {
           form.children.find(e => e.name == key).base64 = btoa(edit[key])
         });
@@ -475,6 +448,11 @@ export default class PageScripts {
       .catch((err) => reject(err));
     });
   }
+
+
+  /*
+    API Function.
+  */
 
   getConfig() {
     this.console.log(`getConfig()`);
@@ -518,6 +496,10 @@ export default class PageScripts {
     });
   }
 
+  /*
+    File operation.
+  */
+
   download(filename, text) {
     var element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
@@ -529,5 +511,15 @@ export default class PageScripts {
     element.click();
 
     document.body.removeChild(element);
+  }
+  
+  readFile(file) {
+    return new Promise((resolve, reject) => {
+      let reader = new FileReader();
+      reader.onload = (event) => {
+        resolve(event.target.result);
+      };
+      reader.readAsText(file);
+    });
   }
 }
