@@ -1,0 +1,124 @@
+<div class="miso-slide-container" id="extension-lime-content-configs-section">
+
+
+  <!-- Slider Section -->
+  <div
+    class="miso-slide-slide"
+    :class="{hide: !fn.isSliderShow()}"
+  >
+    <div class="miso-slide-base">
+      <div class="card text-dark border-warning w-100">
+
+        <div class="card-header bg-warning border-warning">
+          <div class="d-flex justify-content-between">
+            <!-- Icon & Title -->
+            <div class="text-truncate">
+              <i class="fas fa-file-code mr-2"></i>
+              <b>Slider: </b>
+            </div>
+            <!-- Header Button -->
+            <div class="">
+              <button 
+                class="btn btn-success" 
+                @click="fn.save()"
+              >
+                <i class="fas fa-save fa-lg"></i>
+                <b>Save</b>
+              </button>
+              <button
+                class="btn btn-danger" 
+                @click="fn.renderBase()"
+               >
+                <i class="fas fa-undo fa-lg"></i>
+                <b>Back</b>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body bg-dark">
+          <div id="extension-lime-content-configs-slider-slider-monaco-container">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  
+  <!-- Base Section -->
+  <div
+    class="miso-slide-base"
+    :class="{hide: !fn.isBaseShow()}"
+  >
+    <div class="card text-dark border-warning w-100">
+      <!-- Base Card Header -->
+      <div class="card-header bg-warning border-warning">
+        <div class="d-flex justify-content-between">
+          <!-- Icon & Title -->
+          <div class="text-truncate">
+            <i class="fas fa-file-code mr-2"></i>
+            <b>Base</b>
+          </div>
+          <!-- Header Button -->
+          <div class="">
+            <button 
+              class="btn btn-warning" 
+              @click="fn.renderSlider()"
+            >
+              <i class="fas fa-edit fa-lg"></i>
+              <b>Edit</b>
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- Base Card Body -->
+      <div class="card-body bg-dark">
+        
+        <!-- Base Body Item Container -->
+        <div 
+          class="miso-grid-item-container"
+        >
+          {{resource.config}}
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- Loading animation -->
+  <div 
+    class=""
+    :class="{hide: !ui.loading}"
+  >
+    <div class="d-flex flex-column justify-content-center">
+      <br>
+      <div class="text-light">
+        <center>
+          Please wait, this process will take a while.
+        </center>
+      </div>
+      <br>
+      <div class="progress">
+        <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100">
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Vue Debugger -->
+  <pre
+    :class="{hide: !loader.extension.debug}"
+  >
+    <code class="text-light">
+      resource: {{resource}}
+    </code>
+    <code class="text-light">
+      ui: {{ui}}
+    </code>
+  </pre>
+
+</div>

@@ -53,7 +53,8 @@
                 "page-devices",
                 "page-scripts",
                 "page-engines",
-                "page-sysport"
+                "page-sysport",
+                "page-configs"
               ]
             },
             {
@@ -74,7 +75,8 @@
             "script-devices",
             "script-scripts",
             "script-engines",
-            "script-sysport"
+            "script-sysport",
+            "script-configs"
           ]
         }
       ]
@@ -244,6 +246,19 @@
       "script-sysport": {
         "type": "custom-script",
         "path": "/custom/js/sysport.js",
+        "object-name": "PageSysport"
+      },
+
+      "page-configs": {
+        "name": "configs",
+        "type": "custom-view",
+        "path": "/custom/views/configs.html",
+        "icon": "",
+        "link-script": "script-configs"
+      },
+      "script-configs": {
+        "type": "custom-script",
+        "path": "/custom/js/configs.js",
         "object-name": "PageSysport"
       },
 
