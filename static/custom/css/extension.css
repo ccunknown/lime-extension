@@ -37,6 +37,8 @@
   --lime-miso-section-clearance-bottom: 1rem;
   --lime-miso-section-clearance-left: 1rem;
 
+  --lime-miso-section-content-padding: 15px;
+
   --lime-miso-content-min-height: 230px;
   --lime-miso-loading-dialog-width: 200px;
   --lime-miso-loading-dialog-height: 50px;
@@ -76,6 +78,10 @@
   height: fit-content;
   max-height: 100%;
   overflow: auto;
+}
+
+#extension-lime-contents .miso-content-maxh {
+  height: calc(100vh - var(--lime-miso-section-clearance-top) - var(--lime-miso-section-clearance-bottom) - var(--lime-miso-section-content-padding)*2) !important;
 }
 
 #extension-lime-contents .nav .nav-link {
@@ -118,6 +124,7 @@
 #extension-lime-contents .miso-content {
   /*max-height: 100%;*/
   max-width: 700px;
+  padding: var(--lime-miso-section-content-padding);
   /*overflow: auto;
   height: fit-content;
   min-height: var(--lime-miso-content-min-height);*/

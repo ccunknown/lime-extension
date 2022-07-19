@@ -9,7 +9,7 @@ export default class PageConfigs {
 
   init(config) {
     this.console.trace(`init()`);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       Promise.resolve()
       .then(() => this.initVue())
       .then(() => resolve())
@@ -19,7 +19,7 @@ export default class PageConfigs {
 
   initVue() {
     this.console.trace(`initVue()`);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let id = this.ui.said(`content.configs.section`);
       this.console.log(`id : ${id}`);
 
@@ -43,10 +43,11 @@ export default class PageConfigs {
           /** Function **/
           "fn": {
             "edit": () => {},
-            "restart": () => {},
             "save": () => {},
             "isBaseShow": () => {},
-            "isSliderShow": () => {}
+            "isSliderShow": () => {},
+            "restartExtension": () => {},
+            "downloadConfig": () => {}
           }
         },
         "methods": {}
@@ -54,14 +55,20 @@ export default class PageConfigs {
 
       //  Setup vue function.
       this.vue.fn = {
-        "edit": async () => {
+        "edit": () => {
           this.renderSlider();
         },
-        "restart": async () => {
-          this.renderSlider();
+        "restartExtension": () => {
+          return this.restartExtension();
         },
-        "save": async () => {
-          this.renderSlider();
+        "save":  () => {
+          return new Promise((resolve, reject) => {
+            Promise.resolve()
+            .then(() => this.saveConfig())
+            .then(() => this.vue.fn.renderBase())
+            .then(() => resolve())
+            .catch((err) => reject(err));
+          });
         },
         "isBaseShow": () => {
           return !this.vue.ui.loading && (this.vue.ui.pageCursor == `base`);
@@ -74,6 +81,16 @@ export default class PageConfigs {
         },
         "renderSlider": () => {
           return this.renderSlider();
+        },
+        "downloadConfig": () => {
+          let content = this.editor.getValue();
+          let fname = [
+            window.location.host.split(`.`).shift(), 
+            (new Date()).toISOString(),
+            `json`
+          ].join(`.`);
+          this.console.log(`editor value:`, content);
+          this.download(fname, content);
         }
       };
 
@@ -85,7 +102,7 @@ export default class PageConfigs {
 
   render(base = true) {
     this.console.log(`render()`);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       Promise.resolve()
       .then(() => (base) ? this.renderBase() : this.renderSlider())
       .then((result) => resolve(result))
@@ -117,7 +134,7 @@ export default class PageConfigs {
 
   renderSlider() {
     this.console.log(`renderSlider()`);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       Promise.resolve()
       .then(() => {
         this.vue.ui.loading = true;
@@ -127,6 +144,7 @@ export default class PageConfigs {
       .then((config) => this.vue.resource.config = config)
       .then(() => JSON.stringify(this.vue.resource.config, null, 2))
       .then((text = ``) => this.editor ? this.editor.setValue(text) : this.initEditor(text))
+      .then(() => this.editor.setScrollPosition({scrollTop: 0}))
       .then((ret) => resolve(ret))
       .catch((err) => reject(err))
       .finally(() => this.vue.ui.loading = false);
@@ -155,7 +173,7 @@ export default class PageConfigs {
             document.getElementById('extension-lime-content-configs-slider-slider-monaco-container'), 
             {
               value: text,
-              language: 'javascript',
+              language: 'json',
               theme: 'vs-dark',
               automaticLayout: true
             }
@@ -212,7 +230,7 @@ export default class PageConfigs {
       });
 
       document.getElementsByTagName('head')[0].appendChild(s);
-    })
+    });
   }
 
 
@@ -230,30 +248,82 @@ export default class PageConfigs {
     });
   }
 
-  getScript(name) {
-    this.console.log(`getScript(${(name) ? name : ``})`);
-    return new Promise(async (resolve, reject) => {
-      let scripts = await this.api.restCall(`get`, `/api/service/scripts${(name) ? `/${name}` : ``}`);
-      resolve(scripts);
-    });
-  }
+  // getScript(name) {
+  //   this.console.log(`getScript(${(name) ? name : ``})`);
+  //   return new Promise((resolve, reject) => {
+  //     Promise.resolve()
+  //     .then(() => this.api.restCall(`get`, `/api/service/scripts${(name) ? `/${name}` : ``}`))
+  //     .then((scripts) => resolve(scripts))
+  //     .catch((err) => reject(err));
+  //   });
+  // }
 
-  deleteScript(name) {
-    this.console.log(`deleteScript(${name})`);
-    return new Promise(async (resolve, reject) => {
-      let res = await this.api.restCall(`delete`, `/api/service/scripts/${name}`);
-      resolve(res);
-    });
-  }
+  // deleteScript(name) {
+  //   this.console.log(`deleteScript(${name})`);
+  //   return new Promise((resolve, reject) => {
+  //     Promise.resolve()
+  //     .then(() => this.api.restCall(`delete`, `/api/service/scripts/${name}`))
+  //     .then((ret) => resolve(ret))
+  //     .catch((err) => reject(err));
+  //   });
+  // }
 
-  upload(schema) {
-    this.console.log(`upload(${schema.name})`);
+  // upload(schema) {
+  //   this.console.log(`upload(${schema.name})`);
+  //   return new Promise((resolve, reject) => {
+  //     Promise.resolve()
+  //     .then(() => this.api.restCall(`put`, `/api/service/scripts`, schema))
+  //     .then(() => resolve())
+  //     .catch((err) => reject(err));
+  //   });
+  // }
+
+  saveConfig() {
     return new Promise((resolve, reject) => {
       Promise.resolve()
-      .then(() => this.api.restCall(`put`, `/api/service/scripts`, schema))
-      .then(() => resolve())
+      .then(() => this.editor.getValue())
+      .then((config) => JSON.parse(config))
+      .then((config) => this.api.putConfig(config))
+      // .then(() => this.api.restCall(`put`, `/api/service/scripts`, schema))
+      .then((ret) => resolve(ret))
       .catch((err) => reject(err));
     });
+  }
+
+  restartExtension() {
+    return new Promise((resolve, reject) => {
+      let url = `/addons/${this.extension.schema.extension.full}`;
+      let options = {
+        method: 'PUT',
+        headers: window.API.headers('application/json')
+      };
+      let body = {
+        enabled: false
+      }
+      Promise.resolve()
+      .then(() => {
+        this.ui.show(`content.backdrop`);
+        this.ui.show(`content.loading-dialog`);
+      })
+      // disable extension.
+      .then(() => {
+        body.enabled = false;
+        options.body = JSON.stringify(body);
+        return fetch(url, options);
+      })
+      // enable extension
+      .then(() => {
+        body.enabled = true;
+        options.body = JSON.stringify(body);
+        return fetch(url, options);
+      })
+      .then((ret) => resolve(ret))
+      .catch((err) => reject(err))
+      .finally(() => {
+        this.ui.hide(`content.loading-dialog`);
+        this.ui.hide(`content.backdrop`);
+      });
+    }); 
   }
 
   /*
@@ -273,13 +343,13 @@ export default class PageConfigs {
     document.body.removeChild(element);
   }
   
-  readFile(file) {
-    return new Promise((resolve, reject) => {
-      let reader = new FileReader();
-      reader.onload = (event) => {
-        resolve(event.target.result);
-      };
-      reader.readAsText(file);
-    });
-  }
+  // readFile(file) {
+  //   return new Promise((resolve, reject) => {
+  //     let reader = new FileReader();
+  //     reader.onload = (event) => {
+  //       resolve(event.target.result);
+  //     };
+  //     reader.readAsText(file);
+  //   });
+  // }
 }

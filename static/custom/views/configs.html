@@ -3,45 +3,53 @@
 
   <!-- Slider Section -->
   <div
-    class="miso-slide-slide"
+    class="miso-slide-slide miso-content-maxh"
     :class="{hide: !fn.isSliderShow()}"
   >
-    <div class="miso-slide-base">
-      <div class="card text-dark border-warning w-100">
+    <div class="card text-dark border-warning w-100 h-100">
 
-        <div class="card-header bg-warning border-warning">
-          <div class="d-flex justify-content-between">
-            <!-- Icon & Title -->
-            <div class="text-truncate">
-              <i class="fas fa-file-code mr-2"></i>
-              <b>Slider: </b>
-            </div>
-            <!-- Header Button -->
-            <div class="">
-              <button 
-                class="btn btn-success" 
-                @click="fn.save()"
+      <div class="card-header bg-warning border-warning">
+        <div class="d-flex justify-content-between">
+          <!-- Icon & Title -->
+          <div class="text-truncate">
+            <i class="fas fa-file-code mr-2"></i>
+            <b>Configuration </b>
+          </div>
+          <!-- Header Button -->
+          <div class="">
+            <button 
+              class="btn btn-success text-nowrap" 
+              @click="fn.downloadConfig()"
+            >
+              <i class="fas fa-download fa-lg"></i>
+              <b class="d-none d-md-inline ml-2">Download</b>
+            </button>
+            <button 
+              class="btn btn-success text-nowrap" 
+              @click="fn.save()"
+            >
+              <i class="fas fa-save fa-lg"></i>
+              <b class="d-none d-md-inline ml-2">Save</b>
+            </button>
+            <button
+              class="btn btn-danger text-nowrap" 
+              @click="fn.renderBase()"
               >
-                <i class="fas fa-save fa-lg"></i>
-                <b>Save</b>
-              </button>
-              <button
-                class="btn btn-danger" 
-                @click="fn.renderBase()"
-               >
-                <i class="fas fa-undo fa-lg"></i>
-                <b>Back</b>
-              </button>
-            </div>
+              <i class="fas fa-undo fa-lg"></i>
+              <b class="d-none d-md-inline ml-2">Back</b>
+            </button>
           </div>
         </div>
-
-        <div class="card-body bg-dark">
-          <div id="extension-lime-content-configs-slider-slider-monaco-container">
-          </div>
-        </div>
-
       </div>
+
+      <div class="card-body bg-dark">
+        <div
+          id="extension-lime-content-configs-slider-slider-monaco-container"
+          class="w-100 h-100"
+        >
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -51,24 +59,15 @@
     class="miso-slide-base"
     :class="{hide: !fn.isBaseShow()}"
   >
-    <div class="card text-dark border-warning w-100">
+    <div class="card text-dark border-warning w-100" :class="{hide: !fn.isBaseShow()}">
+    <!-- <div class="card text-dark border-warning w-100"> -->
       <!-- Base Card Header -->
       <div class="card-header bg-warning border-warning">
         <div class="d-flex justify-content-between">
           <!-- Icon & Title -->
           <div class="text-truncate">
-            <i class="fas fa-file-code mr-2"></i>
-            <b>Base</b>
-          </div>
-          <!-- Header Button -->
-          <div class="">
-            <button 
-              class="btn btn-warning" 
-              @click="fn.renderSlider()"
-            >
-              <i class="fas fa-edit fa-lg"></i>
-              <b>Edit</b>
-            </button>
+            <i class="fa-solid fa-wrench mr-2"></i>
+            <b>Configuration</b>
           </div>
         </div>
       </div>
@@ -79,7 +78,49 @@
         <div 
           class="miso-grid-item-container"
         >
-          {{resource.config}}
+
+          <!-- Extension menu -->
+          <div class="miso-badge-header-group align-items-end w-100">
+            <label class="miso-label-badge badge-info">Extension</label>
+            <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
+              <div class="d-flex justify-content-between">
+                <div class="text-truncate">
+                  Restart extension
+                </div>
+                <button 
+                  class="btn btn-warning text-nowrap" 
+                  @click="fn.restartExtension()"
+                >
+                  <i class="fas fa-history fa-lg"></i>
+                  <b class="d-none d-md-inline ml-2">Restart</b>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Config menu -->
+          <div class="miso-badge-header-group align-items-end w-100">
+            <label class="miso-label-badge badge-info">Config</label>
+            <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
+              <!-- <div class="miso-badge-header-group grow-1">
+                <label class="miso-label-badge badge-secondary">
+                </label>
+              </div> -->
+              <div class="d-flex justify-content-between">
+                <div class="text-truncate">
+                  Edit extension configuration
+                </div>
+                <button 
+                  class="btn btn-warning text-nowrap" 
+                  @click="fn.renderSlider()"
+                >
+                  <i class="fas fa-edit fa-lg"></i>
+                  <b class="d-none d-md-inline ml-2">Edit</b>
+                </button>
+              </div>
+            </div>
+          </div>
+
         </div>
 
       </div>

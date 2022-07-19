@@ -30,7 +30,8 @@ class RoutesManager extends APIHandler{
         "method": {
           "GET": (req) => {
             return new Promise((resolve, reject) => {
-              this.configManager.getConfig()
+              Promise.resolve()
+              .then(() => this.configManager.getConfig())
               .then((conf) => {
                 console.log(`conf : ${JSON.stringify(conf, null, 2)}`);
                 resolve(this.makeJsonRespond(JSON.stringify(conf)))
@@ -41,14 +42,16 @@ class RoutesManager extends APIHandler{
           "POST": (req) => {
             return new Promise(async (resolve, reject) => {
               let params = this.getParameters(req);
-              this.configManager.addToConfig(req.body, params.path)
+              Promise.resolve()
+              .then(() => this.configManager.addToConfig(req.body, params.path))
               .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
           "PUT": (req) => {
-            return new Promise(async (resolve, reject) => {
-              this.configManager.saveConfig(req.body)
+            return new Promise((resolve, reject) => {
+              Promise.resolve()
+              .then(() => this.configManager.saveConfig(req.body))
               .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -56,7 +59,8 @@ class RoutesManager extends APIHandler{
           "PATCH": (req) => {
             return new Promise(async (resolve, reject) => {
               let params = this.getParameters(req);
-              this.configManager.updateConfig(req.body, params.path)
+              Promise.resolve()
+              .then(() => this.configManager.updateConfig(req.body, params.path))
               .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -64,16 +68,24 @@ class RoutesManager extends APIHandler{
           "DELETE": (req) => {
             return new Promise(async (resolve, reject) => {
               let params = this.getParameters(req);
-              if(this.configManager.isEmptyObject(params)) {
-                this.configManager.deleteConfig()
-                .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
-                .catch((err) => resolve(this.catchErrorRespond(err)));
-              }
-              else {
-                this.configManager.deleteConfig(params.path)
-                .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
-                .catch((err) => resolve(this.catchErrorRespond(err)));
-              }
+              // if(this.configManager.isEmptyObject(params)) {
+              //   Promise.resolve()
+              //   .then(() => this.configManager.deleteConfig())
+              //   .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
+              //   .catch((err) => resolve(this.catchErrorRespond(err)));
+              // }
+              // else {
+              //   Promise.resolve()
+              //   .then(() => this.configManager.deleteConfig(params.path))
+              //   .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
+              //   .catch((err) => resolve(this.catchErrorRespond(err)));
+              // }
+              Promise.resolve()
+              .then(() => this.configManager.deleteConfig(
+                this.configManager.isEmptyObject(params) ? undefined : params.path
+              ))
+              .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
+              .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           }
         }

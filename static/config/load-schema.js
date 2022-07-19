@@ -253,7 +253,7 @@
         "name": "configs",
         "type": "custom-view",
         "path": "/custom/views/configs.html",
-        "icon": "",
+        "icon": "fa-solid fa-wrench",
         "link-script": "script-configs"
       },
       "script-configs": {

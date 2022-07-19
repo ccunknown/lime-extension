@@ -26,82 +26,146 @@ const config = {
       0x00DC: {
         name: `ac.activeEnergy.L1.export`,
         unit: `kilowatt hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x00C8: {
         name: `ac.activeEnergy.L1.import`,
         unit: `kilowatt hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x00E0: {
         name: `ac.activeEnergy.L2.export`,
         unit: `kilowatt hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x00CC: {
         name: `ac.activeEnergy.L2.import`,
         unit: `kilowatt hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x00E4: {
         name: `ac.activeEnergy.L3.export`,
         unit: `kilowatt hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x00D0: {
         name: `ac.activeEnergy.L3.import`,
         unit: `kilowatt hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x00E8: {
         name: `ac.activeEnergy.L4.export`,
         unit: `kilowatt hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x00D4: {
         name: `ac.activeEnergy.L4.import`,
         unit: `kilowatt hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x0104: {
         name: `ac.apparentEnergy.L1.export`,
         unit: `kilovolt-ampere-hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x00F0: {
         name: `ac.apparentEnergy.L1.import`,
         unit: `kilovolt-ampere-hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x0108: {
         name: `ac.apparentEnergy.L2.export`,
         unit: `kilovolt-ampere-hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x00F4: {
         name: `ac.apparentEnergy.L2.import`,
         unit: `kilovolt-ampere-hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x010C: {
         name: `ac.apparentEnergy.L3.export`,
         unit: `kilovolt-ampere-hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x00F8: {
         name: `ac.apparentEnergy.L3.import`,
         unit: `kilovolt-ampere-hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x0110: {
         name: `ac.apparentEnergy.L4.export`,
         unit: `kilovolt-ampere-hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x00FC: {
         name: `ac.apparentEnergy.L4.import`,
         unit: `kilovolt-ampere-hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x000E: {
         name: `ac.current.L1`,
@@ -187,42 +251,114 @@ const config = {
       0x012C: {
         name: `ac.reactiveEnergy.L1.export`,
         unit: `kilovolt-ampere-reactive-hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x0118: {
         name: `ac.reactiveEnergy.L1.import`,
         unit: `kilovolt-ampere-reactive-hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x0130: {
         name: `ac.reactiveEnergy.L2.export`,
-        unit: `kilovolt-ampere-reactive-hour`,
-        translator: `function.bufferToUint32Div1000`
+        unit: `kilovolt-ampere-reactive-hourreactiveEnergy`,
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x011C: {
         name: `ac.reactiveEnergy.L2.import`,
         unit: `kilovolt-ampere-reactive-hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x0134: {
         name: `ac.reactiveEnergy.L3.export`,
         unit: `kilovolt-ampere-reactive-hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x0120: {
         name: `ac.reactiveEnergy.L3.import`,
         unit: `kilovolt-ampere-reactive-hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x0138: {
         name: `ac.reactiveEnergy.L4.export`,
         unit: `kilovolt-ampere-reactive-hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x0124: {
         name: `ac.reactiveEnergy.L4.import`,
         unit: `kilovolt-ampere-reactive-hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
+      },
+      0x001A: {
+        name: `ac.activePower.L1`,
+        unit: `watt`,
+        translator: `function.bufferToFloat32`
+      },
+      0x001C: {
+        name: `ac.activePower.L2`,
+        unit: `watt`,
+        translator: `function.bufferToFloat32`
+      },
+      0x001E: {
+        name: `ac.activePower.L3`,
+        unit: `watt`,
+        translator: `function.bufferToFloat32`
+      },
+      0x0020: {
+        name: `ac.activePower.L4`,
+        unit: `watt`,
+        translator: `function.bufferToFloat32`
+      },
+      0x003A: {
+        name: `ac.apperantPower.L1`,
+        unit: `volts-ampere`,
+        translator: `function.bufferToFloat32`
+      },
+      0x003C: {
+        name: `ac.apperantPower.L2`,
+        unit: `volts-ampere`,
+        translator: `function.bufferToFloat32`
+      },
+      0x003E: {
+        name: `ac.apperantPower.L3`,
+        unit: `volts-ampere`,
+        translator: `function.bufferToFloat32`
+      },
+      0x0040: {
+        name: `ac.apperantPower.L4`,
+        unit: `volts-ampere`,
+        translator: `function.bufferToFloat32`
       },
       0x0028: {
         name: `ac.reactivePower.L1`,
@@ -276,7 +412,11 @@ const config = {
       0x00D8: {
         name: `ac.totalActiveEnergy.import`,
         unit: `kilowatt hour`,
-        translator: `function.bufferToUint32Div1000`
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x0026: {
         name: `ac.totalActivePower`,
@@ -285,12 +425,16 @@ const config = {
       },
       0x0114: {
         name: `ac.totalApparentEnergy.export`,
-        unit: `volt-ampere`,
-        translator: `function.bufferToFloat32`
+        unit: `kilovolt-ampere-hour`,
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x0100: {
         name: `ac.totalApparentEnergy.import`,
-        unit: `volt-ampere`,
+        unit: `kilovolt-ampere-hour`,
         translator: `function.bufferToUint32`
       },
       0x0046: {
@@ -298,24 +442,27 @@ const config = {
         unit: `volt-ampere`,
         translator: `function.bufferToFloat32`
       },
-      0x00D8: {
-        name: `ac.totalConsumedEnergy`,
-        unit: `kilowatt hour`,
-        translator: `function.bufferToUint32Div1000`
-      },
       0x0050: {
         name: `ac.totalPowerFactor`,	
         translator: `function.bufferToUint32Div1000`
       },
       0x013C: {
         name: `ac.totalReactiveEnergy.export`,
-        unit: `volt-ampere-reactive`,
-        translator: `function.bufferToUint32`
+        unit: `kilovolt-ampere-reactive-hour`,
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x0128: {
         name: `ac.totalReactiveEnergy.import`,
-        unit: `volt-ampere-reactive`,
-        translator: `function.bufferToUint32`
+        unit: `kilovolt-ampere-reactive-hour`,
+        translator: `function.bufferToBigUint64Div1000`,
+        registerSpec: {
+          size: 16,
+          number: 4
+        }
       },
       0x0038: {
         name: `ac.totalReactivePower`,

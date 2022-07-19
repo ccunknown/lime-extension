@@ -126,19 +126,26 @@ export default class ExtensionApi {
   /***  Resource : /config  ***/
   getConfig() {
     this.console.log(`rest.getConfig()`);
-    return new Promise(async (resolve, reject) => {
-      let config = await this.restCall(`get`, `/api/config`);
-      this.collector.set(`config`, config);
-      resolve(config);
+    return new Promise((resolve, reject) => {
+      let config;
+      Promise.resolve()
+      .then(() => this.restCall(`get`, `/api/config`))
+      .then((conf) => config = conf)
+      .then(() => this.collector.set(`config`, config))
+      .then(() => resolve(config))
+      .catch((err) => reject(err));
+      // let config = await this.restCall(`get`, `/api/config`);
+      // this.collector.set(`config`, config);
+      // resolve(config);
     });
   }
   putConfig(config) {
     this.console.log(`rest.putConfig()`);
-    return this.restCall(`put`, `/config`, config);
+    return this.restCall(`put`, `/api/config`, config);
   }
   deleteConfig() {
     this.console.log(`rest.deleteConfig()`);
-    return this.restCall(`delete`, `/config`);
+    return this.restCall(`delete`, `/api/config`);
   }
 
   /***  Resource : /config/sha256  ***/
@@ -180,9 +187,12 @@ export default class ExtensionApi {
           func = this.rest.delete;
           break;
       }
-      this.extension.ui.show(`content.backdrop`);
-      this.extension.ui.show(`content.loading-dialog`);
-      func(`${this.extension.loader.define[`url-prefix`]}${path}`, body)
+      Promise.resolve()
+      .then(() => {
+        this.extension.ui.show(`content.backdrop`);
+        this.extension.ui.show(`content.loading-dialog`);
+      })
+      .then(() => func(`${this.extension.loader.define[`url-prefix`]}${path}`, body))
       .then((resBody) => resolve(resBody))
       .catch((err) => {
         console.log(err);

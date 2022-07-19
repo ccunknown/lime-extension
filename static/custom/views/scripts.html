@@ -1,8 +1,8 @@
 <div class="miso-slide-container" id="extension-lime-content-scripts-section">
 
   <div class="miso-slide-slide" :class="{hide: ui.slider.hide}">
-    <div class="miso-slide-slide" :class="{hide: ui.slider.slider.hide}">
-      <div class="card text-dark border-warning w-100">
+    <div class="miso-slide-slide miso-content-maxh" :class="{hide: ui.slider.slider.hide}">
+      <div class="card text-dark border-warning w-100 h-100">
 
         <div class="card-header bg-warning border-warning">
           <div class="d-flex justify-content-between">
@@ -25,7 +25,7 @@
           </div>
         </div>
 
-        <div class="card-body bg-dark">
+        <div class="card-body bg-dark h-100">
 
           <div 
             class=""
@@ -47,7 +47,7 @@
           </div>
 
           <div
-            class="miso-form-container align-items-center w-100"
+            class="miso-form-container align-items-center w-100 h-100"
             :class="{hide: !ui.slider.slider.ready}"
           >
             <div class="mb-2 d-flex w-100">
@@ -67,8 +67,7 @@
             </div>
             <div
               id="extension-lime-content-scripts-slider-slider-monaco-container"
-              class="w-100"
-              style="min-height: 400px;"
+              class="w-100 h-100"
             >
             </div>
           </div>
