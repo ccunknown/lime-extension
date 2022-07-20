@@ -23,7 +23,36 @@ config = {
     bufferToUint32Div10: (buffer) => (config.function.bufferToDataView(buffer).getUint32()/10.0),
     bufferToUint32Div100: (buffer) => (config.function.bufferToDataView(buffer).getUint32()/100.0),
     bufferToUint32Div1000: (buffer) => (config.function.bufferToDataView(buffer).getUint32()/1000.0),
-    bufferToFloat32: (buffer) => config.function.bufferToDataView(buffer).getFloat32()
+    bufferToBigUint64: (buffer) => (Number(config.function.bufferToDataView(buffer).getBigUint64())),
+    bufferToBigUint64Div1000: (buffer) => (Number(config.function.bufferToDataView(buffer).getBigUint64())/1000.0),
+    bufferToFloat32: (buffer) => {
+      try {
+        let result = Number(config.function.bufferToDataView(buffer).getFloat32());
+        result = (typeof result == `number` && !isNaN(result)) ? result : 0;
+        // console.log(`buffer result: ${result}`);
+        return result;
+      } catch(err) {
+        return 0;
+      }
+    },
+    pfValueFrom4QSchneider: (buffer) => {
+      let raw = config.function.bufferToFloat32(buffer);
+      return raw > 1
+      ? 2 - val
+      : raw < -1
+        ? -2 - val
+        : raw;
+    },
+    pfAngleFrom4QSchneider: (buffer) => {
+      let raw = config.function.bufferToFloat32(buffer);
+      return raw > 1
+      ? `leading`
+      : raw < -1
+        ? `leading`
+        : raw == 1 || raw == -1
+          ? `unity`
+          : `lagging`;
+    },
   },
 
   translator: {

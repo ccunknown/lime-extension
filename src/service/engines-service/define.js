@@ -8,7 +8,7 @@ const ValidateConfigSchema = {
       "type": "string",
       "pattern": "^[a-zA-Z0-9 \-_]+$",
       "minLength": 4,
-      "maxLength": 20
+      "maxLength": 50
     },
     "description": {
       "title": "Description",
