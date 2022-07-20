@@ -423,6 +423,15 @@ export default class PageScripts {
     fname && (this.vue.ui.slider.slider.current = fname);
     // Reset scroll position.
     this.editor.setScrollPosition({scrollTop: 0});
+
+    // Change language.
+    this.changeEditorLang(fname == `metadata` ? `json` : `javascript`);
+  }
+
+  changeEditorLang(lang) {
+    if(!this.editor)
+      return;
+    monaco.editor.setModelLanguage(this.editor.getModel(), lang);
   }
   
   saveEdit() {
