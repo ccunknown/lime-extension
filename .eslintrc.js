@@ -1,14 +1,34 @@
 module.exports = {
-   // env: {
-   //    "jest": true
-   // },
-   // Standard JavaScript Style Guide
-   extends: ["standard", "plugin:prettier/recommended"],
-   // Airbnb JavaScript Style Guide
-   // extends: ["airbnb-base", "plugin:prettier/recommended"],
-   // Google JavaScript Style Guide
-   // extends: ["google", "plugin:prettier/recommended"],
-   rules: {
-      "prettier/prettier": ["error", { "singleQuote": true }]
-   }
+  // Standard JavaScript Style Guide
+  // extends: ["eslint:recommended", "prettier"],
+  // extends: [
+  //    "eslint:recommended",
+  //    "plugin:prettier/recommended"
+  // ],
+  // Airbnb JavaScript Style Guide
+  extends: ["airbnb", "plugin:prettier/recommended"],
+  // Google JavaScript Style Guide
+  // extends: ["google", "plugin:prettier/recommended"],
+  plugins: [
+    // "import",
+    "prettier",
+  ],
+
+  rules: {
+    semi: ["error", "always"],
+   //  "no-underscore-dangle": "allow",
+    "prettier/prettier": ["warn"],
+  },
+  parserOptions: {
+    ecmaVersion: 2015,
+    sourceType: "module",
+  },
+  env: {
+    // es5: true,
+    es6: true,
+    // browser: true,
+    node: true,
+    // jest: true
+  },
+  ignorePatterns: ["node_modules"],
 };

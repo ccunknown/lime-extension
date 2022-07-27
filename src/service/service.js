@@ -1,12 +1,10 @@
-'use strict'
-
 const fs = require(`fs`);
 const rimraf = require(`rimraf`);
 const Path = require(`path`);
-const EventEmitter = require(`events`).EventEmitter;
+const { EventEmitter } = require(`events`);
 
 class Service extends EventEmitter {
-  constructor(extension, config, id, serviceName) {
+  constructor(extension, config, id) {
     super(extension.addonManager, extension.manifest.id);
 
     this.extension = extension;
@@ -20,70 +18,70 @@ class Service extends EventEmitter {
     this.id = id;
     this.initService();
     this.setupConfigHandler();
-    //console.log(`Service constructor : ${this.id}`);
+    // console.log(`Service constructor : ${this.id}`);
   }
 
   initService() {
     this.initUtil();
     this.initObjectFunctions();
-    return ;
   }
 
   initUtil() {
     this.util = {
-      "path": {
-        "trim": (path) => {
+      path: {
+        trim: (path) => {
           return path.replace(/^\//, ``).replace(/^\/$/, ``);
-        }
-      }
+        },
+      },
     };
   }
 
   initObjectFunctions() {
     this.objectFunctions = {
-      "patchConfig": (id, config) => {
+      patchConfig: (id, config) => {
         console.log(`${this.id}: objectFunctions: patchConfig`);
         return new Promise((resolve, reject) => {
           // if(config && config.hasOwnProperty(`addToService`)) {
-          if(config) {
-            Promise.resolve(JSON.parse(JSON.stringify(config)))
-            .then((conf) => this.configManager.updateConfig(config, `service-config.${this.id}.list.${id}._config`))
-            .then(() => resolve())
-            .catch((err) => reject(err));
-          }
-          else
+          if (config) {
+            Promise.resolve()
+              .then(() => this.configManager.updateConfig(config, `service-config.${this.id}.list.${id}._config`))
+              .then(() => resolve())
+              .catch((err) => reject(err));
+          } else {
             resolve();
+          }
         });
-      }
+      },
     };
-    return ;
   }
 
   applyObjectOptions(id, options = {}) {
     console.log(`[${this.constructor.name}]`, `applyObjectOptions() >> `);
     // console.log(`Service: applyObjectOptions(${id}) >> `);
     return new Promise((resolve, reject) => {
-      Object.keys(options).reduce((prevProm, key) => 
-        (this.objectFunctions.hasOwnProperty(key)) ? 
-          this.objectFunctions[key](id, options[key]) : 
+      Object.keys(options)
+        .reduce(
+          (prevProm, key) =>
+            // eslint-disable-next-line no-prototype-builtins
+            this.objectFunctions.hasOwnProperty(key) ? this.objectFunctions[key](id, options[key]) : Promise.resolve(),
           Promise.resolve()
-      , Promise.resolve())
-      .then(() => resolve())
-      .catch((err) => reject(err));
+        )
+        .then(() => resolve())
+        .catch((err) => reject(err));
     });
   }
 
   getSchema(options) {
-    console.log(`[${this.constructor.name}]`, `getSchema() >> `);
-    if(options && options.renew)
+    console.log(`[${this.constructor.name}]`, `getSchema() >>`);
+    if (options && options.renew) {
       return new Promise((resolve, reject) => {
-        this.getConfig(options)
-        .then((config) => resolve(config[`service-config`][this.id]))
-        .catch((err) => reject(err));
+        Promise.resolve()
+          .then(() => this.getConfig(options))
+          .then((config) => resolve(config[`service-config`][this.id]))
+          .catch((err) => reject(err));
       });
-    else {
-      return this.config[`service-config`][this.id];
     }
+    return this.config[`service-config`][this.id];
   }
 
   // saveSchema(schema) {
@@ -94,20 +92,31 @@ class Service extends EventEmitter {
   // }
 
   getConfig(options) {
-    if(options && options.renew)
-      return new Promise(async (resolve, reject) => {
-        resolve((options.save) ? this.reloadConfig() : this.configManager.getConfig());
-      });
-    else
-      return this.config;
+    if (options && options.renew) {
+      return Promise.resolve(options.save ? this.reloadConfig() : this.configManager.getConfig());
+      // return new Promise(async (resolve, reject) => {
+      //   resolve((options.save) ? this.reloadConfig() : this.configManager.getConfig());
+      // });
+    }
+    return this.config;
   }
 
   reloadConfig() {
     console.log(`[${this.constructor.name}]`, `reloadConfig() >> `);
-    return new Promise(async (resolve, reject) => {
-      this.config = JSON.parse(JSON.stringify(await this.configManager.getConfig()));
-      resolve(this.config);
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        .then(() => this.configManager.getConfig())
+        .then((ret) => JSON.parse(JSON.stringify(ret)))
+        .then((ret) => {
+          this.config = ret;
+        })
+        .then(() => resolve(this.config))
+        .catch((err) => reject(err));
     });
+    // return new Promise(async (resolve, reject) => {
+    //   this.config = JSON.parse(JSON.stringify(await this.configManager.getConfig()));
+    //   resolve(this.config);
+    // });
   }
 
   setupConfigHandler() {
@@ -117,7 +126,7 @@ class Service extends EventEmitter {
   }
 
   getRootDirectory() {
-    let split = __dirname.split(`/`);
+    const split = __dirname.split(`/`);
     split.pop();
     split.pop();
     return split.join(`/`);
@@ -131,6 +140,54 @@ class Service extends EventEmitter {
       object: boolean
     }
   */
+  // getDirectorySchema(p, options) {
+  //   // console.log(`getDirectorySchema(${path}, ${JSON.stringify(options, null, 2)})`);
+  //   // console.log(`getDirectorySchema(${path})`);
+  //   return new Promise((resolve, reject) => {
+  //     const path = Path.join(``, p);
+  //     const fpath =
+  //       options && options.absolute ? Path.join(options.absolute, path) : Path.join(__dirname, this.id, path);
+  //     // console.log(`fpath: ${fpath}`);
+  //     const stats = fs.lstatSync(fpath);
+  //     const info = {
+  //       path: Path.join(``, path),
+  //       name: Path.basename(path),
+  //     };
+  //     Promise.resolve()
+  //       .then(() => {
+  //         if (stats.isDirectory()) {
+  //           info.type = `directory`;
+  //           if (options && options.deep) {
+  //             const children = fs.readdirSync(fpath);
+  //             info.children = [];
+  //             children.forEach((e) => {
+  //               const newPath = Path.join(path, e);
+  //               console.log(`newPath:`, newPath);
+  //               info.children.push(this.getDirectorySchema(newPath, options));
+  //             });
+  //             return Promise.all(info.children);
+  //           }
+  //           return Promise.resolve(undefined);
+  //         }
+  //         info.type = `file`;
+  //         if (options && options.base64) {
+  //           const str = fs.readFileSync(path);
+  //           info.base64 = this.base64Encode(str);
+  //         }
+  //         if (options && options.object) {
+  //           const pp = `/${fpath.replace(/^\//, ``)}`;
+  //           // console.log(`require: ${pp}`);
+  //           if (require.cache[require.resolve(pp)]) delete require.cache[require.resolve(pp)];
+  //           // eslint-disable-next-line import/no-dynamic-require, global-require
+  //           info.object = require(pp);
+  //         }
+  //         return Promise.resolve(undefined);
+  //       })
+  //       .then(() => resolve(info))
+  //       .catch((err) => reject(err));
+  //   });
+  // }
+
   getDirectorySchema(path, options) {
     //console.log(`getDirectorySchema(${path}, ${JSON.stringify(options, null, 2)})`);
     //console.log(`getDirectorySchema(${path})`);
@@ -174,65 +231,62 @@ class Service extends EventEmitter {
 
   readFile(path, encoding) {
     return new Promise((resolve, reject) => {
-      path = (path.startsWith(`/`)) ? Path.join(__dirname, this.id, path) : path;
-      encoding = (encoding) ? encoding : `utf8`;
-      fs.readFile(path, encoding, (err, data) => {
-        (err) ? reject(err) : resolve(data);
-      });
+      const p = path.startsWith(`/`) ? Path.join(__dirname, this.id, path) : path;
+      const e = encoding || `utf8`;
+      fs.readFile(p, e, (err, data) => (err ? reject(err) : resolve(data)));
     });
   }
 
-  writeFile(path, data, encoding) {
+  writeFile(_path, data, _encoding) {
     return new Promise((resolve, reject) => {
-      const fs = require(`fs`);
-      encoding = (encoding) ? encoding : `utf8`;
-      path = Path.join(__dirname, this.id, path);
-      let dir = path.replace(/[^/]+$/g, ``);
+      const encoding = _encoding || `utf8`;
+      const path = Path.join(__dirname, this.id, _path);
+      const dir = path.replace(/[^/]+$/g, ``);
       console.log(`dir : ${dir}`);
-      if (!fs.existsSync(dir)){
+      if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
       }
-      fs.writeFile(path, data, encoding, (err) => {
-        (err) ? reject(err) : resolve();
-      });
+      fs.writeFile(path, data, encoding, (err) => (err ? reject(err) : resolve()));
     });
   }
 
-  deleteDirectory(path) {
+  deleteDirectory(dirPath) {
     return new Promise((resolve, reject) => {
-      path = (path.startsWith(`/`)) ? Path.join(__dirname, this.id, path) : path;
+      const path = dirPath.startsWith(`/`) ? Path.join(__dirname, this.id, dirPath) : dirPath;
       console.log(`deleteDirectory(${path})`);
-      rimraf(path, (err) => {
-        (err) ? reject(err) : resolve({});
-      });
+      rimraf(path, (err) => (err ? reject(err) : resolve({})));
     });
   }
 
   base64Encode(data) {
-    let buff = Buffer.from(data);
-    let base64 = buff.toString(`base64`);
+    const buff = Buffer.from(data);
+    const base64 = buff.toString(`base64`);
     return base64;
   }
 
   base64Decode(data, encoding) {
-    let buff = Buffer.from(data, `base64`);
-    let result = buff.toString((encoding) ? encoding : `utf8`);
+    const buff = Buffer.from(data, `base64`);
+    const result = buff.toString(encoding || `utf8`);
     return result;
   }
 
   jsonToArray(json, keyOfId) {
-    let arr = [];
-    for(let i in json) {
-      let elem = JSON.parse(JSON.stringify(json[i]));
-      if(keyOfId)
-        elem[keyOfId] = i;
+    const arr = [];
+    Object.keys(json).forEach((k) => {
+      const elem = JSON.parse(JSON.stringify(json[k]));
+      if (keyOfId) elem[keyOfId] = k;
       arr.push(elem);
-    }
+    });
+    // for (const i in json) {
+    //   const elem = JSON.parse(JSON.stringify(json[i]));
+    //   if (keyOfId) elem[keyOfId] = i;
+    //   arr.push(elem);
+    // }
     return arr;
   }
 
   arrayToJson(array, keyAttr) {
-    let json = {};
+    const json = {};
     array.forEach((elem) => {
       json[elem[keyAttr]] = elem;
     });

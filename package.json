@@ -24,15 +24,15 @@
   },
   "devDependencies": {
     "babel-eslint": "^10.0.3",
-    "eslint": "^6.8.0",
-    "eslint-config-prettier": "^8.0.0",
-    "eslint-config-standard": "^16.0.2",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "^3.3.1",
-    "eslint-plugin-promise": "^4.3.1",
-    "eslint-plugin-standard": "^5.0.0",
-    "prettier": "^2.2.1"
+    "eslint": "^8.20.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jsx-a11y": "^6.6.1",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-react": "^7.30.1",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^2.7.1"
   },
   "homepage": "https://github.com/ccunknown/lime-extension#readme",
   "files": [
@@ -52,12 +52,13 @@
   },
   "dependencies": {
     "async-lock": "^1.2.4",
+    "bull": "^4.2.0",
     "jsonschema": "^1.2.6",
     "modbus-serial": "^7.8.1",
     "mustache": "^4.0.1",
     "rimraf": "^3.0.2",
     "serialport": "^8.0.7",
-    "sqlite3": "^5.0.0",
+    "sqlite3": "^5.0.2",
     "wrtc": "^0.4.7"
   }
 }
