@@ -15,8 +15,10 @@ module.exports = {
   ],
 
   rules: {
-    semi: ["error", "always"],
-   //  "no-underscore-dangle": "allow",
+    // "semi": ["error", "always"],
+    "semi": ["warn", "always"],
+    // "max-len": ["warn", 80],
+    //  "no-underscore-dangle": "allow",
     "prettier/prettier": ["warn"],
   },
   parserOptions: {

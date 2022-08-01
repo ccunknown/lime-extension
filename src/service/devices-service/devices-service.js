@@ -505,14 +505,16 @@ class DevicesService extends Service {
         let opttmp = (options) ? JSON.parse(JSON.stringify(options)) : {};
         opttmp.object = false;
 
-        this.getDirectorySchema(serviceSchema.directory, options)
+        Promise.resolve()
+        .then(() => this.getDirectorySchema(serviceSchema.directory, options))
         .then((deviceDir) => deviceDir.children.find((elem) => elem.name == name))
         .then((device) => (device) ? this.getDirectorySchema(device.path, options) : null)
         .then((res) => resolve(res))
         .catch((err) => reject(err));
       }
       else {
-        this.getDirectorySchema(serviceSchema.directory, options)
+        Promise.resolve()
+        .then(() => this.getDirectorySchema(serviceSchema.directory, options))
         .then((deviceList) => resolve(deviceList.children))
         .catch((err) => reject(err));
       }

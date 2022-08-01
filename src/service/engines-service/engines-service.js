@@ -117,9 +117,12 @@ class EnginesService extends Service {
   }
 
   loadEngine(config, template) {
-    console.log(`[${this.constructor.name}]`, `loadEngine`);
+    console.log(`[${this.constructor.name}]`, `loadEngine() >> `);
     return new Promise((resolve, reject) => {
-      console.log(`[${this.constructor.name}]`, `template: ${JSON.stringify(template, null, 2)}`);
+      console.log(
+        `[${this.constructor.name}]`,
+        `template: ${JSON.stringify(template, null, 2)}`
+      );
       const path = template.path.replace(/^\//, ``);
       // eslint-disable-next-line import/no-dynamic-require, global-require
       const Obj = require(`./${path}/engine.js`);
@@ -144,20 +147,32 @@ class EnginesService extends Service {
         .then((conf) => {
           config = conf;
           config.id = id;
+          console.log(`[${this.constructor.name}]`, `config:`, conf);
         })
         .then(() => this.getTemplate({ deep: true }))
         .then((templateList) => {
-          console.log(`[${this.constructor.name}]`, `template list: ${JSON.stringify(templateList)}`);
-          console.log(`[${this.constructor.name}]`, `config template: ${config.template}`);
+          console.log(
+            `[${this.constructor.name}]`,
+            `template list: ${JSON.stringify(templateList)}`
+          );
+          console.log(
+            `[${this.constructor.name}]`,
+            `config template: ${config.template}`
+          );
+          console.log(`[${this.constructor.name}]`, `config:`, config);
           return templateList;
         })
-        .then((templateList) => templateList.find((elem) => config.template === elem.name))
+        .then((templateList) =>
+          templateList.find((elem) => config.template === elem.name)
+        )
         .then((template) => {
-          return !template ? new Error(`template "${config.template}" not found!`) : template;
+          return !template
+            ? new Error(`template "${config.template}" not found!`)
+            : template;
         })
         .then((template) => this.loadEngine(config, template))
-        .then((engine) => { 
-          this.engineList[id] = engine; 
+        .then((engine) => {
+          this.engineList[id] = engine;
         })
         .then(() => options && options.chain && this.addToServiceChain(id))
         .then(() => resolve(config))
@@ -354,16 +369,25 @@ class EnginesService extends Service {
 
   getConfigEngine(identity, options) {
     // const opt = options || (typeof identity === `object` ? identity : undefined);
+    // console.log(
+    //   `[${this.constructor.name}]`,
+    //   `getConfigEngine(${identity}) >> `
+    // );
     let id;
-    if (typeof id === `string`) id = identity;
+    if (typeof identity === `string`) id = identity;
     else if (options && options.id) id = options.id;
     // typeof id === `string` ? id : options && options.id ? options.id : undefined;
-    console.log(`[${this.constructor.name}]`, `getConfigEngine(${id ? `${id}` : ``}) >> `);
+    console.log(
+      `[${this.constructor.name}]`,
+      `getConfigEngine(${id ? `${id}` : ``}) >> `
+    );
     return new Promise((resolve, reject) => {
       if (id) {
         this.getSchema({ renew: true })
           .then((conf) => {
-            if (Object.prototype.hasOwnProperty.call(conf.list, "id")) resolve(conf.list[id]);
+            // console.log(`[${this.constructor.name}]`, `config:`, conf);
+            if (Object.prototype.hasOwnProperty.call(conf.list, id))
+              resolve(conf.list[id]);
             else reject(new Errors.ObjectNotFound(id));
             // conf.list.hasOwnProperty(id) ? resolve(conf.list[id]) : reject(new Errors.ObjectNotFound(id));
           })
@@ -371,7 +395,10 @@ class EnginesService extends Service {
       } else {
         this.getSchema({ renew: true })
           .then((conf) => {
-            console.log(`[${this.constructor.name}]`, `>> conf: ${JSON.stringify(conf.list, null, 2)}`);
+            console.log(
+              `[${this.constructor.name}]`,
+              `>> conf: ${JSON.stringify(conf.list, null, 2)}`
+            );
             resolve(conf.list);
           })
           .catch((err) => reject(err));
@@ -380,7 +407,10 @@ class EnginesService extends Service {
   }
 
   getServiceEngine(id) {
-    console.log(`[${this.constructor.name}]`, `getServiceEngine(${id ? `${id}` : ``})`);
+    console.log(
+      `[${this.constructor.name}]`,
+      `getServiceEngine(${id ? `${id}` : ``})`
+    );
     return new Promise((resolve, reject) => {
       let config = null;
       this.getConfigEngine(id)
@@ -390,10 +420,16 @@ class EnginesService extends Service {
         })
         .then((service) => {
           const result = JSON.parse(JSON.stringify(config));
+          // console.log(`[${this.constructor.name}]`, `service:`, service);
           if (id) result.state = service ? service.state : `disabled`;
           else {
             Object.keys(result).forEach((key) => {
-              result[key].state = Object.prototype.hasOwnProperty.call(key) ? service[key].state : `disabled`;
+              result[key].state = Object.prototype.hasOwnProperty.call(
+                service,
+                key
+              )
+                ? service[key].state
+                : `disabled`;
             });
           }
           // for (const i in result)
@@ -406,7 +442,10 @@ class EnginesService extends Service {
   }
 
   getEngineConfigWithState(identity) {
-    console.log(`[${this.constructor.name}]`, `getEngineConfigWithState(${identity || ``})`);
+    console.log(
+      `[${this.constructor.name}]`,
+      `getEngineConfigWithState(${identity || ``})`
+    );
     return new Promise((resolve, reject) => {
       if (identity) {
         const id = identity;
@@ -427,6 +466,9 @@ class EnginesService extends Service {
               })
               .catch((err) => reject(err));
           }, Promise.resolve())
+          .then(() =>
+            console.log(`[${this.constructor.name}]`, `schemas: `, schemas)
+          )
           .then(() => resolve(schemas))
           .catch((err) => reject(err));
       }

@@ -1,15 +1,15 @@
-'use strict';
+const { EventEmitter } = require("events");
 
-const EventEmitter = require('events').EventEmitter;
 const Crypto = require(`crypto`);
 
-const {APIHandler, APIResponse} = require('gateway-addon');
-const {Errors} = require('../constants/constants');
-//const manifest = require('../manifest.json');
+// eslint-disable-next-line import/no-extraneous-dependencies
+const { APIHandler, APIResponse } = require("gateway-addon");
+const { Errors } = require("../constants/constants");
+// const manifest = require('../manifest.json');
 
-const util = require('util');
+// const util = require('util');
 
-class RoutesManager extends APIHandler{
+class RoutesManager extends APIHandler {
   constructor(extension) {
     super(extension.addonManager, extension.manifest.id);
     this.configManager = extension.configManager;
@@ -23,51 +23,61 @@ class RoutesManager extends APIHandler{
 
   setRouter() {
     this.router = [
-
-      /***  Resource : /config  ***/
+      /* **  Resource : /config  ** */
       {
-        "resource": /\/config/,
-        "method": {
-          "GET": (req) => {
-            return new Promise((resolve, reject) => {
+        resource: /\/config/,
+        method: {
+          // eslint-disable-next-line no-unused-vars
+          GET: (req) => {
+            return new Promise((resolve) => {
               Promise.resolve()
-              .then(() => this.configManager.getConfig())
-              .then((conf) => {
-                console.log(`conf : ${JSON.stringify(conf, null, 2)}`);
-                resolve(this.makeJsonRespond(JSON.stringify(conf)))
-              })
-              .catch((err) => resolve(this.catchErrorRespond(err)));
+                .then(() => this.configManager.getConfig())
+                .then((conf) => {
+                  // console.log(`conf : ${JSON.stringify(conf, null, 2)}`);
+                  resolve(this.makeJsonRespond(JSON.stringify(conf)));
+                })
+                .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
-          "POST": (req) => {
-            return new Promise(async (resolve, reject) => {
-              let params = this.getParameters(req);
+          POST: (req) => {
+            return new Promise((resolve) => {
+              const params = this.getParameters(req);
               Promise.resolve()
-              .then(() => this.configManager.addToConfig(req.body, params.path))
-              .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
-              .catch((err) => resolve(this.catchErrorRespond(err)));
+                .then(() =>
+                  this.configManager.addToConfig(req.body, params.path)
+                )
+                .then((res) =>
+                  resolve(this.makeJsonRespond(JSON.stringify(res)))
+                )
+                .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
-          "PUT": (req) => {
-            return new Promise((resolve, reject) => {
+          PUT: (req) => {
+            return new Promise((resolve) => {
               Promise.resolve()
-              .then(() => this.configManager.saveConfig(req.body))
-              .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
-              .catch((err) => resolve(this.catchErrorRespond(err)));
+                .then(() => this.configManager.saveConfig(req.body))
+                .then((conf) =>
+                  resolve(this.makeJsonRespond(JSON.stringify(conf)))
+                )
+                .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
-          "PATCH": (req) => {
-            return new Promise(async (resolve, reject) => {
-              let params = this.getParameters(req);
+          PATCH: (req) => {
+            return new Promise((resolve) => {
+              const params = this.getParameters(req);
               Promise.resolve()
-              .then(() => this.configManager.updateConfig(req.body, params.path))
-              .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
-              .catch((err) => resolve(this.catchErrorRespond(err)));
+                .then(() =>
+                  this.configManager.updateConfig(req.body, params.path)
+                )
+                .then((res) =>
+                  resolve(this.makeJsonRespond(JSON.stringify(res)))
+                )
+                .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
-          "DELETE": (req) => {
-            return new Promise(async (resolve, reject) => {
-              let params = this.getParameters(req);
+          DELETE: (req) => {
+            return new Promise((resolve) => {
+              const params = this.getParameters(req);
               // if(this.configManager.isEmptyObject(params)) {
               //   Promise.resolve()
               //   .then(() => this.configManager.deleteConfig())
@@ -81,14 +91,18 @@ class RoutesManager extends APIHandler{
               //   .catch((err) => resolve(this.catchErrorRespond(err)));
               // }
               Promise.resolve()
-              .then(() => this.configManager.deleteConfig(
-                this.configManager.isEmptyObject(params) ? undefined : params.path
-              ))
-              .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
-              .catch((err) => resolve(this.catchErrorRespond(err)));
+                .then(() => this.configManager.deleteConfig(
+                    this.configManager.isEmptyObject(params)
+                      ? undefined
+                      : params.path
+                ))
+                .then((res) =>
+                  resolve(this.makeJsonRespond(JSON.stringify(res)))
+                )
+                .catch((err) => resolve(this.catchErrorRespond(err)));
             });
-          }
-        }
+          },
+        },
       },
 
       /***  Resource : /hash/sha256/config  ***/
@@ -403,14 +417,14 @@ class RoutesManager extends APIHandler{
             });
           },
           "PUT": (req) => {
-            return new Promise(async (resolve, reject) => {
+            return new Promise((resolve, reject) => {
               this.laborsManager.getService(`scripts-service`).obj.create(req.body, `scripts`)
               .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
           "DELETE": (req) => {
-            return new Promise(async (resolve, reject) => {
+            return new Promise((resolve, reject) => {
               this.configManager.saveConfig({})
               .then((conf) => resolve(this.makeJsonRespond(JSON.stringify(conf))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -436,7 +450,7 @@ class RoutesManager extends APIHandler{
             });
           },
           "DELETE": (req) => {
-            return new Promise(async (resolve, reject) => {
+            return new Promise((resolve, reject) => {
               this.laborsManager.getService(`scripts-service`).obj.delete(req.path.split(`/`).pop())
               .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
               .catch((err) => resolve(this.catchErrorRespond(err)));
