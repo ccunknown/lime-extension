@@ -138,7 +138,7 @@ class EnginesService extends Service {
   }
 
   addToService(id, configuration, options) {
-    let config = configuration || undefined;
+    let config = JSON.parse(JSON.stringify(configuration)) || undefined;
     console.log(`[${this.constructor.name}]`, `addToService(${id}) >> `);
     console.log(`[${this.constructor.name}]`, `[${id}] config: ${JSON.stringify(config, null, 2)}`);
     return new Promise((resolve, reject) => {

@@ -1,22 +1,39 @@
+/* eslint-disable class-methods-use-this */
+const { v1: uuid } = require(`uuid`);
+
 class ObjectMonitor {
   constructor(service, id) {
     this.om = {
       service,
       id,
-      publishPath: `/service/${this.service.id}/monitor/${this.id}`,
+      publishPath: `/service/${service.id}/monitor/${id}`,
       rtcPeerService: service.laborsManager.getService(`rtcpeer-service`).obj,
     };
   }
 
-  static om_onActive() {}
+  om_onActive() {}
 
   om_publish(msg) {
     this.om.rtcPeerService.publish(this.om.publishPath, msg);
   }
 
-  static om_onTaskStart() {}
+  om_onTaskStart() {
+    const id = uuid();
+    const timestamp = new Date();
+    console.log(
+      `[${this.constructor.name}]`,
+      `om_onTaskStart() >> ${id}: ${timestamp.toISOString()}`
+    );
+    return id;
+  }
 
-  static om_onTaskEnd() {}
+  om_onTaskEnd(id) {
+    const timestamp = new Date();
+    console.log(
+      `[${this.constructor.name}]`,
+      `om_onTaskEnd() >> ${id}: ${timestamp.toISOString()}`
+    );
+  }
 }
 
 module.exports = ObjectMonitor;

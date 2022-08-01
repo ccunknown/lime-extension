@@ -70,7 +70,7 @@ const ValidateConfigSchema = {
 const CompatibleList = {
   // "script": [`modbus-rtu`, `modbus-tcp`, `modbus`],
   "script": [],
-  "engine": [`modbus-rtu`, `modbus-tcp`]
+  "engine": [`modbus-rtu`, `modbus-rtu-v2`, `modbus-tcp`]
 };
 
 const AlternateList = [

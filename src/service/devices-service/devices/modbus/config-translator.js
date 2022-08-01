@@ -115,6 +115,7 @@ class DeviceConfigTranslator {
         scriptCompatibleList.push(engTempName)
         switch(engTempName) {
           case `modbus-rtu`:
+          case `modbus-rtu-v2`:
             delete config.properties[`ip`];
             delete config.properties[`port`];
             break;
