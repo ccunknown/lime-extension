@@ -59,14 +59,14 @@ class EngineTemplate extends ObjectMonitor {
           taskId = this.om_onTaskStart(cmd);
         })
         .then(() => this.processor(cmd))
-        .then((ret) => {
-          console.log(
-            `[${this.constructor.name}]`,
-            `ret:`,
-            JSON.stringify(ret, null, 2)
-          );
-          return ret;
-        })
+        // .then((ret) => {
+        //   console.log(
+        //     `[${this.constructor.name}]`,
+        //     `ret:`,
+        //     JSON.stringify(ret, null, 2)
+        //   );
+        //   return ret;
+        // })
         .then((ret) => resolve(ret))
         .catch((err) => reject(err))
         .finally(() => this.om_onTaskEnd(taskId));

@@ -177,7 +177,7 @@ class Service extends EventEmitter {
       } else {
         info.type = `file`;
         if (options && options.base64) {
-          const str = fs.readFileSync(path);
+          const str = fs.readFileSync(fpath);
           info.base64 = this.base64Encode(str);
         }
         if (options && options.object) {

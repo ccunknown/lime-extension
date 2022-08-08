@@ -221,18 +221,16 @@ class ModbusRtu extends EngineTemplate {
             .then(() => func(cmd.address, cmd.numtoread))
             .then((ret) => {
               val = ret;
-              console.log(`[${this.constructor.name}]`, `val:`, val);
-              val = {
-                buffer: Uint8Array.from(val),
-              };
-              console.log(
-                `[${this.constructor.name}]`,
-                `val:`,
-                JSON.stringify(val)
-              );
+              // console.log(`[${this.constructor.name}]`, `buf:`, val.buffer);
+              // console.log(
+              //   //
+              //   `[${this.constructor.name}]`,
+              //   `arr:`,
+              //   [...val.buffer]
+              // );
             })
             .then(() => clearTimeout(timeout))
-            .then(() => resolve(val))
+            .then(() => resolve([...val.buffer]))
             .catch((err) => reject(err));
           // try {
           //   val = await func(cmd.address, cmd.numtoread);
