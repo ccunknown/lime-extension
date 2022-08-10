@@ -1,16 +1,14 @@
+/* eslint-disable global-require */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable no-underscore-dangle */
 const { EventEmitter } = require("events");
 
 // const SerialPort = require(`serialport`);
-const ModbusRTU = require("modbus-serial");
-const AsyncLock = require("async-lock");
-
 const Path = require(`path`);
+const ModbusRTU = require("modbus-serial");
+// const AsyncLock = require("async-lock");
 
-const EngineTemplate = require(`../../engines-template.js`);
-
-// var MIN_MODBUSRTU_FRAMESZ = 5;
+const EngineTemplate = require(`../../engine-template/engines-template.js`);
 
 class ModbusRtu extends EngineTemplate {
   constructor(enginesService, config) {
@@ -19,13 +17,12 @@ class ModbusRtu extends EngineTemplate {
     this.config = config;
     this.event = new EventEmitter();
     this.client = new ModbusRTU();
-    this.state = `stopped`;
-    this.lock = {
-      act: {
-        key: `act-lock`,
-        locker: new AsyncLock(),
-      },
-    };
+    // this.lock = {
+    //   act: {
+    //     key: `act-lock`,
+    //     locker: new AsyncLock(),
+    //   },
+    // };
     // eslint-disable-next-line import/no-dynamic-require, global-require
     this.Errors = require(Path.join(
       this.enginesService.getRootDirectory(),
@@ -37,7 +34,6 @@ class ModbusRtu extends EngineTemplate {
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => this.initMod())
-        // eslint-disable-next-line global-require
         .then(() => require(`./rtubufferedport`))
         .then((RtuBufferedPort) => {
           this.port = new RtuBufferedPort(port);
@@ -57,30 +53,23 @@ class ModbusRtu extends EngineTemplate {
         function cb(err) {
           if (err) reject(err);
           else resolve();
-          // err ? reject(err) : resolve();
         }
         obj.open(cb);
       });
-      // return promise;
     };
 
     this.client.connectRTUBuffered = (port, next) => {
       // create the SerialPort
-      // eslint-disable-next-line global-require
       const SerialPort = require("./rtubufferedport");
-      // eslint-disable-next-line no-underscore-dangle
       this.client._port = new SerialPort(this.port);
-
-      // options.platformOptions = { vmin: MIN_MODBUSRTU_FRAMESZ, vtime: 0 };
-
-      // open and call next
       return open(this.client, next);
     };
   }
 
   start() {
     console.log(`ModbusRtu: start() >> `);
-    if (this.state !== `restarting`) this.emit(`starting`, this);
+    // if (this.getState() !== `restarting`) this.emit(`starting`, this);
+    if (this.getState() !== `restarting`) this.setState(`starting`);
     return new Promise((resolve, reject) => {
       this.client.connectRTUBuffered(this.port, (error) => {
         if (error) {
@@ -94,12 +83,14 @@ class ModbusRtu extends EngineTemplate {
             if (err) {
               // console.log(`prepare to restart!!!`);
               this.restart();
-              this.emit(`error`, err);
+              // this.emit(`error`, err);
+              this.setState(`error`);
               // console.log(`after restart call!!!`);
               // setTimeout(() => this.restart(), 5000);
             }
           });
-          this.emit(`running`, this);
+          // this.emit(`running`, this);
+          this.setState(`running`);
           resolve();
         }
       });
@@ -108,7 +99,8 @@ class ModbusRtu extends EngineTemplate {
 
   restart() {
     console.log(`ModbusRtu: restart() >> `);
-    this.emit(`restarting`, this);
+    // this.emit(`restarting`, this);
+    this.setState(`restarting`);
     return new Promise((resolve) => {
       Promise.resolve()
         .then(() => this.stop())
@@ -121,28 +113,14 @@ class ModbusRtu extends EngineTemplate {
     });
   }
 
-  // restart() {
-  //   console.log(`ModbusRtu: restart() >> `);
-  //   this.emit(`restarting`, this);
-  //   return new Promise(async (resolve, reject) => {
-  //     await this.stop();
-  //     try {
-  //       await this.start();
-  //     } catch(err) {
-  //       setTimeout(() => this.restart(), 5000);
-  //     }
-  //     resolve();
-  //   });
-  // }
-
   stop() {
     console.log(`ModbusRtu: stop() >> `);
-    if (this.state !== `restarting`) this.emit(`stoping`, this);
+    if (this.getState() !== `restarting`) this.emit(`stoping`, this);
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() =>
           this.client.close(() => {
-            if (this.state !== `restarting`) this.emit(`stopped`, this);
+            if (this.getState() !== `restarting`) this.emit(`stopped`, this);
             resolve();
           })
         )
@@ -152,40 +130,12 @@ class ModbusRtu extends EngineTemplate {
 
   emit(event, arg) {
     console.log(`ModbusRtu: emit("${event}") >> `);
-    this.state = event;
+    // this.getState = event;
     return this.event.emit(event, arg);
   }
 
-  getState() {
-    return this.state;
-  }
-
-  // act(cmd) {
-  //   //console.log(`ModbusRtu: act() >> `);
-  //   return new Promise((resolve, reject) => {
-  //     let locker = this.lock[`act`].locker;
-  //     let key = this.lock[`act`].key;
-  //     locker.acquire(key, () => {
-  //       return this._act(cmd);
-  //     })
-  //     .then((ret) => resolve(ret))
-  //     .catch((err) => {
-  //       console.log(`ModbusRtu: act() >> catch error!!!`);
-  //       console.error(err);
-  //       reject(err);
-  //     });
-  //   });
-  // }
-
-  // _act(cmd) {
-  //   return new Promise((resolve, reject) => {
-  //     setTimeout(() => {
-  //       Promise.resolve()
-  //       .then(() => this.__act(cmd))
-  //       .then((res) => resolve(res))
-  //       .catch((err) => reject(err));
-  //     }, this.config.delay);
-  //   });
+  // getState() {
+  //   return this.state;
   // }
 
   processor(cmd) {
@@ -200,8 +150,8 @@ class ModbusRtu extends EngineTemplate {
         console.log(`cmd`, JSON.stringify(cmd, null, 2));
         reject(new Error(`Engine command timeout.`));
       }, this.config.timeout);
-      if (this.state !== `running`) {
-        reject(new Error(`Port currently "${this.state}".`));
+      if (this.getState() !== `running`) {
+        reject(new Error(`Port currently "${this.getState()}".`));
       } else if (cmd.action === `read`) {
         this.client.setID(cmd.id);
         let val;
@@ -232,14 +182,6 @@ class ModbusRtu extends EngineTemplate {
             .then(() => clearTimeout(timeout))
             .then(() => resolve([...val.buffer]))
             .catch((err) => reject(err));
-          // try {
-          //   val = await func(cmd.address, cmd.numtoread);
-          //   clearTimeout(timeout);
-          //   resolve(val);
-          // }
-          // catch(err) {
-          //   reject(err);
-          // }
         } else reject(new Error(`Table "${cmd.table}" miss match!!!`));
       } else {
         // console.warn(`Action "${cmd.action}" not define!!!`);

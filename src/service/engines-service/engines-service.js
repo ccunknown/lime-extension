@@ -6,7 +6,7 @@ const ConfigTranslator = require(`./config-translator.js`);
 class EnginesService extends Service {
   constructor(extension, config, id) {
     super(extension, config, id);
-    console.log(`[${this.constructor.name}]`, `contructor() >> `);
+    console.log(`[${this.constructor.name}]`, `contructor(${id}) >> `);
   }
 
   init(config) {
@@ -138,7 +138,9 @@ class EnginesService extends Service {
   }
 
   addToService(id, configuration, options) {
-    let config = JSON.parse(JSON.stringify(configuration)) || undefined;
+    let config = configuration
+      ? JSON.parse(JSON.stringify(configuration))
+      : undefined;
     console.log(`[${this.constructor.name}]`, `addToService(${id}) >> `);
     console.log(`[${this.constructor.name}]`, `[${id}] config: ${JSON.stringify(config, null, 2)}`);
     return new Promise((resolve, reject) => {

@@ -1,5 +1,5 @@
 const Queue = require(`bull`);
-const ObjectMonitor = require(`../object-monitor`);
+const ObjectMonitor = require(`../../object-monitor`);
 
 class EngineTemplate extends ObjectMonitor {
   constructor(enginesService, config) {
@@ -14,12 +14,17 @@ class EngineTemplate extends ObjectMonitor {
     this.et_initProcessor();
   }
 
-  changeState(state) {
-    this.et.state = state;
-  }
+  // changeState(state) {
+  //   this.et.state = state;
+  // }
 
   getState() {
     return this.et.state;
+  }
+
+  setState(state) {
+    this.et.state = state;
+    this.emit(this.et.state);
   }
 
   act(cmd) {
