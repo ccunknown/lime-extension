@@ -138,6 +138,24 @@ class ModbusRtu extends EngineTemplate {
   //   return this.state;
   // }
 
+  // eslint-disable-next-line class-methods-use-this
+  commandToString(cmd) {
+    const ac = cmd.action;
+    const tb = cmd.table;
+    const { id } = cmd;
+    const addr = cmd.address.toString(16).padStart(2, `0`);
+    const len = cmd.numtoread;
+    return `<${ac}:${tb}> <id:${id}> <addr:0x${addr}->${len}>`;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  resultToString(result) {
+    const hexString = result
+      .map((e) => e.toString(16).padStart(2, `0`))
+      .join(` `);
+    return `<0x ${hexString}>`;
+  }
+
   processor(cmd) {
     // console.log(`ModbusRtu: _act() >> `);
     const timestamp = new Date().toISOString();
@@ -146,9 +164,11 @@ class ModbusRtu extends EngineTemplate {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         const timeerr = new Date().toISOString();
-        console.log(`>>>>>> error time: ${timestamp}/${timeerr}`);
-        console.log(`cmd`, JSON.stringify(cmd, null, 2));
-        reject(new Error(`Engine command timeout.`));
+        // console.log(`>>>>>> error time: ${timestamp}/${timeerr}`);
+        // console.log(`cmd`, JSON.stringify(cmd, null, 2));
+        // this.om_info(`>>>>>> error time: ${timestamp}/${timeerr}`);
+        // this.om_info(`cmd`, JSON.stringify(cmd, null, 2));
+        reject(new Error(`Engine command timeout ${timestamp}/${timeerr}`));
       }, this.config.timeout);
       if (this.getState() !== `running`) {
         reject(new Error(`Port currently "${this.getState()}".`));
@@ -180,13 +200,28 @@ class ModbusRtu extends EngineTemplate {
               // );
             })
             .then(() => clearTimeout(timeout))
-            .then(() => resolve([...val.buffer]))
+            .then(() => {
+              const ret = [...val.buffer];
+              // console.log(
+              //   `[${this.constructor.name}]`,
+              //   typeof ret,
+              //   `[${typeof ret[0]}]`
+              // );
+              resolve(ret);
+              // resolve([...val.buffer]);
+            })
             .catch((err) => reject(err));
-        } else reject(new Error(`Table "${cmd.table}" miss match!!!`));
+        } else {
+          const err = new Error(`Table "${cmd.table}" miss match!!!`);
+          this.om_error(err);
+          reject(err);
+        }
       } else {
         // console.warn(`Action "${cmd.action}" not define!!!`);
         // resolve(null);
-        reject(new Error(`Action "${cmd.action}" not define!!!`));
+        const err = new Error(`Action "${cmd.action}" not define!!!`);
+        this.om_error(err);
+        reject(err);
       }
     });
   }
