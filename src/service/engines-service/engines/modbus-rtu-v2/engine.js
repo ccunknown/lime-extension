@@ -14,6 +14,7 @@ class ModbusRtu extends EngineTemplate {
   constructor(enginesService, config) {
     super(enginesService, config);
     this.enginesService = enginesService;
+    this.sysportService = enginesService.sysportService;
     this.config = config;
     this.event = new EventEmitter();
     this.client = new ModbusRTU();
@@ -30,9 +31,14 @@ class ModbusRtu extends EngineTemplate {
     ));
   }
 
-  init(port) {
+  init() {
     return new Promise((resolve, reject) => {
+      let port;
       Promise.resolve()
+        .then(() => this.sysportService.get(this.config.port, { object: true }))
+        .then((sysportSchema) => {
+          port = sysportSchema.object;
+        })
         .then(() => this.initMod())
         .then(() => require(`./rtubufferedport`))
         .then((RtuBufferedPort) => {
@@ -115,12 +121,14 @@ class ModbusRtu extends EngineTemplate {
 
   stop() {
     console.log(`ModbusRtu: stop() >> `);
-    if (this.getState() !== `restarting`) this.emit(`stoping`, this);
+    // if (this.getState() !== `restarting`) this.emit(`stoping`, this);
+    if (this.getState() !== `restarting`) this.setState(`stoping`);
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() =>
           this.client.close(() => {
-            if (this.getState() !== `restarting`) this.emit(`stopped`, this);
+            // if (this.getState() !== `restarting`) this.emit(`stopped`, this);
+            if (this.getState() !== `restarting`) this.setState(`stopped`);
             resolve();
           })
         )
@@ -128,11 +136,11 @@ class ModbusRtu extends EngineTemplate {
     });
   }
 
-  emit(event, arg) {
-    console.log(`ModbusRtu: emit("${event}") >> `);
-    // this.getState = event;
-    return this.event.emit(event, arg);
-  }
+  // emit(event, arg) {
+  //   console.log(`ModbusRtu: emit("${event}") >> `);
+  //   // this.getState = event;
+  //   return this.event.emit(event, arg);
+  // }
 
   // getState() {
   //   return this.state;
@@ -191,36 +199,19 @@ class ModbusRtu extends EngineTemplate {
             .then(() => func(cmd.address, cmd.numtoread))
             .then((ret) => {
               val = ret;
-              // console.log(`[${this.constructor.name}]`, `buf:`, val.buffer);
-              // console.log(
-              //   //
-              //   `[${this.constructor.name}]`,
-              //   `arr:`,
-              //   [...val.buffer]
-              // );
             })
             .then(() => clearTimeout(timeout))
             .then(() => {
               const ret = [...val.buffer];
-              // console.log(
-              //   `[${this.constructor.name}]`,
-              //   typeof ret,
-              //   `[${typeof ret[0]}]`
-              // );
               resolve(ret);
-              // resolve([...val.buffer]);
             })
             .catch((err) => reject(err));
         } else {
           const err = new Error(`Table "${cmd.table}" miss match!!!`);
-          this.om_error(err);
           reject(err);
         }
       } else {
-        // console.warn(`Action "${cmd.action}" not define!!!`);
-        // resolve(null);
         const err = new Error(`Action "${cmd.action}" not define!!!`);
-        this.om_error(err);
         reject(err);
       }
     });

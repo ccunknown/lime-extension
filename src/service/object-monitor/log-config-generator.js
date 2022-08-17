@@ -4,7 +4,7 @@ require(`winston-daily-rotate-file`);
 const { combine, timestamp, label, printf } = winston.format;
 
 const defaultOptions = {
-  console: false,
+  console: true,
   files: [
     // {
     //   dirname: __dirname,
@@ -14,8 +14,8 @@ const defaultOptions = {
 };
 
 const defaultFileOptions = {
-  maxFile: 10,
-  maxSize: `100k`,
+  maxFiles: 10,
+  maxSize: `10k`,
   datePattern: ``,
 };
 

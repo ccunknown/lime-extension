@@ -24,7 +24,7 @@ class EngineTemplate extends ObjectMonitor {
 
   setState(state) {
     this.et.state = state;
-    this.emit(this.et.state);
+    // this.emit(this.et.state);
   }
 
   act(cmd) {
@@ -57,7 +57,7 @@ class EngineTemplate extends ObjectMonitor {
   }
 
   et_initProcessor() {
-    console.log(`[${this.constructor.name}]`, `et_initProcessor() >> `);
+    // console.log(`[${this.constructor.name}]`, `et_initProcessor() >> `);
     this.et.queue.process(`act`, (job, done) => {
       Promise.resolve()
         .then(() => this.om.task.start(job.data.jobId))
@@ -77,18 +77,8 @@ class EngineTemplate extends ObjectMonitor {
     // );
     return new Promise((resolve, reject) => {
       Promise.resolve()
-        // .then(() => {
-        //   taskId = this.om_onTaskStart(cmd);
-        // })
         .then(() => this.processor(cmd))
         .then((ret) => {
-          // const type = this.et_typeOf(ret);
-          // console.log(
-          //   `[${this.constructor.name}]`,
-          //   `ret:`,
-          //   `[${this.et_typeOf(ret)}]`
-          // );
-
           return ret;
         })
         .then((ret) => resolve(ret))
@@ -97,12 +87,12 @@ class EngineTemplate extends ObjectMonitor {
     });
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  et_typeOf(v) {
-    if (typeof v === `object` && Array.isArray(v))
-      return `array[${v.length ? typeof v[0] : ``}]`;
-    return typeof v;
-  }
+  // // eslint-disable-next-line class-methods-use-this
+  // et_typeOf(v) {
+  //   if (typeof v === `object` && Array.isArray(v))
+  //     return `array[${v.length ? typeof v[0] : ``}]`;
+  //   return typeof v;
+  // }
 
   // eslint-disable-next-line class-methods-use-this
   commandToString(cmd) {

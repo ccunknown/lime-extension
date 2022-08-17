@@ -47,14 +47,6 @@ class ModbusDevice extends Device {
       },
     };
 
-    this.log = [
-      // {
-      //   "timestamp": "ISO time string eg.: 2011-10-05T14:48:00.000Z",
-      //   "type": "info, warning, error",
-      //   "message": "any message"
-      // }
-    ];
-
     this.configTranslator = new ConfigTranslator(
       this.exConf[`devices-service`]
     );
