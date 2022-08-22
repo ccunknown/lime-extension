@@ -1,3 +1,6 @@
+/* eslint-disable global-require */
+/* eslint-disable import/no-dynamic-require */
+/* eslint-disable no-underscore-dangle */
 const { Errors } = require(`../../../constants/constants`);
 const Service = require(`../service`);
 
@@ -12,7 +15,8 @@ class EnginesService extends Service {
   init(config) {
     console.log(`[${this.constructor.name}]`, `init() >> `);
     try {
-      this.sysportService = this.laborsManager.getService(`sysport-service`).obj;
+      this.sysportService =
+        this.laborsManager.getService(`sysport-service`).obj;
       this.config = config || this.config;
       this.engineList = {};
       this.engineTemplateList = {};
@@ -35,7 +39,12 @@ class EnginesService extends Service {
       // this.devicesService = this.laborsManager.getService(`devices-service`).obj;
       Promise.resolve()
         .then(() => this.initEngine())
-        .then((result) => console.log(`[${this.constructor.name}]`, `initEngine: ${JSON.stringify(result, null, 2)}`))
+        .then((result) =>
+          console.log(
+            `[${this.constructor.name}]`,
+            `initEngine: ${JSON.stringify(result, null, 2)}`
+          )
+        )
         .then(() => {
           this.configTranslator = new ConfigTranslator(this);
         })
@@ -64,14 +73,23 @@ class EnginesService extends Service {
         .then((list) =>
           Object.keys(list).reduce((prevProm, id) => {
             return prevProm.then(() => {
-              // eslint-disable-next-line no-underscore-dangle
-              if (list[id]._config && list[id]._config.addToService)
-                return this.addToService(id, list[id]).catch((err) => console.error(err));
+              if (
+                Object.prototype.hasOwnProperty.call(list[id], `_config`) &&
+                Object.prototype.hasOwnProperty.call(
+                  list[id]._config,
+                  `addToService`
+                )
+              )
+                return this.addToService(id, list[id]).catch((err) =>
+                  console.error(err)
+                );
               return Promise.resolve();
             });
           }, Promise.resolve())
         )
-        .then(() => console.log(`[${this.constructor.name}]`, `initEngine complete`))
+        .then(() =>
+          console.log(`[${this.constructor.name}]`, `initEngine complete`)
+        )
         // }, Promise.resolve()).then(() => resolve({})))
         .then(() => resolve({}))
         .catch((err) => reject(err));
@@ -80,7 +98,10 @@ class EnginesService extends Service {
 
   add(config) {
     console.log(`[${this.constructor.name}]`, `add("${config.name}")`);
-    console.log(`[${this.constructor.name}]`, `config: ${JSON.stringify(config, null, 2)}`);
+    console.log(
+      `[${this.constructor.name}]`,
+      `config: ${JSON.stringify(config, null, 2)}`
+    );
     return new Promise((resolve, reject) => {
       // let id = this.generateId();
       let id;
@@ -110,7 +131,12 @@ class EnginesService extends Service {
             throw new Errors.InvalidConfigSchema(validateInfo.errors);
           else return validateInfo;
         })
-        .then(() => this.configManager.addToConfig(config, `service-config.engines-service.list.${id}`))
+        .then(() =>
+          this.configManager.addToConfig(
+            config,
+            `service-config.engines-service.list.${id}`
+          )
+        )
         .then((res) => resolve(res))
         .catch((err) => reject(err || new Errors.ErrorObjectNotReturn()));
     });
@@ -123,15 +149,29 @@ class EnginesService extends Service {
         `[${this.constructor.name}]`,
         `template: ${JSON.stringify(template, null, 2)}`
       );
-      const path = template.path.replace(/^\//, ``);
-      // eslint-disable-next-line import/no-dynamic-require, global-require
-      const Obj = require(`./${path}/engine.js`);
-      const engine = new Obj(this, config);
-
-      this.sysportService
-        .get(config.port, { object: true })
+      let engine;
+      Promise.resolve()
+        .then(() => {
+          const path = template.path.replace(/^\//, ``);
+          const Obj = require(`./${path}/engine.js`);
+          engine = new Obj(this, config);
+        })
+        .then(() => this.sysportService.get(config.port, { object: true }))
         .then((sysportSchema) => engine.init(sysportSchema.object))
-        .then(() => engine.start())
+        .then(() =>
+          typeof engine.et_start === `function`
+            ? engine.et_start()
+            : engine.start()
+        )
+        // .then(() => {
+        //   if (typeof engine.et_start === `function`) {
+        //     console.log(`[${this.constructor.name}]`, `use et_start()`);
+        //     engine.et_start();
+        //   } else {
+        //     console.log(`[${this.constructor.name}]`, `use normal start()`);
+        //     engine.start();
+        //   }
+        // })
         .then(() => resolve(engine))
         .catch((err) => reject(err));
     });
@@ -142,7 +182,10 @@ class EnginesService extends Service {
       ? JSON.parse(JSON.stringify(configuration))
       : undefined;
     console.log(`[${this.constructor.name}]`, `addToService(${id}) >> `);
-    console.log(`[${this.constructor.name}]`, `[${id}] config: ${JSON.stringify(config, null, 2)}`);
+    console.log(
+      `[${this.constructor.name}]`,
+      `[${id}] config: ${JSON.stringify(config, null, 2)}`
+    );
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => config || this.getConfigEngine(id))
@@ -153,10 +196,10 @@ class EnginesService extends Service {
         })
         .then(() => this.getTemplate({ deep: true }))
         .then((templateList) => {
-          console.log(
-            `[${this.constructor.name}]`,
-            `template list: ${JSON.stringify(templateList)}`
-          );
+          // console.log(
+          //   `[${this.constructor.name}]`,
+          //   `template list: ${JSON.stringify(templateList)}`
+          // );
           console.log(
             `[${this.constructor.name}]`,
             `config template: ${config.template}`
@@ -223,7 +266,9 @@ class EnginesService extends Service {
         .then(() => devicesService.getConfigDevice(id))
         .then((config) =>
           // eslint-disable-next-line no-underscore-dangle
-          config._config && config._config.addToService ? devicesService.addToService(id) : Promise.resolve()
+          config._config && config._config.addToService
+            ? devicesService.addToService(id)
+            : Promise.resolve()
         )
         .then(() => resolve())
         .catch((err) => reject(err));
@@ -233,7 +278,8 @@ class EnginesService extends Service {
   remove(id) {
     console.log(`[${this.constructor.name}]`, `remove("${id}")`);
     return new Promise((resolve, reject) => {
-      this.removeFromConfig(id)
+      Promise.resolve()
+        .then(() => this.removeFromConfig(id))
         .then(() => this.removeFromService(id))
         .then(() => resolve({}))
         .catch((err) => reject(err));
@@ -254,7 +300,8 @@ class EnginesService extends Service {
   removeFromService(id) {
     console.log(`[${this.constructor.name}]`, `removeFromService() >> `);
     return new Promise((resolve, reject) => {
-      this.stopEngine(id)
+      Promise.resolve()
+        .then(() => this.stopEngine(id))
         .then(() => delete this.engineList[id])
         // .then(() => this.applyObjectOptions(id, options))
         .then(() => resolve({}))
@@ -286,7 +333,12 @@ class EnginesService extends Service {
             throw new Errors.InvalidConfigSchema(validateInfo.errors);
           else return validateInfo;
         })
-        .then(() => this.configManager.updateConfig(config, `service-config.engines-service.list.${id}`))
+        .then(() =>
+          this.configManager.updateConfig(
+            config,
+            `service-config.engines-service.list.${id}`
+          )
+        )
         .then((res) => resolve(res))
         .catch((err) => reject(err || new Errors.ErrorObjectNotReturn()));
     });
@@ -308,8 +360,12 @@ class EnginesService extends Service {
     return new Promise((resolve, reject) => {
       const engine = this.get(id, { object: true });
       if (engine) {
-        engine
-          .start()
+        Promise.resolve()
+          .then(() =>
+            typeof engine.et_start === `function`
+              ? engine.et_start()
+              : engine.start()
+          )
           .then(() => resolve())
           .catch((err) => reject(err));
       } else {
@@ -323,12 +379,19 @@ class EnginesService extends Service {
     return new Promise((resolve, reject) => {
       const engine = this.get(id, { object: true });
       if (engine) {
-        engine
-          .stop()
+        Promise.resolve()
+          .then(() =>
+            Object.prototype.hasOwnProperty.call(engine, `et_stop`)
+              ? engine.et_stop()
+              : engine.stop()
+          )
           .then(() => resolve())
           .catch((err) => reject(err));
       } else {
-        console.warn(`[${this.constructor.name}]`, `Object with id "${id}" not found!!!`);
+        console.warn(
+          `[${this.constructor.name}]`,
+          `Object with id "${id}" not found!!!`
+        );
         resolve();
       }
     });
@@ -340,7 +403,10 @@ class EnginesService extends Service {
     if (typeof id === `string`) identity = id;
     else if (options && options.id) identity = options.id;
     // typeof id === `string` ? id : options && options.id ? options.id : undefined;
-    console.log(`[${this.constructor.name}]`, `get(${identity ? `${identity}` : ``}) >> `);
+    console.log(
+      `[${this.constructor.name}]`,
+      `get(${identity ? `${identity}` : ``}) >> `
+    );
     // return (options && options.object) ? this.getServiceEngine(id, options) : this.getConfigEngine(id, options);
     if (options && options.object && identity) return this.engineList[identity];
     if (options && options.object) return this.engineList;
@@ -349,19 +415,29 @@ class EnginesService extends Service {
   }
 
   getByConfigAttribute(attr, val) {
-    console.log(`[${this.constructor.name}]`, `getByConfigAttribute(${attr}, ${val}) >> `);
+    console.log(
+      `[${this.constructor.name}]`,
+      `getByConfigAttribute(${attr}, ${val}) >> `
+    );
     return new Promise((resolve, reject) => {
       this.get()
         .then((engines) => {
           const result = {};
           Object.entries(engines).forEach(([key, value]) => {
-            if (Object.prototype.hasOwnProperty.call(value, attr) && value[attr] === val) result[key] = value;
+            if (
+              Object.prototype.hasOwnProperty.call(value, attr) &&
+              value[attr] === val
+            )
+              result[key] = value;
             // if (value.hasOwnProperty(attr) && value[attr] === val) result[key] = value;
           });
           // for (const i in engines) {
           //   if (engines[i].hasOwnProperty(attr) && engines[i][attr] == val) result[i] = engines[i];
           // }
-          console.log(`[${this.constructor.name}]`, `>> result: ${JSON.stringify(result, null, 2)}`);
+          console.log(
+            `[${this.constructor.name}]`,
+            `>> result: ${JSON.stringify(result, null, 2)}`
+          );
           return result;
         })
         .then((res) => resolve(res))
@@ -495,7 +571,11 @@ class EnginesService extends Service {
             resolve(
               !templateList.find((elem) => elem.name === key)
                 ? undefined
-                : JSON.parse(JSON.stringify(templateList.find((elem) => elem.name === key)))
+                : JSON.parse(
+                    JSON.stringify(
+                      templateList.find((elem) => elem.name === key)
+                    )
+                  )
             );
           else resolve(templateList);
         })
@@ -523,7 +603,10 @@ class EnginesService extends Service {
         .then((config) => config.list)
         .then((list) => {
           for (let i = 1; i < maxIndex; i += 1) {
-            console.log(`[${this.constructor.name}]`, `id list: ${Object.keys(list)}`);
+            console.log(
+              `[${this.constructor.name}]`,
+              `id list: ${Object.keys(list)}`
+            );
             id = `engine-${i}`;
             // if (!list.hasOwnProperty(id)) break;
             if (!Object.prototype.hasOwnProperty.call(list, id)) break;

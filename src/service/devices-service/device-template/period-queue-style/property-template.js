@@ -3,7 +3,7 @@ const ObjectMonitor = require(`../../object-monitor/object-monitor`);
 
 class PropertyTemplate extends ObjectMonitor {
   constructor(devicesService, deviceId, propertyId) {
-    super(devicesService, propertyId);
+    super(devicesService, `${deviceId}/${propertyId}`);
     const id = `${deviceId}:${propertyId}`;
     this.pt = {
       devicesService,

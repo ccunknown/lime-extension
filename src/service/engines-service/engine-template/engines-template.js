@@ -1,22 +1,28 @@
+/* eslint-disable no-underscore-dangle */
 const Queue = require(`bull`);
 const ObjectMonitor = require(`../../object-monitor/object-monitor`);
 
 class EngineTemplate extends ObjectMonitor {
   constructor(enginesService, config) {
     super(enginesService, config.id);
+    this.id = config.id;
+    // const { extension } = enginesService;
     this.et = {
+      // extension,
       enginesService,
       config,
       queue: new Queue(`engineQueue-${config.id}`),
       state: `unload`,
+      // state: {
+      //   enable: config._config.addToService,
+      //   running: `stopped`,
+      //   detail: null,
+      // },
     };
 
     this.et_initProcessor();
+    this.om.obj.log(`${this.id}`, `Construct engine-template`);
   }
-
-  // changeState(state) {
-  //   this.et.state = state;
-  // }
 
   getState() {
     return this.et.state;
@@ -24,14 +30,98 @@ class EngineTemplate extends ObjectMonitor {
 
   setState(state) {
     this.et.state = state;
-    // this.emit(this.et.state);
+    this.om.obj.state(state);
+  }
+
+  et_enable() {
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        .then(() => this.om.obj.log(`enabling`))
+        .then(() =>
+          this.configManager.updateConfig(
+            { addToService: true },
+            `service-config.${this.et.enginesService.id}.list.${this.id}._config`
+          )
+        )
+        .then(() => ![`running`].includes(this.getState()) && this.et_start())
+        .then(() => this.setState(`enabled`))
+        .then(() => resolve())
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
+
+  et_disable() {
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        .then(() => this.om.obj.log(`disabling`))
+        .then(() =>
+          this.configManager.updateConfig(
+            { addToService: false },
+            `service-config.${this.et.enginesService.id}.list.${this.id}._config`
+          )
+        )
+        .then(
+          () =>
+            ![`stop`, `disabled`].includes(this.getState()) && this.et_stop()
+        )
+        .then(() => this.setState(`disabled`))
+        .then(() => resolve())
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
+
+  et_start() {
+    console.log(`[${this.constructor.name}]`, `et_start() >> `);
+    return new Promise((resolve) => {
+      try {
+        Promise.resolve()
+          .then(() => this.om.obj.log(`${this.id} starting`))
+          .then(() => this.start())
+          .then(() => this.setState(`running`))
+          .then((ret) => resolve(ret));
+      } catch (err) {
+        this.setState(`error`);
+        this.om.error(err);
+        this.et_restart();
+        resolve();
+      }
+    });
+  }
+
+  et_stop() {
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        .then(() => this.om.obj.log(`${this.id} stopping.`))
+        .then(() => this.stop())
+        .then(() => this.setState(`stopped`))
+        .then(() => resolve())
+        .catch((err) => {
+          this.setState(`error`);
+          this.om.error(err);
+          reject(err);
+        });
+    });
+  }
+
+  et_restart() {
+    return new Promise((resolve) => {
+      Promise.resolve()
+        .then(() => this.setState(`restarting`))
+        .then(() => this.stop())
+        .then(() => this.start())
+        .then(() => resolve())
+        .catch((err) => {
+          this.om.error(err);
+          setTimeout(() => this.restart(), 5000);
+        });
+    });
   }
 
   act(cmd) {
-    // console.log(
-    //   `[${this.constructor.name}]`,
-    //   `act(${JSON.stringify(cmd, null, 2)}) >>`
-    // );
     return new Promise((resolve) => {
       let jobId;
       Promise.resolve()
@@ -49,19 +139,16 @@ class EngineTemplate extends ObjectMonitor {
           resolve(ret);
         })
         .catch((err) => {
-          // this.om.task.error(jobId, err);
-          // reject(err);
           resolve({ error: err });
         });
     });
   }
 
   et_initProcessor() {
-    // console.log(`[${this.constructor.name}]`, `et_initProcessor() >> `);
     this.et.queue.process(`act`, (job, done) => {
       Promise.resolve()
         .then(() => this.om.task.start(job.data.jobId))
-        .then(() => this.et_processor(job.data.cmd))
+        .then(() => this.et_processor(job.data.jobId, job.data.cmd))
         .then((ret) => done(null, ret))
         .catch((err) => {
           this.om.task.error(job.data.jobId, err);
@@ -70,29 +157,17 @@ class EngineTemplate extends ObjectMonitor {
     });
   }
 
-  et_processor(cmd) {
-    // console.log(
-    //   `[${this.constructor.name}]`,
-    //   `et_processor(${JSON.stringify(cmd, null, 2)}) >> `
-    // );
+  et_processor(jobId, cmd) {
     return new Promise((resolve, reject) => {
       Promise.resolve()
-        .then(() => this.processor(cmd))
+        .then(() => this.processor(jobId, cmd))
         .then((ret) => {
           return ret;
         })
         .then((ret) => resolve(ret))
         .catch((err) => reject(err));
-      // .finally(() => this.om_onTaskEnd(taskId));
     });
   }
-
-  // // eslint-disable-next-line class-methods-use-this
-  // et_typeOf(v) {
-  //   if (typeof v === `object` && Array.isArray(v))
-  //     return `array[${v.length ? typeof v[0] : ``}]`;
-  //   return typeof v;
-  // }
 
   // eslint-disable-next-line class-methods-use-this
   commandToString(cmd) {

@@ -180,6 +180,30 @@ const Defaults = {
                     //     "type": "string"
                     //   }
                     // }
+                    required: ["name", "description", "template"],
+                    additionalProperties: true,
+                    properties: {
+                      name: {
+                        type: "string",
+                      },
+                      description: {
+                        type: "string",
+                      },
+                      template: {
+                        type: "string",
+                      },
+                      _config: {
+                        type: "object",
+                        required: ["addToService"],
+                        additionalProperties: true,
+                        properties: {
+                          addToService: {
+                            type: "boolean",
+                            default: true,
+                          },
+                        },
+                      },
+                    },
                   },
                 },
               },

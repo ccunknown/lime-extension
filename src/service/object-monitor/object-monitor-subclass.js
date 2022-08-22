@@ -23,7 +23,9 @@ class ObjectMonitorSubclass {
       rtcPeerService: service.laborsManager.getService(`rtcpeer-service`).obj,
       logger: winston.createLogger(
         generateConfig({
-          // console: true,
+          console: {
+            label: id,
+          },
           files: [
             {
               dirname: storageDir,
@@ -42,36 +44,44 @@ class ObjectMonitorSubclass {
   }
 
   init() {
+    this.initObjectLogger();
     this.initTaskLogger();
+  }
+
+  initObjectLogger() {
+    this.obj = {
+      state: (state) => {
+        this.logger.info(`[STATE:${state}]`);
+      },
+      log: (...message) => {
+        this.logger.info([...message].join(` `));
+        this.publish(message, this.publishPath);
+      },
+      error: (err) => {
+        this.logger.error(
+          `[ERR: <${err.name}:${err.message}> <stack:[${err.stack
+            .split(`\n`)
+            .join(`, `)}]>]`
+        );
+      },
+    };
   }
 
   initTaskLogger() {
     this.task = {
       add: (id = uuid(), cmd = null) => {
-        const msg = [`[JID:${id}]`, `[ACT:ADD]`, `[CMD:${cmd}]`].join(` `);
-        this.logger.info(msg);
-        this.publish(msg, this.publishPath);
+        this.obj.log(`[JID:${id}]`, `[ACT:ADD]`, `[CMD:${cmd}]`);
         return id;
       },
       start: (id = uuid()) => {
-        const msg = [`[JID:${id}]`, `[ACT:JOBSTART]`].join(` `);
-        this.logger.info(msg);
-        this.publish(msg, this.publishPath);
+        this.obj.log(`[JID:${id}]`, `[ACT:JOBSTART]`);
         return id;
       },
       log: (id = uuid(), ...message) => {
-        const msg = [`[JID:${id}]`, `[LOG:${[...message].join(` `)}]`].join(
-          ` `
-        );
-        this.logger.info(msg);
-        this.publish(msg, this.publishPath);
+        this.obj.log(`[JID:${id}]`, `[LOG:${[...message].join(` `)}]`);
       },
       end: (id = uuid(), result = null) => {
-        const msg = [`[JID:${id}]`, `[ACT:JOBEND]`, `[RES:${result}]`].join(
-          ` `
-        );
-        this.logger.info(msg);
-        this.publish(msg, this.publishPath);
+        this.obj.log(`[JID:${id}]`, `[ACT:JOBEND]`, `[RES:${result}]`);
         return id;
       },
       error: (id, err = new Error(`Undefine error`)) => {
@@ -89,11 +99,6 @@ class ObjectMonitorSubclass {
 
   publish(msg) {
     this.rtcPeerService.publish(this.publishPath, msg);
-  }
-
-  log(...message) {
-    this.logger.info([...message].join(` `));
-    this.publish(message, this.publishPath);
   }
 }
 

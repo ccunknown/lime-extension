@@ -516,23 +516,23 @@ class RoutesManager extends APIHandler {
               let cmd = pathArr.pop();
               let id  = pathArr.pop();
               let enginesService = this.laborsManager.getService(`engines-service`).obj;
-              if(cmd == `start`) {
+              if(cmd === `start`) {
                 this.laborsManager.getService(`engines-service`).obj.startEngine(id)
                 .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
-              else if(cmd == `stop`) {
+              else if(cmd === `stop`) {
                 this.laborsManager.getService(`engines-service`).obj.stopEngine(id)
                 .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
-              else if(cmd == `add-to-service`) {
+              else if(cmd === `add-to-service`) {
                 enginesService.objectFunctions.patchConfig(id, {"addToService": true})
                 .then(() => enginesService.addToService(id))
                 .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
               }
-              else if(cmd == `remove-from-service`) {
+              else if(cmd === `remove-from-service`) {
                 enginesService.objectFunctions.patchConfig(id, {"addToService": false})
                 .then(() => enginesService.removeFromService(id))
                 .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))

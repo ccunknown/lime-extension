@@ -16,19 +16,17 @@ class ModbusRtu extends EngineTemplate {
     this.enginesService = enginesService;
     this.sysportService = enginesService.sysportService;
     this.config = config;
+    this.lastProcessTimestamp = new Date();
     this.event = new EventEmitter();
     this.client = new ModbusRTU();
-    // this.lock = {
-    //   act: {
-    //     key: `act-lock`,
-    //     locker: new AsyncLock(),
-    //   },
-    // };
+
     // eslint-disable-next-line import/no-dynamic-require, global-require
     this.Errors = require(Path.join(
       this.enginesService.getRootDirectory(),
       `/constants/errors.js`
     ));
+
+    this.om.obj.log(`${this.id}`, `Construct engine`);
   }
 
   init() {
@@ -73,62 +71,65 @@ class ModbusRtu extends EngineTemplate {
   }
 
   start() {
-    console.log(`ModbusRtu: start() >> `);
-    // if (this.getState() !== `restarting`) this.emit(`starting`, this);
-    if (this.getState() !== `restarting`) this.setState(`starting`);
+    // if (this.getState() !== `restarting`) this.setState(`starting`);
     return new Promise((resolve, reject) => {
-      this.client.connectRTUBuffered(this.port, (error) => {
-        if (error) {
-          // setTimeout(() => this.restart(), 5000);
-          reject(error);
-        } else {
-          this.port._client.removeAllListeners("close");
-          this.port._client.on(`close`, (err) => {
-            console.log(`ModbusRtu: on port close. >> `);
-            console.error(err);
-            if (err) {
-              // console.log(`prepare to restart!!!`);
-              this.restart();
-              // this.emit(`error`, err);
-              this.setState(`error`);
-              // console.log(`after restart call!!!`);
-              // setTimeout(() => this.restart(), 5000);
+      Promise.resolve()
+        .then(() =>
+          this.client.connectRTUBuffered(this.port, (error) => {
+            if (error) {
+              this.om.error(error);
+            } else {
+              this.port._client.removeAllListeners("close");
+              this.port._client.on(`close`, (err) => {
+                this.om.obj.log(`port close. >> `);
+                if (err) {
+                  this.om.error(err);
+                }
+              });
+              resolve();
             }
-          });
-          // this.emit(`running`, this);
-          this.setState(`running`);
-          resolve();
-        }
-      });
+          })
+        )
+        .catch((err) => reject(err));
     });
   }
 
-  restart() {
-    console.log(`ModbusRtu: restart() >> `);
-    // this.emit(`restarting`, this);
-    this.setState(`restarting`);
-    return new Promise((resolve) => {
-      Promise.resolve()
-        .then(() => this.stop())
-        .then(() => this.start())
-        .then(() => resolve())
-        .catch((err) => {
-          console.error(err);
-          setTimeout(() => this.restart(), 5000);
-        });
-    });
-  }
+  // start() {
+  //   return new Promise((resolve, reject) => {
+  //     this.client.connectRTUBuffered(this.port, (error) => {
+  //       if (error) {
+  //         // setTimeout(() => this.restart(), 5000);
+  //         reject(error);
+  //       } else {
+  //         this.port._client.removeAllListeners("close");
+  //         this.port._client.on(`close`, (err) => {
+  //           this.om.obj.log(`port close. >> `);
+  //           // console.log(`ModbusRtu: on port close. >> `);
+  //           // console.error(err);
+  //           if (err) {
+  //             // console.log(`prepare to restart!!!`);
+  //             this.restart();
+  //             this.om.obj.error(err);
+  //             // this.emit(`error`, err);
+  //             // this.setState(`error`);
+  //             // console.log(`after restart call!!!`);
+  //             // setTimeout(() => this.restart(), 5000);
+  //           }
+  //         });
+  //         // this.emit(`running`, this);
+  //         // this.setState(`running`);
+  //         resolve();
+  //       }
+  //     });
+  //   });
+  // }
 
   stop() {
-    console.log(`ModbusRtu: stop() >> `);
-    // if (this.getState() !== `restarting`) this.emit(`stoping`, this);
-    if (this.getState() !== `restarting`) this.setState(`stoping`);
+    // if (this.getState() !== `restarting`) this.setState(`stoping`);
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() =>
           this.client.close(() => {
-            // if (this.getState() !== `restarting`) this.emit(`stopped`, this);
-            if (this.getState() !== `restarting`) this.setState(`stopped`);
             resolve();
           })
         )
@@ -136,15 +137,19 @@ class ModbusRtu extends EngineTemplate {
     });
   }
 
-  // emit(event, arg) {
-  //   console.log(`ModbusRtu: emit("${event}") >> `);
-  //   // this.getState = event;
-  //   return this.event.emit(event, arg);
-  // }
-
-  // getState() {
-  //   return this.state;
-  // }
+  restart() {
+    this.setState(`restarting`);
+    return new Promise((resolve) => {
+      Promise.resolve()
+        .then(() => this.stop())
+        .then(() => this.start())
+        .then(() => resolve())
+        .catch((err) => {
+          this.om.error(err);
+          setTimeout(() => this.restart(), 5000);
+        });
+    });
+  }
 
   // eslint-disable-next-line class-methods-use-this
   commandToString(cmd) {
@@ -164,20 +169,9 @@ class ModbusRtu extends EngineTemplate {
     return `<0x ${hexString}>`;
   }
 
-  processor(cmd) {
-    // console.log(`ModbusRtu: _act() >> `);
-    const timestamp = new Date().toISOString();
-    // console.log(`>>>>>> time: ${timestamp}`);
-    // console.log(`cmd : ${JSON.stringify(cmd)}`);
+  processor(jobId, cmd) {
+    // const timestamp = new Date().toISOString();
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        const timeerr = new Date().toISOString();
-        // console.log(`>>>>>> error time: ${timestamp}/${timeerr}`);
-        // console.log(`cmd`, JSON.stringify(cmd, null, 2));
-        // this.om_info(`>>>>>> error time: ${timestamp}/${timeerr}`);
-        // this.om_info(`cmd`, JSON.stringify(cmd, null, 2));
-        reject(new Error(`Engine command timeout ${timestamp}/${timeerr}`));
-      }, this.config.timeout);
       if (this.getState() !== `running`) {
         reject(new Error(`Port currently "${this.getState()}".`));
       } else if (cmd.action === `read`) {
@@ -193,14 +187,31 @@ class ModbusRtu extends EngineTemplate {
             : cmd.table === `holdingRegisters`
             ? this.client.readHoldingRegisters.bind(this.client)
             : undefined;
-
         if (func) {
+          let timeout;
           Promise.resolve()
+            .then(() => this.dynamicDelay(this.config.delay))
+            .then(() => {
+              timeout = setTimeout(() => {
+                reject(new Error(`Engine command timeout`));
+              }, this.config.timeout);
+              this.om.task.log(
+                //
+                jobId,
+                `start req: ${new Date().toISOString()}`
+              );
+            })
             .then(() => func(cmd.address, cmd.numtoread))
             .then((ret) => {
+              this.lastProcessTimestamp = new Date();
+              clearTimeout(timeout);
+              this.om.task.log(
+                jobId,
+                `end req: ${this.lastProcessTimestamp.toISOString()}`
+              );
               val = ret;
             })
-            .then(() => clearTimeout(timeout))
+            // .then(() => clearTimeout(timeout))
             .then(() => {
               const ret = [...val.buffer];
               resolve(ret);
@@ -212,6 +223,21 @@ class ModbusRtu extends EngineTemplate {
         }
       } else {
         const err = new Error(`Action "${cmd.action}" not define!!!`);
+        reject(err);
+      }
+    });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  dynamicDelay(ms) {
+    return new Promise((resolve, reject) => {
+      try {
+        const timestamp = new Date();
+        const alreadyDelay = timestamp - this.lastProcessTimestamp;
+        const remainingDelay = ms - alreadyDelay;
+        // this.lastProcessTimestamp = timestamp;
+        setTimeout(() => resolve(), Math.max(remainingDelay, 0));
+      } catch (err) {
         reject(err);
       }
     });

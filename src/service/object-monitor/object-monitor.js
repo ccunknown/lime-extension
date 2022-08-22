@@ -4,10 +4,7 @@ const ObjectMonitorSubclass = require("./object-monitor-subclass");
 class ObjectMonitor {
   constructor(service, id) {
     this.om = new ObjectMonitorSubclass(service, id);
-    this.om.task.log(
-      `${service.id}:${id}`,
-      `New object start ${new Date().toISOString()}`
-    );
+    this.om.obj.log(`${service.id}:${id}`, `Construct object-monitor`);
   }
 }
 

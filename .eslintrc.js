@@ -22,7 +22,8 @@ module.exports = {
     "prettier/prettier": ["warn"],
   },
   parserOptions: {
-    ecmaVersion: 2015,
+    // ecmaVersion: 2015,
+    ecmaVersion: 9,
     sourceType: "module",
   },
   env: {

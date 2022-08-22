@@ -1,7 +1,8 @@
 const winston = require(`winston`);
 require(`winston-daily-rotate-file`);
 
-const { combine, timestamp, label, printf } = winston.format;
+// const { combine, timestamp, label, printf } = winston.format;
+const { combine, printf } = winston.format;
 
 const defaultOptions = {
   console: true,
@@ -13,48 +14,73 @@ const defaultOptions = {
   ],
 };
 
+const consoleLogFormat = printf(({ level, message, label }) => {
+  return `[${level}]:[ID:${label}] ${message}`;
+});
+
+const fileLogFormat = printf(({ level, message }) => {
+  return `${new Date().toISOString()} [${level}]: ${message}`;
+});
+
 const defaultFileOptions = {
   maxFiles: 10,
   maxSize: `10k`,
   datePattern: ``,
+  format: fileLogFormat,
 };
 
-const myFormat = printf(({ level, message }) => {
-  return `${new Date().toISOString()} [${level}]: ${message}`;
-});
-
 const generateConfig = (options = {}) => {
-  const opt = {};
-  Object.entries(defaultOptions).forEach(([key, value]) => {
-    if (Object.prototype.hasOwnProperty.call(options, key))
-      opt[key] = options[key];
-    else opt[key] = value;
+  const opt = JSON.parse(JSON.stringify(defaultOptions));
+  Object.entries(options).forEach(([key, value]) => {
+    opt[key] = value;
   });
 
   const config = {
     level: `info`,
-    // format: winston.format.json(),
-    format: combine(
-      //
-      label({ label: "test label" }),
-      timestamp(),
-      myFormat
-    ),
     transports: [],
   };
 
-  if (opt.console) {
-    config.transports.push(new winston.transports.Console());
-  }
-  if (opt.files.length) {
+  // If there are files array in opt then create file transport for each.
+  if (
+    Object.prototype.hasOwnProperty.call(opt, `files`) &&
+    Array.isArray(opt.files)
+  ) {
     opt.files.forEach((e) => {
-      const fopt = JSON.parse(JSON.stringify(defaultFileOptions));
-      fopt.filename = `${e.filename}.%DATE%.log`;
-      fopt.dirname = e.dirname;
-      fopt.createSymlink = true;
-      fopt.symlinkName = `${e.filename}.log`;
+      const fopt = { ...defaultFileOptions };
+      Object.entries(e).forEach(([key, val]) => {
+        if (key === `filename`) fopt.filename = `${val}.%DATE%.log`;
+        else fopt[key] = val;
+      });
       config.transports.push(new winston.transports.DailyRotateFile(fopt));
     });
+  }
+
+  // If console option is true then create console transport.
+  if (
+    Object.prototype.hasOwnProperty.call(opt, `console`) &&
+    typeof opt.console === `object`
+  ) {
+    const consoleOpt = {
+      format: combine(
+        winston.format.label({ label: opt.console.label }),
+        winston.format.colorize(),
+        consoleLogFormat
+      ),
+    };
+    Object.entries(opt.console).forEach(([key, val]) => {
+      consoleOpt[key] = val;
+    });
+    config.transports.push(new winston.transports.Console(consoleOpt));
+  } else if (
+    Object.prototype.hasOwnProperty.call(opt, `console`) &&
+    typeof opt.console === `boolean` &&
+    opt.console
+  ) {
+    config.transports.push(
+      new winston.transports.Console({
+        format: combine(winston.format.colorize(), consoleLogFormat),
+      })
+    );
   }
 
   return config;
