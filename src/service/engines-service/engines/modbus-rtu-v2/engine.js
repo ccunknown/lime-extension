@@ -71,19 +71,21 @@ class ModbusRtu extends EngineTemplate {
   }
 
   start() {
+    // console.log(`[${this.constructor.name}]`, `engine start() >> `);
     // if (this.getState() !== `restarting`) this.setState(`starting`);
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() =>
           this.client.connectRTUBuffered(this.port, (error) => {
             if (error) {
-              this.om.error(error);
+              this.om.obj.error(error);
             } else {
               this.port._client.removeAllListeners("close");
               this.port._client.on(`close`, (err) => {
                 this.om.obj.log(`port close. >> `);
+                this.setState(`stopped`);
                 if (err) {
-                  this.om.error(err);
+                  this.om.obj.error(err);
                 }
               });
               resolve();
@@ -93,36 +95,6 @@ class ModbusRtu extends EngineTemplate {
         .catch((err) => reject(err));
     });
   }
-
-  // start() {
-  //   return new Promise((resolve, reject) => {
-  //     this.client.connectRTUBuffered(this.port, (error) => {
-  //       if (error) {
-  //         // setTimeout(() => this.restart(), 5000);
-  //         reject(error);
-  //       } else {
-  //         this.port._client.removeAllListeners("close");
-  //         this.port._client.on(`close`, (err) => {
-  //           this.om.obj.log(`port close. >> `);
-  //           // console.log(`ModbusRtu: on port close. >> `);
-  //           // console.error(err);
-  //           if (err) {
-  //             // console.log(`prepare to restart!!!`);
-  //             this.restart();
-  //             this.om.obj.error(err);
-  //             // this.emit(`error`, err);
-  //             // this.setState(`error`);
-  //             // console.log(`after restart call!!!`);
-  //             // setTimeout(() => this.restart(), 5000);
-  //           }
-  //         });
-  //         // this.emit(`running`, this);
-  //         // this.setState(`running`);
-  //         resolve();
-  //       }
-  //     });
-  //   });
-  // }
 
   stop() {
     // if (this.getState() !== `restarting`) this.setState(`stoping`);
@@ -145,7 +117,7 @@ class ModbusRtu extends EngineTemplate {
         .then(() => this.start())
         .then(() => resolve())
         .catch((err) => {
-          this.om.error(err);
+          this.om.obj.error(err);
           setTimeout(() => this.restart(), 5000);
         });
     });

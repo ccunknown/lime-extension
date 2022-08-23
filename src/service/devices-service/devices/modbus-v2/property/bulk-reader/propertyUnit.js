@@ -1,22 +1,19 @@
-'use strict'
+// eslint-disable-next-line import/no-extraneous-dependencies
+const { Property } = require(`gateway-addon`);
 
-const {Property} = require('gateway-addon');
-
-const ConfigTranslator = require(`./config-translator.js`);
-
-const DESCR_FIELDS = [
-  'title',
-  'type',
-  '@type',
-  'unit',
-  'description',
-  'minimum',
-  'maximum',
-  'enum',
-  'readOnly',
-  'multipleOf',
-  'links',
-];
+// const DESCR_FIELDS = [
+//   'title',
+//   'type',
+//   '@type',
+//   'unit',
+//   'description',
+//   'minimum',
+//   'maximum',
+//   'enum',
+//   'readOnly',
+//   'multipleOf',
+//   'links',
+// ];
 
 class PropertyUnit extends Property {
   constructor(device, master, name, schema) {
@@ -44,25 +41,10 @@ class PropertyUnit extends Property {
 
     if (hasChanged) {
       this.device.notifyPropertyChanged(this);
-
-      // console.log('setCachedValueAndNotify for property', this.name,
-      //             'from', oldValue, 'to', this.value, 'for', this.device.id);
     }
 
     return hasChanged;
   }
-
-  // start() {
-  //   return this.master.start();
-  // }
-
-  // stop() {
-  //   return this.master.stop();
-  // }
-
-  // isRunning() {
-  //   return this.master.period && true;
-  // }
 }
 
 module.exports = PropertyUnit;

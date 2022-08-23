@@ -159,19 +159,11 @@ class EnginesService extends Service {
         .then(() => this.sysportService.get(config.port, { object: true }))
         .then((sysportSchema) => engine.init(sysportSchema.object))
         .then(() =>
-          typeof engine.et_start === `function`
-            ? engine.et_start()
+          Object.prototype.hasOwnProperty.call(engine, `oo`) &&
+          typeof engine.oo.start === `function`
+            ? engine.oo.start()
             : engine.start()
         )
-        // .then(() => {
-        //   if (typeof engine.et_start === `function`) {
-        //     console.log(`[${this.constructor.name}]`, `use et_start()`);
-        //     engine.et_start();
-        //   } else {
-        //     console.log(`[${this.constructor.name}]`, `use normal start()`);
-        //     engine.start();
-        //   }
-        // })
         .then(() => resolve(engine))
         .catch((err) => reject(err));
     });
@@ -362,8 +354,9 @@ class EnginesService extends Service {
       if (engine) {
         Promise.resolve()
           .then(() =>
-            typeof engine.et_start === `function`
-              ? engine.et_start()
+            Object.prototype.hasOwnProperty.call(engine, `oo`) &&
+            typeof engine.oo.start === `function`
+              ? engine.oo.start()
               : engine.start()
           )
           .then(() => resolve())
@@ -381,8 +374,9 @@ class EnginesService extends Service {
       if (engine) {
         Promise.resolve()
           .then(() =>
-            Object.prototype.hasOwnProperty.call(engine, `et_stop`)
-              ? engine.et_stop()
+            Object.prototype.hasOwnProperty.call(engine, `oo`) &&
+            typeof engine.oo.stop === `function`
+              ? engine.oo.stop()
               : engine.stop()
           )
           .then(() => resolve())

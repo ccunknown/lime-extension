@@ -1,18 +1,10 @@
-const Queue = require(`bull`);
-const ObjectMonitor = require(`../../object-monitor/object-monitor`);
+// const Queue = require(`bull`);
+const ObjectTemplate = require(`../../../object-template/object-template`);
 
-class PropertyTemplate extends ObjectMonitor {
+class PropertyTemplate extends ObjectTemplate {
   constructor(devicesService, deviceId, propertyId) {
     super(devicesService, `${deviceId}/${propertyId}`);
-    const id = `${deviceId}:${propertyId}`;
-    this.pt = {
-      devicesService,
-      id,
-      deviceId,
-      propertyId,
-      queue: new Queue(`propertyQueue-${id}`),
-      state: `unload`,
-    };
+    this.om.obj.log(`${this.id}`, `Construct template`);
   }
 }
 

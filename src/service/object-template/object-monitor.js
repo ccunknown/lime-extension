@@ -4,7 +4,7 @@ const winston = require(`winston`);
 
 const { generateConfig } = require(`./log-config-generator`);
 
-class ObjectMonitorSubclass {
+class ObjectMonitor {
   constructor(service, id) {
     const { extension } = service;
     const storageDir = Path.join(
@@ -102,4 +102,4 @@ class ObjectMonitorSubclass {
   }
 }
 
-module.exports = ObjectMonitorSubclass;
+module.exports = ObjectMonitor;
