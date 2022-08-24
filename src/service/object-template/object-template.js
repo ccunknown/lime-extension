@@ -1,4 +1,5 @@
 /* eslint-disable class-methods-use-this */
+const { v1: uuid } = require(`uuid`);
 const ObjectMonitor = require("./object-monitor");
 const ObjectOperator = require("./object-operator");
 
@@ -18,12 +19,12 @@ class ObjectTemplate {
     return this.oo.setState(state);
   }
 
-  act(cmd) {
+  act(cmd, jobId = uuid()) {
     return new Promise((resolve) => {
-      let jobId;
+      // let jobId;
       Promise.resolve()
         .then(() => {
-          jobId = this.om.task.add(jobId, this.commandToString(cmd), {
+          this.om.task.add(jobId, this.commandToString(cmd), {
             jobId,
             removeOnComplete: 256,
             removeOnFail: 256,

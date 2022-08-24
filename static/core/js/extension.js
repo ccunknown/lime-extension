@@ -29,6 +29,7 @@ export default class ExtensionMain extends window.Extension {
       })
       .then(() => this.initRTCPeer())
       .then(() => this.ui.render(this.config))
+      .then(() => this.rtcpageController.init())
       // .then(() => this.rtcpeer.init(config[`service-config`][`rtcpeer-service`].config))
       .then(() => resolve())
       .catch((err) => reject(err));
@@ -52,6 +53,7 @@ export default class ExtensionMain extends window.Extension {
       this.api = new (this.loader.getCoreObject(`api`))(this);
       this.ui = new (this.loader.getCoreObject(`ui`))(this);
       this.rtcpeer = new (this.loader.getCoreObject(`rtcPeer`))();
+      this.rtcpageController = new (this.loader.getCoreObject(`rtcPageController`))(this);
 
       // await this.ui.init();
       // await this.collector.init();

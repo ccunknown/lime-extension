@@ -218,7 +218,11 @@ class BulkReader extends PropertyTemplate {
         queryTask
           .reduce((prevProm, opt) => {
             return prevProm
-              .then(() => engine.act(opt))
+              .then(() => engine.act(opt, jobId))
+              .then((ret) => {
+                if (ret.error) throw new Error(ret.error);
+                else return ret;
+              })
               .then((ret) => {
                 // console.log(`[${this.constructor.name}]`, `raw:`, ret);
                 // console.log(`[${this.constructor.name}]`, `opt: ${opt.action} [id: ${opt.id}] [${opt.table}: ${opt.address}] -> ${opt.numtoread} word`);
@@ -250,6 +254,7 @@ class BulkReader extends PropertyTemplate {
                   //   ` ${buffVal.toString(`hex`)} => ${value}`
                   // );
                   this.om.task.log(
+                    jobId,
                     `result`,
                     `<addr:${addr}>`,
                     `<${ref.name}:${value}>`,

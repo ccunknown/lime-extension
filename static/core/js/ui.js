@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
 export default class ExtensionUi {
   constructor(extension) {
     this.extension = extension;
@@ -14,37 +16,44 @@ export default class ExtensionUi {
   }
 
   init() {
-    return new Promise(async (resolve, reject) => {
-      await this.initView();
-      await this.initRaid(this.view);
-      await this.initToasted();
-      await this.initVueComponent();
-      this.initFunction();
-      //await this.initScript();
-      //await this.initScript();
-
-      this.extension.view.innerHTML = this.view;
-      // this.initRaid();
-      this.initNavEvent();
-      this.initScript();
-
-      resolve();
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        .then(() => this.initView())
+        .then(() => this.initRaid(this.view))
+        .then(() => this.initToasted())
+        .then(() => this.initVueComponent())
+        .then(() => this.initFunction())
+        .then(() => {
+          this.extension.view.innerHTML = this.view;
+        })
+        .then(() => this.initNavEvent())
+        .then(() => this.initScript())
+        .then(() => resolve())
+        .catch((err) => reject(err));
     });
   }
 
   initView() {
-    let mainView = this.extension.loader.getCoreObject(`page-main`);
-    let resourceView = this.extension.loader.getCoreObject(`page-resource`);
-    let customViews = this.extension.loader.getCustomViews();
-    let customObjects = this.extension.loader.getCustomObjects();
-    let data = {
+    const mainView = this.extension.loader.getCoreObject(`page-main`);
+    const resourceView = this.extension.loader.getCoreObject(`page-resource`);
+    const resource = new DOMParser().parseFromString(resourceView, "text/html");
+    const rtcOverlayView =
+      this.extension.loader.getCoreObject(`page-rtc-overlay`);
+    const rtcOverlay = new DOMParser().parseFromString(
+      rtcOverlayView,
+      "text/html"
+    );
+    const customViews = this.extension.loader.getCustomViews();
+    const customObjects = this.extension.loader.getCustomObjects();
+    const data = {
       ext: this.ext,
       def: this.def,
       page: null,
       nav: ``,
-      content: ``
+      content: ``,
+      // rtcOverlay,
+      rtcOverlay: null,
     };
-    let resource = new DOMParser().parseFromString(resourceView, "text/html");
 
     for(let i in customViews) {
       let schema = this.extension.loader.getSchemaDefine(i);
@@ -60,7 +69,7 @@ export default class ExtensionUi {
       data.nav = `${data.nav} ${this.mustache.render(resource.getElementById(`extension-template-nav`).innerHTML, data)}`;
       data.content = `${data.content} ${this.mustache.render(resource.getElementById(`extension-template-content`).innerHTML, data)}`;
     }
-
+    data.rtcOverlay = this.mustache.render(rtcOverlayView, data);
     this.view = this.mustache.render(mainView, data);
     this.dom = new DOMParser().parseFromString(this.view, `text/html`);
 
@@ -114,7 +123,7 @@ export default class ExtensionUi {
             toast.el.classList.remove(styleArr[i]);
           toast.el.classList.add((styleArr.includes(dest)) ? dest : `default`);
           toast.text(message);
-        }
+        },
       };
       resolve();
     });

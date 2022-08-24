@@ -1,0 +1,18 @@
+<div
+  class="miso-absolute-overlay-workspace"
+  :class="{hide: !ui.active}"
+>
+  <div class="miso-absolute-overlay-content">
+    Hello World
+  </div>
+</div>
+<div class="miso-absolute-overlay-switch d-flex justify-content-end bg-light">
+  <div
+    class="overlay-switch rounded-lg d-flex justify-content-center align-items-center"
+    :class="{active: !ui.active}"
+    @click="fn.switchToggle()"
+  >
+    <!-- <i class="fas fa-save fa-lg"></i> -->
+    <i class="fa-solid fa-angles-left"></i>
+  </div>
+</div>

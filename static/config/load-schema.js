@@ -42,6 +42,7 @@
                 "extension-script-raid",
                 "extension-script-ui",
                 "extension-script-page",
+                "extension-script-webrtc-rtcpage-controller",
                 "extension-script-webrtc-channel-pair",
                 "extension-script-webrtc-session",
                 "extension-script-webrtc-rtcpeer"
@@ -71,6 +72,7 @@
           "load": [
             "extension-view-main",
             "extension-view-resource",
+            "extension-view-rtc-overlay",
             "custom-rest",
             "script-devices",
             "script-scripts",
@@ -134,6 +136,12 @@
         // "windowObj": "ExtensionRTCChannelPair",
         // "core": "rtcChannelPair"
       },
+      "extension-script-webrtc-rtcpage-controller": {
+        "type": "global-script",
+        "path": "/core/js/webrtc/rtcpage-controller.js",
+        "object-name": "ExtensionRTCPageController",
+        "core": "rtcPageController",
+      },
 
       "extension-view-resource": {
         "type": "core-view",
@@ -144,6 +152,11 @@
         "type": "core-view",
         "path": "/core/views/main.html",
         "core": "page-main"
+      },
+      "extension-view-rtc-overlay": {
+        "type": "core-view",
+        "path": "/core/views/rtc-overlay.html",
+        "core": "page-rtc-overlay"
       },
 
       "jquery": {
@@ -259,8 +272,21 @@
       "script-configs": {
         "type": "custom-script",
         "path": "/custom/js/configs.js",
-        "object-name": "PageSysport"
+        "object-name": "PageConfigs"
       },
+
+      // "page-shadows": {
+      //   "name": "shadows",
+      //   "type": "custom-view",
+      //   "path": "/custom/views/shadow.html",
+      //   "icon": "fa-solid fa-wrench",
+      //   "link-script": "script-shadows"
+      // },
+      // "script-shadows": {
+      //   "type": "custom-script",
+      //   "path": "/custom/js/shadows.js",
+      //   "object-name": "PageShadows"
+      // },
 
       "custom-rest": {
         "type": "custom-script",
