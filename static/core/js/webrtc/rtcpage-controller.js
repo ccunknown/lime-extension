@@ -1,3 +1,4 @@
+const MAX_LOG_KEEP = 1000;
 /* eslint-disable no-undef */
 export default class ExtensionRTCPageController {
   constructor(extension) {
@@ -32,7 +33,9 @@ export default class ExtensionRTCPageController {
           // loader: this.extension.schema,
           // Resource
           resource: {
-            config: null,
+            logList: [],
+            subscribeList: [],
+            cmdInput: ``,
           },
           // UI
           ui: {
@@ -42,6 +45,8 @@ export default class ExtensionRTCPageController {
           // Function
           fn: {
             switchToggle: () => {},
+            addSubscribe: () => {},
+            removeSubscribe: () => {},
           },
         },
         methods: {},
@@ -52,9 +57,42 @@ export default class ExtensionRTCPageController {
         switchToggle: () => {
           this.vue.ui.active = !this.vue.ui.active;
         },
+        addSubscribe: () => {
+          const subscribe = `${this.vue.resource.cmdInput}`;
+          this.console.log(subscribe);
+          if (!this.vue.resource.subscribeList.includes(subscribe)) {
+            this.vue.resource.subscribeList.push(subscribe);
+            this.vue.resource.cmdInput = ``;
+            this.addSubscribe(subscribe);
+          }
+        },
+        removeSubscribe: (item) => {
+          const index = this.vue.resource.subscribeList.indexOf(item);
+          if (index !== -1) {
+            this.vue.resource.subscribeList.splice(index, 1);
+          }
+        },
       };
       this.console.log(this.vue);
       resolve();
     });
+  }
+
+  addSubscribe(topic) {
+    this.console.log(`topic:`, topic);
+    this.extension.rtcpeer.addSubscribe(
+      topic,
+      this.subscribeCallback.bind(this)
+    );
+  }
+
+  subscribeCallback(...args) {
+    this.console.log(`subscribeCallback`, ...args);
+    this.vue.resource.logList.push({
+      timestamp: new Date(),
+      message: [...args],
+    });
+    while (this.vue.resource.logList.length > MAX_LOG_KEEP)
+      this.vue.resource.logList.shift();
   }
 }

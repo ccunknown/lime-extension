@@ -69,7 +69,9 @@ export default class ExtensionUi {
       data.nav = `${data.nav} ${this.mustache.render(resource.getElementById(`extension-template-nav`).innerHTML, data)}`;
       data.content = `${data.content} ${this.mustache.render(resource.getElementById(`extension-template-content`).innerHTML, data)}`;
     }
-    data.rtcOverlay = this.mustache.render(rtcOverlayView, data);
+    // data.rtcOverlay = this.mustache.render(rtcOverlayView, data);
+    data.rtcOverlay = rtcOverlayView;
+    // document.getElementById(`extension-lime-rtc-overlay`).innerHTML = rtcOverlay;
     this.view = this.mustache.render(mainView, data);
     this.dom = new DOMParser().parseFromString(this.view, `text/html`);
 

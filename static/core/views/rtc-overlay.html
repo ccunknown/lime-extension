@@ -2,8 +2,64 @@
   class="miso-absolute-overlay-workspace"
   :class="{hide: !ui.active}"
 >
-  <div class="miso-absolute-overlay-content">
-    Hello World
+  <div class="miso-absolute-overlay-content text-light d-flex">
+    <div class="miso-absolute-overlay-content-console w-100 d-flex flex-column">
+      <div
+        class="
+          miso-absolute-overlay-content-console-monitor
+          border-warning
+          w-100
+          grow-1
+        "
+        style="
+          font-family: Consolas,monaco,monospace;
+          overflow: scroll;
+          white-space: nowrap;
+        "
+      >
+        <template
+          v-for="log in resource.logList"
+        >
+          <div>
+            <span>{{log.timestamp.toISOString()}}</span>
+            :
+            <span>{{log.message}}</span>
+          </div>
+        </template>
+      </div>
+      <div
+        class="
+          miso-absolute-overlay-content-console-cmd
+          border-warning
+          d-flex flex-column
+          justify-content-between
+        "
+      >
+        <div>
+          <template
+            v-for="subscribeText in resource.subscribeList"
+          >
+            <div class="list-group-item list-group-item-action bg-transparent text-light d-flex justify-content-between">
+              <div class="grow-1 d-flex flex-column">
+                <span>Sub: {{subscribeText}}</span>
+              </div>
+              <span>
+                <button 
+                  class="btn btn-danger"
+                  @click="fn.removeSubscribe(subscribeText)"
+                >
+                  <i class="fas fa-trash fa-lg"></i>
+                </button>
+              </span>
+            </div>
+          </template>
+        </div>
+        <div class="d-flex justify-content-between align-items-center p-3">
+          <input type="text" class="grow-1 mr-3" v-model="resource.cmdInput">
+          <button class="btn btn-primary" @click="fn.addSubscribe()">Subscribe</button>
+        </div>
+      </div>  
+    </div>
   </div>
 </div>
 <div class="miso-absolute-overlay-switch d-flex justify-content-end bg-light">

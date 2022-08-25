@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 export default class ExtensionRTCPeer {
   /*
     serviceConfig = {
@@ -9,7 +10,7 @@ export default class ExtensionRTCPeer {
     }
   */
   constructor(config) {
-    config && this.init(config);
+    if (config) this.init(config);
     this.session = null;
     this.subscribeList = [];
     this.senderReady = false;
@@ -27,11 +28,11 @@ export default class ExtensionRTCPeer {
       this.senderReady = false;
       this.receiverReady = false;
       Promise.resolve()
-      .then(() => this.session.start())
-      .then(() => this.setChannelMessageHander())
-      .then(() => this.applySubscribeList())
-      .then(() => resolve())
-      .catch((err) => console.error(err))
+        .then(() => this.session.start())
+        .then(() => this.setChannelMessageHander())
+        .then(() => this.applySubscribeList())
+        .then(() => resolve())
+        .catch((err) => console.error(err));
     });
   }
 
@@ -44,33 +45,34 @@ export default class ExtensionRTCPeer {
     console.log(`applySubscribeList() >> `, this.subscribeList);
     return new Promise((resolve, reject) => {
       Promise.resolve()
-      .then(() => this.subscribeList.reduce((prevProm, e) => {
-        console.log(`add subscribe to topic:`, e.topic);
-        return prevProm.then(() => this.session.addSubscribe(e.topic, e.callback));
-      }, Promise.resolve()))
-      .then(() => resolve())
-      .catch((err) => reject(err));
+        .then(() =>
+          this.subscribeList.reduce((prevProm, e) => {
+            console.log(`add subscribe to topic:`, e.topic);
+            return prevProm.then(() =>
+              this.session.addSubscribe(e.topic, e.callback)
+            );
+          }, Promise.resolve())
+        )
+        .then(() => resolve())
+        .catch((err) => reject(err));
     });
   }
 
   addSubscribe(topic, callback) {
-    if(
-      this.session && 
-      this.session.channel && 
-      this.session.channel.sender.readyState == `open` &&
-      this.session.channel.receiver.readyState == `open`
+    if (
+      this.session &&
+      this.session.channel &&
+      this.session.channel.sender.readyState === `open` &&
+      this.session.channel.receiver.readyState === `open`
     ) {
       this.session.addSubscribe(topic, callback);
-    }
-    else {
+    } else {
       this.subscribeList.push({
-        topic: topic,
-        callback: callback
+        topic,
+        callback,
       });
     }
   }
 
-  onMessage(event) {
-
-  }
+  onMessage(event) {}
 }

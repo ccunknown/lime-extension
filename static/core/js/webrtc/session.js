@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+/* eslint-disable no-underscore-dangle */
 export default class ExtensionRTCSession extends EventTarget {
   constructor(config, option = {}) {
     super();
@@ -191,13 +193,15 @@ export default class ExtensionRTCSession extends EventTarget {
     console.log(`[${this.constructor.name}]`, `addAnswerCandidate() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
-      .then(() => this.apiFetch({
-        url: `/session/${sessionId}/answer-candidate`,
-        method: `POST`,
-        body: candidate
-      }))
-      .then((ret) => resolve(ret))
-      .catch((err) => reject(err));
+        .then(() =>
+          this.apiFetch({
+            url: `/session/${sessionId}/answer-candidate`,
+            method: `POST`,
+            body: candidate,
+          })
+        )
+        .then((ret) => resolve(ret))
+        .catch((err) => reject(err));
     });
   }
 
@@ -207,57 +211,54 @@ export default class ExtensionRTCSession extends EventTarget {
 
   onMessage(event) {
     // console.log(`[${this.constructor.name}]`, `onMessage() >> `);
-    let data = this.decodeMessage(event.detail);
+    const data = this.decodeMessage(event.detail);
     console.log(`[${this.constructor.name}]`, `onMessage() >> `, data);
-    if([`request`, `reply`].includes(data.type)) {
+    if ([`request`, `reply`].includes(data.type)) {
       this.dispatchEvent(new CustomEvent(data.type, { detail: data }));
-    }
-    else if(data.type == `message`) {
-      if(data.command)
-        this.dispatchEvent(new CustomEvent(
-          `cmd-${data.command}`, 
-          { detail: data }
-        ));
+    } else if (data.type === `message`) {
+      if (data.command)
+        this.dispatchEvent(
+          new CustomEvent(`cmd-${data.command}`, { detail: data })
+        );
       else
-        this.dispatchEvent(new CustomEvent(
-          data.type, 
-          { detail: data.message }
-        ));
-    }
-    else {
+        this.dispatchEvent(
+          new CustomEvent(data.type, { detail: data.message })
+        );
+    } else {
       this.dispatchEvent(new CustomEvent(data.type, { detail: data }));
     }
   }
 
   onRequestMessage(event) {
     // console.log(`[${this.constructor.name}]`, `onRequestMessage() >> `, event.detail);
-    let data = this.decodeMessage(event.detail);
-    if(data.command == `ping`) {
+    const data = this.decodeMessage(event.detail);
+    if (data.command === `ping`) {
       this.sendReply(data.messageId, { command: `pong` });
-    }
-    else {
+    } else {
       console.log(data);
     }
   }
 
   onPublishMessage(event) {
-    let data = this.decodeMessage(event.detail);
+    const data = this.decodeMessage(event.detail);
     console.log(
       `[${this.constructor.name}]`, 
       `onPublishMessage(${data.topic}) >> ${data.message}`
     );
     console.log(this.subscribeList);
-    let elem = this.subscribeList.find(e => data.topic.match(`^${e.topic}$`));
+    const elem = this.subscribeList.find((e) =>
+      data.topic.match(`^${e.topic}$`)
+    );
     return elem.callback(data.topic, this.decodeMessage(data.message));
   }
 
   send(message, options = {}) {
     console.log(`[${this.constructor.name}]`, `send() >> `);
-    let payload = {
+    const payload = {
       messageId: this.uuid(),
       layer: `session`,
       type: `message`,
-      message: this.encodeMessage(message)
+      message: this.encodeMessage(message),
     };
     this.initParam(payload, options);
     this.sendRaw(JSON.stringify(payload));
@@ -269,93 +270,87 @@ export default class ExtensionRTCSession extends EventTarget {
 
   addSubscribe(topic, callback) {
     console.log(`[${this.constructor.name}]`, `addSubscribe() >> `);
-    let existTopic = this.subscribeList.find(t => t == topic);
-    if(existTopic) {
+    const existTopic = this.subscribeList.find((t) => t === topic);
+    if (existTopic) {
       existTopic.callback = callback;
       return Promise.resolve();
     }
-    else {
-      return this._addSubscribe(topic, callback);
-    }
+    return this._addSubscribe(topic, callback);
   }
 
   _addSubscribe(topic, callback) {
-    let payload = {
+    const payload = {
       command: `subscribe-add`,
-      topic: topic
+      topic,
     };
     return new Promise((resolve, reject) => {
       Promise.resolve()
-      // .then(() => this.initParam(payload, options))
-      .then(() => this.sendRequest(payload))
-      .then((ret) => {
-        console.log(`subscribe:`, ret);
-        if(ret && ret.command == `subscribe-added`) {
-          this.subscribeList.push({
-            topic: ret.topic,
-            callback: callback
-          });
-        }
-        else {
-          throw new Error(`Add subscribe fail.`);
-        }
-      })
-      .then((ret) => resolve(ret))
-      .catch((err) => reject(err));
+        // .then(() => this.initParam(payload, options))
+        .then(() => this.sendRequest(payload))
+        .then((ret) => {
+          console.log(`subscribe:`, ret);
+          if (ret && ret.command === `subscribe-added`) {
+            this.subscribeList.push({
+              topic: ret.topic,
+              callback,
+            });
+          } else {
+            throw new Error(`Add subscribe fail.`);
+          }
+        })
+        .then((ret) => resolve(ret))
+        .catch((err) => reject(err));
     });
   }
 
   sendReply(messageId, options = {}) {
-    let payload = {
-      messageId: messageId,
+    const payload = {
+      messageId,
       layer: `session`,
-      type: `reply`
+      type: `reply`,
     };
     return new Promise((resolve, reject) => {
       Promise.resolve()
-      .then(() => this.initParam(payload, options))
-      .then(() => this.sendRaw(JSON.stringify(payload)))
-      .then((ret) => resolve(ret))
-      .catch((err) => reject(err));
+        .then(() => this.initParam(payload, options))
+        .then(() => this.sendRaw(JSON.stringify(payload)))
+        .then((ret) => resolve(ret))
+        .catch((err) => reject(err));
     });
   }
 
   sendRequest(options = {}) {
-    let payload = {
+    const payload = {
       messageId: this.uuid(),
       layer: `session`,
-      type: `request`
+      type: `request`,
     };
     return new Promise((resolve, reject) => {
       Promise.resolve()
-      .then(() => this.initParam(payload, options))
-      .then(() => this.sendRaw(JSON.stringify(payload)))
-      .then(() => this.waitForReply(payload.messageId))
-      .then((ret) => resolve(ret))
-      .catch((err) => reject(err));
+        .then(() => this.initParam(payload, options))
+        .then(() => this.sendRaw(JSON.stringify(payload)))
+        .then(() => this.waitForReply(payload.messageId))
+        .then((ret) => resolve(ret))
+        .catch((err) => reject(err));
     });
   }
 
   waitForReply(messageId) {
     return new Promise((resolve, reject) => {
       let timeout = null;
-      let onMessage = (message) => {
+      const onMessage = (message) => {
         console.log(`reply message:`, message);
-        let ret  = this.decodeMessage(message.detail);
-        if(ret && ret.messageId == messageId) {
+        const ret = this.decodeMessage(message.detail);
+        if (ret && ret.messageId === messageId) {
           clearTimeout(timeout);
           this.removeEventListener(`reply`, onMessage.bind(this));
           resolve(ret);
         }
       };
       this.addEventListener(`reply`, onMessage.bind(this));
-      timeout = setTimeout(
-        () => {
-          this.removeEventListener(`reply`, onMessage.bind(this));
-          reject(new Error(`Call-respond timeout.`));
-        },
-        this.config.peerConnectionConfig.channel.callrespond.timeout
-      );
+      timeout = setTimeout(() => {
+        this.removeEventListener(`reply`, onMessage.bind(this));
+        reject(new Error(`Call-respond timeout.`));
+      }, this.config.peerConnectionConfig.channel.callrespond.timeout);
     });
   }
 

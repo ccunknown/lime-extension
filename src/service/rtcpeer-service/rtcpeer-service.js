@@ -65,11 +65,11 @@ class rtcpeerService extends Service {
       if (
         session.publishList.map((re) => `^${re}$`).find((re) => topic.match(re))
       ) {
-        console.log(
-          `[${this.constructor.name}]`,
-          `[${session.id}]`,
-          `publish(${topic}) >> ${message}`
-        );
+        // console.log(
+        //   `[${this.constructor.name}]`,
+        //   `[${session.id}]`,
+        //   `publish(${topic}) >> ${message}`
+        // );
         session.sendPublish(topic, message);
         // console.log(`publish condition >> true`);
       } else {

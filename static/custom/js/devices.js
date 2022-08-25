@@ -11,12 +11,12 @@ export default class PageDevices {
     this.console.trace(`init() >> `);
     return new Promise(async (resolve, reject) => {
       Promise.resolve()
-      .then(() => this.initCustomRest())
-      .then(() => this.initVue())
-      // .then(() => this.initInterval())
-      .then(() => this.initRTCPeerSubscribe())
-      .then(() => resolve())
-      .catch((err) => reject(err));
+        .then(() => this.initCustomRest())
+        .then(() => this.initVue())
+        // .then(() => this.initInterval())
+        .then(() => this.initRTCPeerSubscribe())
+        .then(() => resolve())
+        .catch((err) => reject(err));
     });
   }
 
