@@ -55,6 +55,7 @@ class DevicesService extends Service {
           this.laborsManager.getService(`engines-service`).obj;
         this.rtcpeerService =
           this.laborsManager.getService(`rtcpeer-service`).obj;
+        this.configTranslator = new ConfigTranslator(this);
         resolve();
       } catch (err) {
         reject(err);

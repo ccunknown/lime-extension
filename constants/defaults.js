@@ -47,6 +47,7 @@ const Defaults = {
     "service-config": {
       //  Port Service
       "sysport-service": {
+        directory: "/sysport",
         list: {},
       },
       //  Engine Service
@@ -136,9 +137,12 @@ const Defaults = {
           //  Port Service
           "sysport-service": {
             type: "object",
-            required: ["list"],
+            required: ["directory", "list"],
             additionalProperties: false,
             properties: {
+              directory: {
+                type: "string",
+              },
               list: {
                 type: "object",
                 default: {},

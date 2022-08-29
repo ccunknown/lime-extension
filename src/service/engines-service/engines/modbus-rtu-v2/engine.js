@@ -34,13 +34,13 @@ class ModbusRtu extends EngineTemplate {
       let port;
       Promise.resolve()
         .then(() => this.sysportService.get(this.config.port, { object: true }))
-        .then((sysportSchema) => {
-          port = sysportSchema.object;
+        .then((sysport) => {
+          port = sysport;
         })
         .then(() => this.initMod())
         .then(() => require(`./rtubufferedport`))
         .then((RtuBufferedPort) => {
-          this.port = new RtuBufferedPort(port);
+          this.port = new RtuBufferedPort(port.port);
         })
         .then(() => resolve())
         .catch((err) => reject(err));
@@ -50,6 +50,7 @@ class ModbusRtu extends EngineTemplate {
   initMod() {
     const open = (obj, next) => {
       if (next) {
+        // this.om.obj.log(`obj`, typeof obj, obj.constructor.name);
         obj.open(next);
         return undefined;
       }
@@ -65,6 +66,12 @@ class ModbusRtu extends EngineTemplate {
     this.client.connectRTUBuffered = (port, next) => {
       // create the SerialPort
       const SerialPort = require("./rtubufferedport");
+      console.log(`[${this.constructor.name}]`, `port:`, port.constructor.name);
+      console.log(
+        `[${this.constructor.name}]`,
+        `this.port:`,
+        this.port.constructor.name
+      );
       this.client._port = new SerialPort(this.port);
       return open(this.client, next);
     };

@@ -423,40 +423,37 @@ export default class PageDevices {
   }
 
   renderForm(id) {
-    this.console.log(`PageDevices: renderForm(${(id) ? `${id}` : ``}) >> `);
-    return new Promise(async (resolve, reject) => {
-      if(id) {
-        Promise.all([
-          this.rest.getItemConfig(id)
-        ])
-        .then((promArr) => {
-          let config = promArr[0];
-          this.console.log(`config: ${JSON.stringify(config, null, 2)}`);
-          //  Pre-set form (Cleaning).
-          this.vue.resource.deviceConfigSchema = {};
-          this.vue.ui.slider.final.device = {};
-          this.vue.ui.slider.final.properties = {};
+    this.console.log(`PageDevices: renderForm(${id || ``}) >> `);
+    return new Promise((resolve, reject) => {
+      if (id) {
+        Promise.all([this.rest.getItemConfig(id)])
+          .then((promArr) => {
+            const config = promArr[0];
+            this.console.log(`config: ${JSON.stringify(config, null, 2)}`);
+            //  Pre-set form (Cleaning).
+            this.vue.resource.deviceConfigSchema = {};
+            this.vue.ui.slider.final.device = {};
+            this.vue.ui.slider.final.properties = {};
 
-          this.vue.deviceForm = config;
-          return config;
-        })
-        .then((config) => this.rest.generateConfigSchema(config))
-        .then((schema) => {
-          this.vue.resource.deviceConfigSchema = schema;
-          return ;
-        })
-        .then(() => {
-          for(let i in this.vue.deviceForm.properties) {
-            this.vue.propertyForm = JSON.parse(JSON.stringify(this.vue.deviceForm.properties[i]));
-            this.vue.fn.addProperty(i);
-          }
-          return ;
-        })
-        .then(() => this.onAlternateChange())
-        .then(() => resolve())
-        .catch((err) => reject(err));
-      }
-      else {
+            this.vue.deviceForm = config;
+            return config;
+          })
+          .then((config) => this.rest.generateConfigSchema(config))
+          .then((schema) => {
+            this.vue.resource.deviceConfigSchema = schema;
+          })
+          .then(() => {
+            Object.keys(this.vue.deviceForm.properties).forEach((i) => {
+              this.vue.propertyForm = JSON.parse(
+                JSON.stringify(this.vue.deviceForm.properties[i])
+              );
+              this.vue.fn.addProperty(i);
+            });
+          })
+          .then(() => this.onAlternateChange())
+          .then(() => resolve())
+          .catch((err) => reject(err));
+      } else {
         //  Pre-set form (Cleaning).
         this.vue.resource.deviceConfigSchema = {};
         this.vue.ui.slider.final.device = {};
@@ -464,9 +461,10 @@ export default class PageDevices {
 
         this.vue.deviceForm = {};
         this.vue.propertyForm = {};
-        await this.onAlternateChange();
-
-        resolve();
+        Promise.resolve()
+          .then(() => this.onAlternateChange())
+          .then(() => resolve())
+          .catch((err) => reject(err));
       }
     });
   }

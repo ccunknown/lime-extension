@@ -1,3 +1,6 @@
+/* eslint-disable no-nested-ternary */
+/* eslint-disable no-alert */
+/* eslint-disable no-undef */
 export default class PageSysport {
   constructor(extension) {
     this.extension = extension;
@@ -8,31 +11,40 @@ export default class PageSysport {
 
   init(config) {
     this.console.trace(`init() >> `);
-    return new Promise(async (resolve, reject) => {
-      this.initCustomRest()
-      .then(() => this.initVue())
-      .then(() => resolve())
-      .catch((err) => reject(err));
+    this.console.log(`config:`, config);
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        .then(() => this.initCustomRest())
+        .then(() => this.initVue())
+        .then(() => resolve())
+        .catch((err) => reject(err));
     });
   }
 
   initCustomRest() {
     this.console.trace(`initCustomRest() >> `);
     return new Promise((resolve, reject) => {
-      let meta = {
+      const meta = {
         "service-id": "sysport-service",
         "service-title": "System Port Service",
         "resource-id": "port",
-        "resource-title": "Port"
+        "resource-title": "Port",
       };
       let customRest = null;
-      this.ui.getCustomObject(`custom-rest`, {}, this.extension, meta)
-      .then((object) => customRest = object)
-      .then(() => customRest.init())
-      .then(() => this.rest = customRest)
-      .then(() => this.initSysportCustomRest())
-      .then(() => resolve())
-      .catch((err) => reject(err));
+      Promise.resolve()
+        .then(() =>
+          this.ui.getCustomObject(`custom-rest`, {}, this.extension, meta)
+        )
+        .then((object) => {
+          customRest = object;
+        })
+        .then(() => customRest.init())
+        .then(() => {
+          this.rest = customRest;
+        })
+        .then(() => this.initSysportCustomRest())
+        .then(() => resolve())
+        .catch((err) => reject(err));
     });
   }
 
@@ -42,148 +54,159 @@ export default class PageSysport {
       getSystemPort: () => {
         this.console.log(`PageSysport: getSystemPort() >> `);
         return new Promise((resolve, reject) => {
-          this.api.restCall(`get`, `/api/service/sysport-service/system-port`)
-          .then((res) => (res.error) ?
-            reject(res.error) : 
-            resolve(
-              res.map((elem) => {
-                return {
-                  path: elem.path,
-                  pnpid: (elem.pnpId) ? elem.pnpId : `null`,
-                  manufacturer: (elem.manufacturer) ? elem.manufacturer : `null`
-                };
-              })
+          Promise.resolve()
+            .then(() =>
+              this.api.restCall(
+                `get`,
+                `/api/service/sysport-service/system-port`
+              )
             )
-          )
-          .catch((err) => reject(err));
+            .then((res) => {
+              if (res.error) reject(res.error);
+              else
+                resolve(
+                  res.map((elem) => {
+                    return {
+                      path: elem.path,
+                      pnpid: elem.pnpId ? elem.pnpId : `null`,
+                      manufacturer: elem.manufacturer
+                        ? elem.manufacturer
+                        : `null`,
+                    };
+                  })
+                );
+            })
+            .catch((err) => reject(err));
         });
-      }
+      },
     });
   }
 
   initVue() {
     this.console.trace(`initVue()`);
-    return new Promise(async (resolve, reject) => {
-      let id = this.ui.said(`content.sysport.section`);
+    const id = this.ui.said(`content.sysport.section`);
 
-      this.vue = new Vue({
-        "el": `#${id}`,
-        "data": {
-          /** Loader **/
-          "loader": this.extension.schema,
-          /** Resource **/
-          "resource": {
-            "configPort": {},
-            "systemPort": [],
-          },
-          /** UI **/
-          "ui": {
-            "slider": {
-              "hide": true,
-              "ready": false,
-              "edit-id": null,
-              "form": {},
-            },
-            "base": {
-              "ready": false
-            }
-          },
-          /** Function **/
-          "fn": {
-            "add": () => {},
-            "edit": () => {},
-            "remove": () => {},
-            "save": () => {},
-            "updateSystemPort": () => {},
-            "shortSchemaCall": () => {}
-          }
+    this.vue = new Vue({
+      el: `#${id}`,
+      data: {
+        // Loader
+        loader: this.extension.schema,
+        // Resource
+        resource: {
+          configPort: {},
+          systemPort: [],
         },
-        "methods": {}
-      });
+        // UI
+        ui: {
+          slider: {
+            hide: true,
+            ready: false,
+            "edit-id": null,
+            form: {},
+          },
+          base: {
+            ready: false,
+          },
+        },
+        // Function
+        fn: {
+          add: () => {},
+          edit: () => {},
+          remove: () => {},
+          save: () => {},
+          updateSystemPort: () => {},
+          shortSchemaCall: () => {},
+        },
+      },
+      methods: {},
+    });
 
-      //  Setup vue function.
-      this.vue.fn = {
-        "add": async () => {
-          this.vue.ui.slider[`edit-id`] = null;
-          this.renderSlider();
-        },
-        "edit": (id) => {
-          this.console.log(`edit(${id})`);
-          this.vue.ui.slider[`edit-id`] = id;
-          this.renderSlider(id);
-        },
-        "remove": (id) => {
-          this.console.log(`delete(${name})`);
-          return new Promise((resolve, reject) => {
-            let conf = confirm(`Are you sure to delete port "${id}"!`);
-            if(conf) {
-              this.rest.deleteConfig(id)
-              .then((res) => this.render())
+    //  Setup vue function.
+    this.vue.fn = {
+      add: async () => {
+        this.vue.ui.slider[`edit-id`] = null;
+        this.renderSlider();
+      },
+      edit: (iden) => {
+        this.console.log(`edit(${iden})`);
+        this.vue.ui.slider[`edit-id`] = iden;
+        this.renderSlider(iden);
+      },
+      remove: (iden) => {
+        this.console.log(`delete(${iden})`);
+        return new Promise((resolve, reject) => {
+          // eslint-disable-next-line no-restricted-globals
+          const conf = confirm(`Are you sure to delete port "${iden}"!`);
+          if (conf) {
+            this.rest
+              .deleteConfig(iden)
+              .then((res) => this.console.log(res))
+              .then(() => this.render())
               .then(() => resolve())
               .catch((err) => reject(err));
-            }
-            else
-              resolve();
-          });
-        },
-        "save": () => {
-          this.console.log(`save()`);
-          this.console.log(`save data: ${JSON.stringify(this.vue.ui.slider.form, null, 2)}`);
-          return new Promise((resolve, reject) => {
-            let id = this.vue.ui.slider[`edit-id`];
-            let config = this.vue.ui.slider.form;
-            ((id) ? this.rest.editConfig(id, config) : this.rest.addConfig(config))
-            .then((res) => this.render())
+          } else resolve();
+        });
+      },
+      save: () => {
+        this.console.log(`save()`);
+        this.console.log(
+          `save data: ${JSON.stringify(this.vue.ui.slider.form, null, 2)}`
+        );
+        return new Promise((resolve, reject) => {
+          const iden = this.vue.ui.slider[`edit-id`];
+          const config = this.vue.ui.slider.form;
+          Promise.resolve()
+            .then(() =>
+              iden
+                ? this.rest.editConfig(iden, config)
+                : this.rest.addConfig(config)
+            )
+            .then((res) => this.console.log(res))
+            .then(() => this.render())
             .then(() => resolve())
             .catch((err) => reject(err));
-          });
-        },
-        "typeIdentify": (param) => {
-          let type = undefined;
-          if(param.attrs && param.attrs.type)
-            type = param.attrs.type;
-          else if(param.enum)
-            type = `select`;
-          else if(param.type == `string`)
-            type = `text`;
-          else if(param.type == `number`)
-            type = `number`;
-          else if(param.type == `boolean`)
-            type = `check`;
-          else if(param.type == `object`)
-            type = `object`;
-          // console.log(`type: ${type}`);
-          return type;
-        },
-        "renderBase": () => {
-          this.render();
-        },
-        "renderSlider": () => {
-          this.render(false);
-        },
-        "updateSystemPort": async () => {
-          console.log(`sysport.updateSystemPort()`);
-          this.vue.resource.systemPort = await this.rest.getSystemPort();
-        },
-        "shortSchemaCall": (key) => {
-          let res = this.ui.shortJsonElement(this.vue.resource.schema, key);
-          console.log(`short json : ${JSON.stringify(res, null, 2)}`);
-          return res;
-        },
-        "print": (obj) => {
-          console.log(obj);
-        }
-      };
-      resolve();
-    });
+        });
+      },
+      typeIdentify: (param) => {
+        let type;
+        if (param.attrs && param.attrs.type) type = param.attrs.type;
+        else if (param.enum) type = `select`;
+        else if (param.type === `string`) type = `text`;
+        else if (param.type === `number`) type = `number`;
+        else if (param.type === `boolean`) type = `check`;
+        else if (param.type === `object`) type = `object`;
+        // console.log(`type: ${type}`);
+        return type;
+      },
+      renderBase: () => {
+        this.render();
+      },
+      renderSlider: () => {
+        this.render(false);
+      },
+      updateSystemPort: async () => {
+        console.log(`sysport.updateSystemPort()`);
+        this.vue.resource.systemPort = await this.rest.getSystemPort();
+      },
+      shortSchemaCall: (key) => {
+        const res = this.ui.shortJsonElement(this.vue.resource.schema, key);
+        console.log(`short json : ${JSON.stringify(res, null, 2)}`);
+        return res;
+      },
+      print: (obj) => {
+        console.log(obj);
+      },
+    };
   }
 
   render(base = true) {
     this.console.log(`render()`);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this.console.trace(`render()`);
-      let result = (base) ? await this.renderBase() : await this.renderSlider();
-      resolve(result);
+      Promise.resolve()
+        .then(() => (base ? this.renderBase() : this.renderSlider()))
+        .then((result) => resolve(result))
+        .catch((err) => reject(err));
     });
   }
 
@@ -193,55 +216,160 @@ export default class PageSysport {
 
   renderBase() {
     this.console.log(`renderBase()`);
-    return new Promise(async (resolve, reject) => {
-      this.vue.ui.base.ready = false;
-      this.vue.ui.slider.hide = true;
-
-      let config = await this.rest.getItemConfig();
-      this.vue.resource.configPort = config;
-
-      this.vue.ui.base.ready = true;
-      resolve();
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        .then(() => {
+          this.vue.ui.base.ready = false;
+          this.vue.ui.slider.hide = true;
+        })
+        .then(() => this.rest.getItemConfig())
+        .then((config) => {
+          this.vue.resource.configPort = config;
+        })
+        .then(() => resolve())
+        .catch((err) => reject(err))
+        .finally(() => {
+          this.vue.ui.base.ready = true;
+        });
     });
   }
 
   renderSlider(name) {
     this.console.log(`renderSlider()`);
-    return new Promise(async (resolve, reject) => {
-      this.vue.ui.slider.ready = false;
-      this.vue.ui.slider.hide = false;
-
-      await this.renderForm(name);
-
-      this.vue.ui.slider.ready = true;
-      resolve();
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        .then(() => {
+          this.vue.ui.slider.ready = false;
+          this.vue.ui.slider.hide = false;
+        })
+        .then(() => this.renderForm(name))
+        .then(() => resolve())
+        .catch((err) => reject(err))
+        .finally(() => {
+          this.vue.ui.slider.ready = true;
+        });
     });
   }
 
-  renderForm(name) {
-    this.console.log(`PageSysport: renderVueAddForm() >> `);
+  renderForm(id) {
+    this.console.log(`PageEngines: renderForm(${id || ``}) >> `);
     return new Promise((resolve, reject) => {
-      Promise.all([
-        this.rest.getItemConfig(),
-        this.rest.getSystemPort(),
-        this.rest.generateConfigSchema()
-      ])
-      .then((promArr) => {
-        this.vue.resource.configPort = promArr[0];
-        this.vue.resource.systemPort = promArr[1];
-        this.vue.resource.configSchema = promArr[2];
-
-        this.vue.ui.slider.form = (name && this.vue.resource.configPort[name]) ? 
-          this.vue.resource.configPort[name] :
-          this.ui.generateData(this.vue.resource.configSchema);
-
-        // if(name && this.vue.resource.configPort[name])
-        //   this.vue.ui.slider.form = this.vue.resource.configPort[name];
-        // else
-        //   this.vue.ui.slider.form = this.ui.generateData(this.vue.resource.configSchema);
-
-        resolve();
-      });
+      if (id) {
+        Promise.resolve()
+          .then(() => this.rest.getItemConfig(id))
+          .then((conf) => {
+            this.vue.ui.slider.form = conf;
+            return this.rest.generateConfigSchema(conf);
+          })
+          .then((schema) => {
+            this.vue.resource.configSchema = schema;
+          })
+          .then(() => resolve())
+          .catch((err) => reject(err));
+      } else {
+        this.vue.resource.configSchema = {};
+        this.vue.ui.slider.form = {};
+        Promise.resolve()
+          .then(() => this.onAlternateChange())
+          .then(() => resolve())
+          .catch((err) => reject(err));
+      }
     });
+  }
+
+  onAlternateChange() {
+    this.console.log(`PageEngines: onAlternateChange() >> `);
+    return new Promise((resolve, reject) => {
+      let config;
+      let oldSchema;
+      let newSchema;
+      let oldData;
+      let newData;
+      let copySchema;
+      let dataCopy;
+      Promise.resolve()
+        .then(() => {
+          config = JSON.parse(JSON.stringify(this.vue.ui.slider.form));
+          this.console.log(`config: `, config);
+        })
+        .then(() => this.rest.generateConfigSchema(config))
+        .then((schema) => {
+          newSchema = schema;
+        })
+        .then(() => {
+          oldSchema = JSON.parse(
+            JSON.stringify(this.vue.resource.configSchema)
+          );
+          this.vue.resource.configSchema = JSON.parse(
+            JSON.stringify(newSchema)
+          );
+        })
+        .then(() => this.ui.generateData(newSchema))
+        .then((data) => {
+          newData = data;
+        })
+        .then(() => {
+          oldData = JSON.parse(JSON.stringify(this.vue.ui.slider.form));
+
+          this.console.log(`old schema: `, oldSchema);
+          this.console.log(`new schema: `, newSchema);
+          this.console.log(`old data: `, oldData);
+          this.console.log(`new data: `, newData);
+
+          copySchema = this.jsonDiv(
+            oldSchema.properties ? oldSchema.properties : {},
+            newSchema.properties,
+            { level: 1 }
+          );
+          dataCopy = this.jsonCopyBySchema(oldData, newData, copySchema);
+          this.console.log(`Data copy: ${dataCopy}`);
+
+          this.vue.ui.slider.form = oldData;
+        })
+        .then(() => dataCopy && this.onAlternateChange())
+        .then(() => resolve())
+        .catch((err) => reject(err));
+    });
+  }
+
+  jsonCopyBySchema(dst, source, schema) {
+    // console.log(`dst: `, dst);
+    const src = JSON.parse(JSON.stringify(source));
+    let copyFlag = false;
+    Object.keys(schema).forEach((i) => {
+      if (schema[i] === true) {
+        // eslint-disable-next-line no-param-reassign
+        dst[i] = [`object`, `array`].includes(typeof src[i])
+          ? JSON.parse(JSON.stringify(src[i]))
+          : src[i];
+        copyFlag = true;
+        // console.log(`jsonCopyBySchema[${i}]: `, dst[i]);
+      } else if ([`object`, `array`].includes(typeof schema[i]))
+        copyFlag = this.jsonCopyBySchema(dst[i], src[i], schema[i]) || copyFlag;
+    });
+    return copyFlag;
+  }
+
+  jsonDiv(dst, src, options) {
+    // console.log(`jsonDiv()`);
+    const result = {};
+    const opt = options ? JSON.parse(JSON.stringify(options)) : {};
+    if (opt.level) opt.level -= 1;
+
+    Object.keys(dst).forEach((i) => {
+      result[i] = !Object.prototype.hasOwnProperty.call(src, i)
+        ? true
+        : [`object`, `array`].includes(typeof src[i])
+        ? JSON.stringify(dst[i]) === JSON.stringify(src[i])
+          ? false
+          : opt.level === 0
+          ? true
+          : this.jsonDiv(dst[i], src[i], opt)
+        : dst[i] !== src[i];
+    });
+    Object.keys(src).forEach((i) => {
+      if (!Object.prototype.hasOwnProperty.call(dst, i)) result[i] = true;
+    });
+    return result;
   }
 }

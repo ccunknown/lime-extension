@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 export default class PageEngines {
   constructor(extension) {
     this.extension = extension;
@@ -220,98 +221,124 @@ export default class PageEngines {
   }
 
   renderForm(id) {
-    this.console.log(`PageEngines: renderForm(${(id) ? `${id}` : ``}) >> `);
+    this.console.log(`PageEngines: renderForm(${id || ``}) >> `);
     return new Promise((resolve, reject) => {
-      if(id) {
-        this.rest.getItemConfig(id)
-        .then((conf) => {
-          this.vue.ui.slider.form = conf;
-          return this.rest.generateConfigSchema(conf);
-        })
-        .then((schema) => {
-          this.vue.resource.configSchema = schema;
-          return ;
-        })
-        .then(() => resolve())
-        .catch((err) => reject(err));
-      }
-      else {
+      if (id) {
+        Promise.resolve()
+          .then(() => this.rest.getItemConfig(id))
+          .then((conf) => {
+            this.vue.ui.slider.form = conf;
+            return this.rest.generateConfigSchema(conf);
+          })
+          .then((schema) => {
+            this.vue.resource.configSchema = schema;
+          })
+          .then(() => resolve())
+          .catch((err) => reject(err));
+      } else {
         this.vue.resource.configSchema = {};
         this.vue.ui.slider.form = {};
-        this.onAlternateChange()
-        .then(() => resolve())
-        .catch((err) => reject(err));
+        Promise.resolve()
+          .then(() => this.onAlternateChange())
+          .then(() => resolve())
+          .catch((err) => reject(err));
       }
     });
   }
 
   onAlternateChange() {
     this.console.log(`PageEngines: onAlternateChange() >> `);
-    return new Promise(async (resolve, reject) => {
-      let config = JSON.parse(JSON.stringify(this.vue.ui.slider.form));
+    return new Promise((resolve, reject) => {
+      let config;
+      let oldSchema;
+      let newSchema;
+      let oldData;
+      let newData;
+      let copySchema;
+      let dataCopy;
+      Promise.resolve()
+        .then(() => {
+          config = JSON.parse(JSON.stringify(this.vue.ui.slider.form));
+          this.console.log(`config: `, config);
+        })
+        .then(() => this.rest.generateConfigSchema(config))
+        .then((schema) => {
+          newSchema = schema;
+        })
+        .then(() => {
+          oldSchema = JSON.parse(
+            JSON.stringify(this.vue.resource.configSchema)
+          );
+          this.vue.resource.configSchema = JSON.parse(
+            JSON.stringify(newSchema)
+          );
+        })
+        .then(() => this.ui.generateData(newSchema))
+        .then((data) => {
+          newData = data;
+        })
+        .then(() => {
+          oldData = JSON.parse(JSON.stringify(this.vue.ui.slider.form));
 
-      this.console.log(`config: `, config);
+          this.console.log(`old schema: `, oldSchema);
+          this.console.log(`new schema: `, newSchema);
+          this.console.log(`old data: `, oldData);
+          this.console.log(`new data: `, newData);
 
-      let newSchema = await this.rest.generateConfigSchema(config);
-      let oldSchema = JSON.parse(JSON.stringify(this.vue.resource.configSchema));
-      this.vue.resource.configSchema = JSON.parse(JSON.stringify(newSchema));
+          copySchema = this.jsonDiv(
+            oldSchema.properties ? oldSchema.properties : {},
+            newSchema.properties,
+            { level: 1 }
+          );
+          dataCopy = this.jsonCopyBySchema(oldData, newData, copySchema);
+          this.console.log(`Data copy: ${dataCopy}`);
 
-      let newData = await this.ui.generateData(newSchema);
-      let oldData = JSON.parse(JSON.stringify(this.vue.ui.slider.form));
-      
-      this.console.log(`old schema: `, oldSchema);
-      this.console.log(`new schema: `, newSchema);
-      this.console.log(`old data: `, oldData);
-      this.console.log(`new data: `, newData);
-
-      let copySchema = this.jsonDiv((oldSchema.properties) ? oldSchema.properties : {}, newSchema.properties, {"level": 1});
-      let dataCopy = this.jsonCopyBySchema(oldData, newData, copySchema);
-
-      this.vue.ui.slider.form = oldData;
-
-      this.console.log(`Data copy: ${dataCopy}`);
-      if(dataCopy)
-        await this.onAlternateChange();
-
-      resolve();
+          this.vue.ui.slider.form = oldData;
+        })
+        .then(() => dataCopy && this.onAlternateChange())
+        .then(() => resolve())
+        .catch((err) => reject(err));
     });
   }
 
-  jsonCopyBySchema(dst, src, schema) {
+  jsonCopyBySchema(dst, source, schema) {
     // console.log(`dst: `, dst);
-    src = JSON.parse(JSON.stringify(src));
+    const src = JSON.parse(JSON.stringify(source));
     let copyFlag = false;
-    for(let i in schema) {
-      if(schema[i] == true) {
-        dst[i] = ([`object`, `array`].includes(typeof src[i])) ? JSON.parse(JSON.stringify(src[i])) : src[i];
+    Object.keys(schema).forEach((i) => {
+      if (schema[i] === true) {
+        // eslint-disable-next-line no-param-reassign
+        dst[i] = [`object`, `array`].includes(typeof src[i])
+          ? JSON.parse(JSON.stringify(src[i]))
+          : src[i];
         copyFlag = true;
         // console.log(`jsonCopyBySchema[${i}]: `, dst[i]);
-      }
-      else if([`object`, `array`].includes(typeof schema[i]))
+      } else if ([`object`, `array`].includes(typeof schema[i]))
         copyFlag = this.jsonCopyBySchema(dst[i], src[i], schema[i]) || copyFlag;
-    }
+    });
     return copyFlag;
   }
 
   jsonDiv(dst, src, options) {
     // console.log(`jsonDiv()`);
-    let result = {};
-    let opt = (options) ? JSON.parse(JSON.stringify(options)) : {};
-    if(opt.level)
-      opt.level = opt.level - 1;
+    const result = {};
+    const opt = options ? JSON.parse(JSON.stringify(options)) : {};
+    if (opt.level) opt.level -= 1;
 
-    for(let i in dst) {
-      result[i] = (!src.hasOwnProperty(i)) ? true :
-        ([`object`, `array`].includes(typeof src[i])) ? 
-        (JSON.stringify(dst[i]) == JSON.stringify(src[i])) ? false :
-        (opt.level == 0) ? true :
-        this.jsonDiv(dst[i], src[i], opt) :
-        (dst[i] == src[i]) ? false : true;
-    }
-    for(let i in src) {
-      if(!dst.hasOwnProperty(i))
-        result[i] = true;
-    }
+    Object.keys(dst).forEach((i) => {
+      result[i] = !Object.prototype.hasOwnProperty.call(src, i)
+        ? true
+        : [`object`, `array`].includes(typeof src[i])
+        ? JSON.stringify(dst[i]) === JSON.stringify(src[i])
+          ? false
+          : opt.level === 0
+          ? true
+          : this.jsonDiv(dst[i], src[i], opt)
+        : dst[i] !== src[i];
+    });
+    Object.keys(src).forEach((i) => {
+      if (!Object.prototype.hasOwnProperty.call(dst, i)) result[i] = true;
+    });
     return result;
-  };
+  }
 }

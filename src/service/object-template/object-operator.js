@@ -1,11 +1,10 @@
 const Queue = require(`bull`);
 
 class ObjectOperator {
-  constructor(parent, parentService, config) {
+  constructor(parent, parentService, id) {
     this.parent = parent;
-    this.id = config.id;
+    this.id = id;
     this.parentService = parentService;
-    this.config = config;
     this.state = `unload`;
     this.queue = new Queue(`${this.parentService.id}-${this.id}`);
 

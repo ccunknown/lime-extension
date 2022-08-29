@@ -24,13 +24,6 @@ class EnginesService extends Service {
       console.error(err);
     }
     return Promise.resolve();
-    // return new Promise((resolve, reject) => {
-    //   this.sysportService = this.laborsManager.getService(`sysport-service`).obj;
-    //   this.config = config || this.config;
-    //   this.engineList = {};
-    //   this.engineTemplateList = {};
-    //   resolve();
-    // });
   }
 
   start() {
@@ -71,6 +64,19 @@ class EnginesService extends Service {
         })
         .then((schema) => schema.list)
         .then((list) =>
+          // const promArr = [];
+          // Object.keys(list).forEach(() => {
+          //   if (
+          //     Object.prototype.hasOwnProperty.call(list[id], `_config`) &&
+          //     Object.prototype.hasOwnProperty.call(
+          //       list[id]._config,
+          //       `addToService`
+          //     )
+          //   )
+          //     return this.addToService(id, list[id]).catch((err) =>
+          //       console.error(err)
+          //     );
+          // });
           Object.keys(list).reduce((prevProm, id) => {
             return prevProm.then(() => {
               if (
@@ -103,7 +109,6 @@ class EnginesService extends Service {
       `config: ${JSON.stringify(config, null, 2)}`
     );
     return new Promise((resolve, reject) => {
-      // let id = this.generateId();
       let id;
       Promise.resolve()
         .then(() => this.generateId())
@@ -124,8 +129,8 @@ class EnginesService extends Service {
   addToConfig(id, config) {
     console.log(`[${this.constructor.name}]`, `addToConfig() >> `);
     return new Promise((resolve, reject) => {
-      this.configTranslator
-        .validate(config)
+      Promise.resolve()
+        .then(() => this.configTranslator.validate(config))
         .then((validateInfo) => {
           if (validateInfo.errors && validateInfo.errors.length)
             throw new Errors.InvalidConfigSchema(validateInfo.errors);
@@ -157,7 +162,8 @@ class EnginesService extends Service {
           engine = new Obj(this, config);
         })
         .then(() => this.sysportService.get(config.port, { object: true }))
-        .then((sysportSchema) => engine.init(sysportSchema.object))
+        .then((sysport) => engine.init(sysport))
+        // .then((sysportSchema) => engine.init(sysportSchema.object))
         .then(() =>
           Object.prototype.hasOwnProperty.call(engine, `oo`) &&
           typeof engine.oo.start === `function`
@@ -188,15 +194,11 @@ class EnginesService extends Service {
         })
         .then(() => this.getTemplate({ deep: true }))
         .then((templateList) => {
-          // console.log(
-          //   `[${this.constructor.name}]`,
-          //   `template list: ${JSON.stringify(templateList)}`
-          // );
           console.log(
             `[${this.constructor.name}]`,
             `config template: ${config.template}`
           );
-          console.log(`[${this.constructor.name}]`, `config:`, config);
+          // console.log(`[${this.constructor.name}]`, `config:`, config);
           return templateList;
         })
         .then((templateList) =>
