@@ -20,10 +20,31 @@
         <template
           v-for="log in resource.logList"
         >
-          <div>
-            <span>{{log.timestamp.toISOString()}}</span>
-            :
-            <span>{{log.message}}</span>
+          <div class="d-flex flex-row mb-1">
+            <span class="bg-dark">{{log.timestamp.toISOString()}}</span>
+            &nbsp;:&nbsp;
+            <span
+              class="text-truncate"
+              style="
+                width: 200px;
+                direction: rtl;
+              "
+              data-toggle="tooltop"
+              :title="log.message[0]"
+              :style="fn.idColoring(log.message[0])"
+            >
+              {{log.message[0]}}
+            </span>
+            &nbsp;
+            <span
+              :style="fn.jidColoring(log.message[1])"
+            >
+              {{fn.getLogJID(log.message[1])}}
+            </span>
+            &nbsp;
+            <span>
+              {{fn.getLogWithoutJID(log.message[1]).join(` `)}}
+            </span>
           </div>
         </template>
       </div>

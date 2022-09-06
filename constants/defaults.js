@@ -47,12 +47,12 @@ const Defaults = {
     "service-config": {
       //  Port Service
       "sysport-service": {
-        directory: "/sysport",
+        directory: "./sysport",
         list: {},
       },
       //  Engine Service
       "engines-service": {
-        directory: "/engines",
+        directory: "./engines",
         list: {},
       },
       //  Script Service

@@ -17,7 +17,7 @@ const ValidateConfigSchema = {
       maxLength: 500,
     },
     template: {
-      title: "Engine Template",
+      title: "Port Template",
       type: "string",
     },
     _config: {

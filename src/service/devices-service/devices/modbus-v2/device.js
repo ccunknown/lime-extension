@@ -148,10 +148,14 @@ class ModbusDevice extends Device {
   getEngine() {
     const { engine } = this.exConf;
     const state = engine ? engine.getState() : null;
-    // if(state != `running`)
-    //   this.disableProperties();
-    // return (state == `running`) ? engine : null;
-    return state === `running` ? engine : null;
+    if (state === `running`) {
+      return Promise.resolve(engine);
+    }
+    return this.exConf[`devices-service`].enginesService.get(
+      this.exConf.config.engine,
+      { object: true }
+    );
+    // return state === `running` ? engine : null;
   }
 
   getScript() {
@@ -360,7 +364,7 @@ class ModbusDevice extends Device {
         clearTimeout(this.exConf.startRetryment[propertyId].timeout);
       this.exConf.startRetryment[propertyId].timeout = undefined;
     } else {
-      Object.keys(this.exConf.startRetryment).forEach(id => {
+      Object.keys(this.exConf.startRetryment).forEach((id) => {
         this.stopPropertyRetry(id);
       });
     }
@@ -392,9 +396,9 @@ class ModbusDevice extends Device {
       (e) => e.timeout
     );
     // for(let i in props) {
-    Object.keys(props).forEach(i => {
+    Object.keys(props).forEach((i) => {
       let prop = this.findProperty(i);
-      prop = (prop.master) ? prop.master : prop;
+      prop = prop.master ? prop.master : prop;
       // console.log(`${i} period: ${ prop.period && true }`);
       if (prop.period && true) hasRunningProp = true;
       else hasStoppedProp = true;

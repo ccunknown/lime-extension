@@ -1,58 +1,56 @@
 const ValidateConfigSchema = {
-  "type": "object",
-  "required": ["name", "description", "template"],
-  "additionalProperties": true,
-  "properties": {
-    "name": {
-      "type": "string",
-      "title": "Name",
-      "pattern": "^[a-zA-Z0-9 \-_]+$",
-      "minLength": 4,
-      "maxLength": 50
+  type: "object",
+  required: ["name", "description", "template"],
+  additionalProperties: true,
+  properties: {
+    name: {
+      type: "string",
+      title: "Name",
+      pattern: "^[a-zA-Z0-9 -_]+$",
+      minLength: 4,
+      maxLength: 50,
     },
-    "description": {
-      "type": "string",
-      "title": "Description"
+    description: {
+      type: "string",
+      title: "Description",
     },
-    "template": {
-      "type": "string",
-      "title": "Template"
+    template: {
+      type: "string",
+      title: "Device Template",
     },
-    "_config": {
-      "type": "object",
-      "required": [`enable`],
-      "properties": {
-        "enable": {
-          "type": "boolean",
-          "default": true
-        }
-      }
-    }
-  }
+    _config: {
+      type: "object",
+      required: [`enable`],
+      properties: {
+        enable: {
+          type: "boolean",
+          default: true,
+        },
+      },
+    },
+  },
 };
 
-const AlternateList = [
-  `template`
-];
+const AlternateList = [`template`];
 
 const AttributeList = [
   {
-    "target": `name`,
-    "attrs": {
-      "placeholder": "Device's display name"
-    }
+    target: `name`,
+    attrs: {
+      placeholder: "Device's display name",
+    },
   },
   {
-    "target": `description`,
-    "attrs": {
-      "type": `textarea`,
-      "placeholder": `Device's description`
-    }
-  }
+    target: `description`,
+    attrs: {
+      type: `textarea`,
+      placeholder: `Device's description`,
+    },
+  },
 ];
 
 module.exports = {
   ValidateConfigSchema,
   AttributeList,
-  AlternateList
+  AlternateList,
 };

@@ -4,8 +4,7 @@
 const PERIOD_WORK_TIMEOUT = 9000;
 // const MAXIMUM_MODBUS_READ_AMOUNT = 255;
 
-const AsyncLock = require(`async-lock`);
-// const ObjectTemplate = require(`../../../../../object-template/object-template.js`);
+// const AsyncLock = require(`async-lock`);
 const PropertyTemplate = require(`../../../../device-template/period-queue-style/property-template.js`);
 
 const ConfigTranslator = require(`./config-translator.js`);
@@ -26,19 +25,8 @@ class BulkReader extends PropertyTemplate {
     this.lastPeriodSuccess = false;
     this.periodWorkFlag = false;
     this.continuousFail = 0;
-    this.lock = {
-      period: {
-        key: `period`,
-        locker: new AsyncLock({ timeout: this.timeout }),
-      },
-      periodWork: {
-        key: `periodWork`,
-        locker: new AsyncLock({
-          timeout: this.timeout,
-          maxPending: 0,
-        }),
-      },
-    };
+
+    this.queryTemplate = null;
     this.properties = {};
 
     this.Errors = require(`${this.devicesService.getRootDirectory()}/constants/errors.js`);
@@ -103,6 +91,7 @@ class BulkReader extends PropertyTemplate {
     console.log(`${this.id}: BulkReaderProperty: start() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
+        .then(() => this.buildQueryTemplate())
         .then(() => this.setPeriodWork())
         .then((res) => resolve(res))
         .catch((err) => reject(err));
@@ -152,144 +141,277 @@ class BulkReader extends PropertyTemplate {
     return `${this.id}-${Number(address).toString(16)}`;
   }
 
+  // eslint-disable-next-line no-unused-vars
+  // processor(jobId, cmd) {
+  //   // console.log(`${this.id}: DefaultProperty: _periodWork() >> `);
+  //   return new Promise((resolve, reject) => {
+  //     setTimeout(
+  //       () => reject(new Error(`period work timeout!`)),
+  //       PERIOD_WORK_TIMEOUT
+  //     );
+
+  //     const engine = this.device.getEngine();
+  //     const script = this.device.getScript();
+  //     // const ip = this.device.exConf.config.hasOwnProperty(`ip`)
+  //     const ip = Object.prototype.hasOwnProperty.call(
+  //       this.device.exConf.config,
+  //       `ip`
+  //     )
+  //       ? this.device.exConf.config.ip
+  //       : undefined;
+  //     // const port = this.device.exConf.config.hasOwnProperty(`port`)
+  //     const port = Object.prototype.hasOwnProperty.call(
+  //       this.device.exConf.config,
+  //       `port`
+  //     )
+  //       ? this.device.exConf.config.port
+  //       : undefined;
+  //     const id = this.device.exConf.config.address;
+  //     const { table } = this.config;
+  //     const chunkSize = this.config.size;
+
+  //     const tmpAddrArr = [...this.config.address];
+  //     tmpAddrArr.sort((a, b) => a - b);
+  //     const queryTask = [];
+  //     // let firstAddr = null;
+  //     while (tmpAddrArr.length) {
+  //       const arr = [];
+  //       arr.push(tmpAddrArr.shift());
+  //       while (tmpAddrArr.length) {
+  //         if (
+  //           tmpAddrArr[0] +
+  //             script.map[table][tmpAddrArr[0]].registerSpec.number -
+  //             arr[0] <=
+  //           chunkSize
+  //         )
+  //           arr.push(tmpAddrArr.shift());
+  //         else break;
+  //       }
+  //       const opt = {
+  //         action: `read`,
+  //         id,
+  //         address: arr[0],
+  //         table,
+  //         numtoread:
+  //           arr[arr.length - 1] -
+  //           arr[0] +
+  //           script.map[table][arr[arr.length - 1]].registerSpec.number,
+  //       };
+  //       if (ip && port) {
+  //         opt.ip = ip;
+  //         opt.port = port;
+  //       }
+  //       queryTask.push(opt);
+  //     }
+
+  //     if (script && engine && engine.getState() === `running`) {
+  //       queryTask
+  //         .reduce((prevProm, opt) => {
+  //           return prevProm
+  //             .then(() => engine.act(opt, jobId))
+  //             .then((ret) => {
+  //               if (ret.error) throw new Error(ret.error);
+  //               else return ret;
+  //             })
+  //             .then((ret) => {
+  //               const arr = [...this.config.address]
+  //                 .filter(
+  //                   (e) => e >= opt.address && e < opt.address + opt.numtoread
+  //                 )
+  //                 .sort((a, b) => a - b);
+  //               arr.forEach((addr) => {
+  //                 const ref = script.map[table][addr];
+  //                 const bytes =
+  //                   (ref.registerSpec.number * ref.registerSpec.size) / 8;
+  //                 const startPoint =
+  //                   (ref.registerSpec.size / 8) * (addr - arr[0]);
+  //                 const endPoint = startPoint + bytes;
+  //                 const buffVal = Buffer.from(ret.slice(startPoint, endPoint));
+
+  //                 const value = script.map[table][addr].translator(
+  //                   buffVal,
+  //                   script.map[table][addr]
+  //                 );
+  //                 const addrStr = addr.toString(16);
+  //                 const addrStrLen =
+  //                   addrStr.length % 2 === 0
+  //                     ? addrStr.length
+  //                     : addrStr.length + 1;
+  //                 this.om.task.log(
+  //                   jobId,
+  //                   `result`,
+  //                   `<addr:0x${addrStr.padStart(addrStrLen, `0`)}>`,
+  //                   `<raw:0x${buffVal.toString(`hex`)}>`,
+  //                   `<${ref.name}:${value}>`
+  //                 );
+  //                 this.device
+  //                   .findProperty(this.generatePropertyId(addr))
+  //                   .setCachedValueAndNotify(value);
+  //               });
+  //               // return;
+  //             });
+  //         }, Promise.resolve())
+  //         // .then(() => this.onPeriodSuccess())
+  //         .then(() => resolve())
+  //         .catch((err) => {
+  //           console.log(`BulkReaderProperty: periodWork() >> Error!!!`);
+  //           // this.onPeriodFail(err);
+  //           reject(err);
+  //         });
+  //     } else if (engine == null) {
+  //       reject(new Error(`engine unavailable`));
+  //     } else {
+  //       reject(new Error(`component missing`));
+  //     }
+  //   });
+  // }
+
+  // eslint-disable-next-line no-unused-vars
   processor(jobId, cmd) {
-    // console.log(`${this.id}: DefaultProperty: _periodWork() >> `);
     return new Promise((resolve, reject) => {
       setTimeout(
         () => reject(new Error(`period work timeout!`)),
         PERIOD_WORK_TIMEOUT
       );
 
-      const engine = this.device.getEngine();
-      const script = this.device.getScript();
-      // const ip = this.device.exConf.config.hasOwnProperty(`ip`)
-      const ip = Object.prototype.hasOwnProperty.call(
-        this.device.exConf.config,
-        `ip`
-      )
-        ? this.device.exConf.config.ip
-        : undefined;
-      // const port = this.device.exConf.config.hasOwnProperty(`port`)
-      const port = Object.prototype.hasOwnProperty.call(
-        this.device.exConf.config,
-        `port`
-      )
-        ? this.device.exConf.config.port
-        : undefined;
-      const id = this.device.exConf.config.address;
-      const { table } = this.config;
-      const chunkSize = this.config.size;
-
-      const tmpAddrArr = [...this.config.address];
-      tmpAddrArr.sort((a, b) => a - b);
-      const queryTask = [];
-      // let firstAddr = null;
-      while (tmpAddrArr.length) {
-        const arr = [];
-        arr.push(tmpAddrArr.shift());
-        while (tmpAddrArr.length) {
-          if (
-            tmpAddrArr[0] +
-              script.map[table][tmpAddrArr[0]].registerSpec.number -
-              arr[0] <=
-            chunkSize
-          )
-            arr.push(tmpAddrArr.shift());
-          else break;
-        }
-        const opt = {
-          action: `read`,
-          id,
-          address: arr[0],
-          table,
-          numtoread:
-            arr[arr.length - 1] -
-            arr[0] +
-            script.map[table][arr[arr.length - 1]].registerSpec.number,
-        };
-        if (ip && port) {
-          opt.ip = ip;
-          opt.port = port;
-        }
-        queryTask.push(opt);
-      }
-
-      if (script && engine && engine.getState() === `running`) {
-        queryTask
-          .reduce((prevProm, opt) => {
-            return prevProm
-              .then(() => engine.act(opt, jobId))
-              .then((ret) => {
-                if (ret.error) throw new Error(ret.error);
-                else return ret;
-              })
-              .then((ret) => {
-                // console.log(`[${this.constructor.name}]`, `raw:`, ret);
-                // console.log(`[${this.constructor.name}]`, `opt: ${opt.action} [id: ${opt.id}] [${opt.table}: ${opt.address}] -> ${opt.numtoread} word`);
-                // console.log(`[${this.constructor.name}]`, `raw result: 0x${ret.buffer.toString(`hex`)}`);
-                const arr = [...this.config.address]
-                  .filter(
-                    (e) => e >= opt.address && e < opt.address + opt.numtoread
-                  )
-                  .sort((a, b) => a - b);
-                arr.forEach((addr) => {
-                  const ref = script.map[table][addr];
-                  const bytes =
-                    (ref.registerSpec.number * ref.registerSpec.size) / 8;
-                  const startPoint =
-                    (ref.registerSpec.size / 8) * (addr - arr[0]);
-                  const endPoint = startPoint + bytes;
-                  // let buffVal = Buffer.alloc(bytes, ret.buffer.slice(startPoint, endPoint));
-                  // let buffVal = Buffer.alloc(bytes, ret.slice(startPoint, endPoint));
-                  const buffVal = Buffer.from(ret.slice(startPoint, endPoint));
-
-                  const value = script.map[table][addr].translator(
-                    buffVal,
-                    script.map[table][addr]
-                  );
-
-                  // console.log(
-                  //   `[${this.constructor.name}]`,
-                  //   `[${addr}/${addr.toString(16)}] ${ref.name}:`,
-                  //   ` ${buffVal.toString(`hex`)} => ${value}`
-                  // );
-                  this.om.task.log(
-                    jobId,
-                    `result`,
-                    `<addr:${addr}>`,
-                    `<${ref.name}:${value}>`,
-                    `<raw:0x${buffVal.toString(`hex`)}>`
-                  );
-                  this.device
-                    .findProperty(this.generatePropertyId(addr))
-                    .setCachedValueAndNotify(value);
-                });
-                // return;
-              });
-          }, Promise.resolve())
-          // .then(() => this.onPeriodSuccess())
-          .then(() => resolve())
-          .catch((err) => {
-            console.log(`BulkReaderProperty: periodWork() >> Error!!!`);
-            // this.onPeriodFail(err);
-            reject(err);
-          });
-      } else if (engine == null) {
-        reject(new Error(`engine unavailable`));
-      } else {
-        reject(new Error(`component missing`));
-      }
+      Promise.resolve()
+        .then(() =>
+          Promise.all([this.device.getEngine(), this.device.getScript()])
+        )
+        .then(([engine, script]) => {
+          if (!engine)
+            throw new Error(
+              `Engine "${this.device.exConf.config.engine}" unavailable`
+            );
+          if (!script)
+            throw new Error(
+              `Script "${this.device.exConf.config.engine}" unavailable`
+            );
+          return this.queryTemplate.reduce((prevProm, opt) => {
+            return prevProm.then(() => this.chunkProcess(jobId, opt, engine));
+          }, Promise.resolve());
+        })
+        .then(() => resolve())
+        .catch((err) => reject(err));
     });
   }
 
-  // commandToString(cmd) {
+  buildQueryTemplate() {
+    this.om.obj.log(`building query template.`);
+    const script = this.device.getScript();
+    const ip = Object.prototype.hasOwnProperty.call(
+      this.device.exConf.config,
+      `ip`
+    )
+      ? this.device.exConf.config.ip
+      : undefined;
+    const port = Object.prototype.hasOwnProperty.call(
+      this.device.exConf.config,
+      `port`
+    )
+      ? this.device.exConf.config.port
+      : undefined;
+    const id = this.device.exConf.config.address;
+    const { table } = this.config;
+    const chunkSize = this.config.size;
 
-  // }
+    const tmpAddrArr = [...this.config.address];
+    tmpAddrArr.sort((a, b) => a - b);
+    this.queryTemplate = [];
+    // let firstAddr = null;
+    while (tmpAddrArr.length) {
+      const opt = {
+        calculate: [],
+        engineOpt: {
+          action: `read`,
+          id,
+          table,
+          address: 0,
+          numtoread: 0,
+        },
+      };
+      const addrArr = [];
+      let numtoread = 0;
+      addrArr.push(tmpAddrArr.shift());
+      while (tmpAddrArr.length) {
+        numtoread = script.map[table][tmpAddrArr[0]].registerSpec.number;
+        if (tmpAddrArr[0] + numtoread - addrArr[0] <= chunkSize) {
+          opt.calculate.push({
+            registerAddress: tmpAddrArr[0],
+            ...script.map[table][tmpAddrArr[0]],
+          });
+          addrArr.push(tmpAddrArr.shift());
+        } else {
+          break;
+        }
+      }
+      opt.engineOpt.numtoread =
+        addrArr[addrArr.length - 1] + numtoread - addrArr[0];
+      // opt.engineOpt.address = addrArr[0];
+      [opt.engineOpt.address] = addrArr;
+      if (ip && port) {
+        opt.engineOpt.ip = ip;
+        opt.engineOpt.port = port;
+      }
+      this.queryTemplate.push(opt);
+    }
+    console.log(`queryTemplate:`, this.queryTemplate);
+    this.om.obj.log(
+      `Query template built, got ${
+        Object.keys(this.queryTemplate).length
+      } chunk.`
+    );
+    this.queryTemplate.forEach((e) => {
+      this.om.obj.log(
+        `chunk: <${e.engineOpt.address} -> ${e.engineOpt.numtoread}>`
+      );
+    });
+  }
 
-  // // eslint-disable-next-line class-methods-use-this
-  // resultToString(res) {
-  //   return `<addr:${res.addr}> <${res.name}:${res.value}> <raw:${res.raw}>`;
-  // }
+  // Modbus chunk read & process.
+  chunkProcess(jobId, opt, engine) {
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        .then(() => engine.act(opt.engineOpt, jobId))
+        .then((raw) => {
+          opt.calculate.forEach((e) => {
+            const addressOffset = opt.engineOpt.address;
+            const bits = e.registerSpec.number * e.registerSpec.size;
+            const bytes = bits / 8;
+            if (bits % 8 === 0) {
+              const startPoint =
+                (e.registerSpec.size / 8) * (e.registerAddress - addressOffset);
+              const endPoint = startPoint + bytes;
+              const buffVal = Buffer.from(raw.slice(startPoint, endPoint));
+              const value = e.translator(buffVal, e);
+
+              const addrStr = e.registerAddress.toString(16);
+              const addrStrLen =
+                addrStr.length % 2 === 0 ? addrStr.length : addrStr.length + 1;
+              this.om.task.log(
+                jobId,
+                `result`,
+                `<addr:0x${addrStr.padStart(addrStrLen, `0`)}>`,
+                `<raw:0x${buffVal.toString(`hex`)}>`,
+                `<${e.name}:${value}>`
+              );
+
+              this.device
+                .findProperty(this.generatePropertyId(e.registerAddress))
+                .setCachedValueAndNotify(value);
+            } else {
+              throw new Error(`Coil reading currently not support.`);
+            }
+          });
+        })
+        .then(() => resolve())
+        .catch((err) => reject(err));
+    });
+  }
+
+  // commandToString(cmd) {}
+
+  // resultToString(res) {}
 }
 
 module.exports = BulkReader;

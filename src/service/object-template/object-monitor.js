@@ -51,18 +51,21 @@ class ObjectMonitor {
   initObjectLogger() {
     this.obj = {
       state: (state) => {
-        this.logger.info(`[STATE:${state}]`);
+        const msg = `[STATE:${state}]`;
+        this.logger.info(msg);
+        this.publish(msg, this.publishPath);
       },
       log: (...message) => {
-        this.logger.info([...message].join(` `));
-        this.publish(message, this.publishPath);
+        const msg = [...message].join(` `);
+        this.logger.info(msg);
+        this.publish(msg, this.publishPath);
       },
       error: (err) => {
-        this.logger.error(
-          `[ERR: <${err.name}:${err.message}> <stack:[${err.stack
-            .split(`\n`)
-            .join(`, `)}]>]`
-        );
+        const msg = `[ERR: <${err.name}:${err.message}> <stack:[${err.stack
+          .split(`\n`)
+          .join(`, `)}]>]`;
+        this.logger.error(msg);
+        this.publish(msg, this.publishPath);
       },
     };
   }
