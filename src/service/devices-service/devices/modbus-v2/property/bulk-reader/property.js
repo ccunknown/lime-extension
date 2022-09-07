@@ -332,19 +332,25 @@ class BulkReader extends PropertyTemplate {
       };
       const addrArr = [];
       let numtoread = 0;
-      addrArr.push(tmpAddrArr.shift());
-      while (tmpAddrArr.length) {
-        numtoread = script.map[table][tmpAddrArr[0]].registerSpec.number;
-        if (tmpAddrArr[0] + numtoread - addrArr[0] <= chunkSize) {
-          opt.calculate.push({
-            registerAddress: tmpAddrArr[0],
-            ...script.map[table][tmpAddrArr[0]],
-          });
-          addrArr.push(tmpAddrArr.shift());
-        } else {
-          break;
+
+      do {
+        const addr = tmpAddrArr.shift();
+        addrArr.push(addr);
+        opt.calculate.push({
+          registerAddress: addr,
+          ...script.map[table][addr],
+        });
+        numtoread =
+          addrArr[addrArr.length - 1] +
+          script.map[table][addrArr[addrArr.length - 1]].registerSpec.number -
+          addrArr[0];
+        if (tmpAddrArr.length) {
+          const nextAddr = tmpAddrArr[0];
+          const nexttoread = script.map[table][nextAddr].registerSpec.number;
+          if (nextAddr + nexttoread - addrArr[0] > chunkSize) break;
         }
-      }
+      } while (tmpAddrArr.length);
+
       opt.engineOpt.numtoread =
         addrArr[addrArr.length - 1] + numtoread - addrArr[0];
       // opt.engineOpt.address = addrArr[0];
