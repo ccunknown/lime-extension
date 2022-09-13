@@ -518,6 +518,54 @@
   transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
+#extension-lime-contents .round-edge {
+  border-radius: 3px 3px 3px 3px;
+}
+
+#extension-lime-contents .horizontal-union:not(:first-child):not(:last-child) {
+  border-radius: 0 0 0 0;
+}
+
+#extension-lime-contents .horizontal-union:first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+#extension-lime-contents .horizontal-union:last-child {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+#extension-lime-contents .vertical-union:not(:first-child):not(:last-child) {
+  border-radius: 0 0 0 0;
+}
+
+#extension-lime-contents .vertical-union:first-child {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+#extension-lime-contents .vertical-union:last-child {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+#extension-lime-contents .topleft-union {
+  border-top-left-radius: 0 !important;
+}
+
+#extension-lime-contents .topright-union {
+  border-top-right-radius: 0 !important;
+}
+
+#extension-lime-contents .bottomright-union {
+  border-bottom-right-radius: 0 !important;
+}
+
+#extension-lime-contents .bottomleft-union {
+  border-bottom-left-radius: 0 !important;
+}
+
 #extension-lime-contents .miso-badge-union {
   position: relative;
   top: calc(-1px);

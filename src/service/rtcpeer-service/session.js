@@ -1,17 +1,14 @@
-'use strict';
-
+/* eslint-disable class-methods-use-this */
 const { v1: uuid } = require(`uuid`);
-const EventEmitter = require('events').EventEmitter;
-const {
-  RTCPeerConnection,
-  RTCIceCandidate,
-} = require(`wrtc`);
+const { EventEmitter } = require(`events`);
+const { RTCPeerConnection, RTCIceCandidate } = require(`wrtc`);
 
 const Config = require(`./default`);
 const ChannelPair = require(`./channel-pair`);
 
 class Session extends EventEmitter {
-  constructor(config, options = {}) {
+  // constructor(config, options = {}) {
+  constructor(config) {
     super();
     this.state = `uninitialize`;
     this.interval = null;
@@ -24,62 +21,71 @@ class Session extends EventEmitter {
       answerCandidate: [],
       channel: null,
       metric: {
-        createDate: (new Date()).toISOString(),
+        createDate: new Date().toISOString(),
         failCount: 0,
-        successCount: 0
+        successCount: 0,
       },
       config: Config.session,
-      publishList: []
+      publishList: [],
     };
 
     this.initParam(this, defaultOption);
     this.initParam(this.config, config);
+    this.initCommandFunction();
     console.log(`session config`, JSON.stringify(this.config));
     this.abortcountdown = this.config.handshake.abortcountdown;
   }
 
   initParam(dest, src) {
-    for(let i in src)
-      dest[i] = src[i];
+    Object.entries(src).forEach(([key, value]) => {
+      // eslint-disable-next-line no-param-reassign
+      dest[key] = value;
+    });
   }
 
   initHandshake() {
-    this.interval = setInterval(() => this.doHandshake(), this.config.handshake.period);
+    this.interval = setInterval(
+      () => this.doHandshake(),
+      this.config.handshake.period
+    );
   }
 
   doHandshake() {
     return new Promise((resolve, reject) => {
       Promise.resolve()
-      .then(() => {
-        if(
-          this.channel.sender.readyState == `open` && 
-          this.channel.receiver.readyState == `open`
-        ) {
-          this.handshake();
-        }
-        else {
-          this.onHandshakeFail();
-        }
-      })
+        .then(() => {
+          if (
+            this.channel.sender.readyState === `open` &&
+            this.channel.receiver.readyState === `open`
+          ) {
+            this.handshake();
+          } else {
+            this.onHandshakeFail();
+          }
+        })
+        .then(() => resolve())
+        .catch((err) => reject(err));
     });
   }
 
   handshake() {
     return new Promise((resolve, reject) => {
-      let timeout = setTimeout(() => {
+      const timeout = setTimeout(() => {
         this.onHandshakeFail();
         reject(new Error(`handshake timeout.`));
       }, this.config.handshake.abortcountdown);
       Promise.resolve()
-      .then(() => this.sendRequest({
-        command: `ping`
-      }))
-      .then((ret) => {
-        clearTimeout(timeout);
-        this.onHandshakeSuccess();
-        resolve();
-      })
-      .catch((err) => reject(err));
+        .then(() =>
+          this.sendRequest({
+            command: `ping`,
+          })
+        )
+        .then((ret) => {
+          clearTimeout(timeout);
+          this.onHandshakeSuccess();
+          resolve(ret);
+        })
+        .catch((err) => reject(err));
     });
   }
 
@@ -88,20 +94,22 @@ class Session extends EventEmitter {
   }
 
   onHandshakeFail() {
-    this.abortcountdown = this.abortcountdown - 1;
-    (this.abortcountdown <= 0) && this.destroy();
+    this.abortcountdown -= 1;
+    if (this.abortcountdown <= 0) this.destroy();
   }
 
-  createPeerConnection(peerConnectionConfig = this.config.peerConnectionConfig) {
+  createPeerConnection(
+    peerConnectionConfig = this.config.peerConnectionConfig
+  ) {
     console.log(`[${this.constructor.name}]`, `createPeerConnection() >> `);
     console.log(
-      `[${this.constructor.name}]`, 
-      `peerConnectionConfig`, 
+      `[${this.constructor.name}]`,
+      `peerConnectionConfig`,
       JSON.stringify(peerConnectionConfig, null, 2)
     );
     this.peerConnection = new RTCPeerConnection(peerConnectionConfig);
     this.peerConnection.onicecandidate = (e) => {
-      if(e && e.type && e.candidate) {
+      if (e && e.type && e.candidate) {
         console.log(
           `[${this.constructor.name}]`,
           `session[${this.id}]`,
@@ -113,11 +121,10 @@ class Session extends EventEmitter {
 
         const candidate = new RTCIceCandidate(e.candidate);
         this.offerCandidate.push(candidate);
-      }
-      else {
+      } else {
         console.log(`[${this.constructor.name}]`, this.id, e);
       }
-    }
+    };
     return this.peerConnection;
   }
 
@@ -133,35 +140,78 @@ class Session extends EventEmitter {
   onMessage(message) {
     console.log(`[${this.constructor.name}]`, `onMessage() >> `, message);
     try {
-      let data = this.decodeMessage(message);
-      (data.type == `request`) && this.emit(data.type, data);
-      (data.type == `reply`) && this.emit(data.type, data);
-      (data.type == `message`) && this.emit(data.type, data.message);
-    } catch(err) {
+      const data = this.decodeMessage(message);
+      if (data.type === `request`) this.emit(data.type, data);
+      if (data.type === `reply`) this.emit(data.type, data);
+      if (data.type === `message`) this.emit(data.type, data.message);
+    } catch (err) {
       console.error(err);
     }
   }
 
   onRequestMessage(message) {
-    let data = this.decodeMessage(message);
+    const data = this.decodeMessage(message);
     console.log(`[${this.constructor.name}]`, `request message:`, data);
     this.onCommand(data);
   }
 
   onCommand(data) {
     console.log(`[${this.constructor.name}]`, `onCommand() >> `);
-    if(data.command == `ping`) {
-      this.sendReply(data.messageId, { command: `pong` });
-    }
-    else if(data.command == `subscribe-add`) {
-      this.publishList.push(data.topic);
-      this.sendReply(data.messageId, { command: `subscribe-added`, topic: data.topic});
-    }
+    if (Object.prototype.hasOwnProperty.call(this.cmdFunction, data.command))
+      return this.cmdFunction[data.command](data);
+    return this.sendReply(data.messageId, { command: `Invalid command` });
+    // if (data.command === `ping`) {
+    //   this.sendReply(data.messageId, { command: `pong` });
+    // } else if (data.command === `subscribe-add`) {
+    //   this.publishList.push(data.topic);
+    //   this.sendReply(
+    //     //
+    //     data.messageId,
+    //     {
+    //       command: `subscribe-added`,
+    //       topic: data.topic,
+    //     }
+    //   );
+    // }
+  }
+
+  initCommandFunction() {
+    this.cmdFunction = {
+      ping: (data) => {
+        this.sendReply(data.messageId, { command: `pong` });
+      },
+      "subscribe-add": (data) => {
+        const index = this.publishList.indexOf(data.topic);
+        if (index !== -1) {
+          this.sendReply(data.messageId, { command: `subscribe-duplicate` });
+        } else {
+          this.publishList.push(data.topic);
+          this.sendReply(
+            //
+            data.messageId,
+            { command: `subscribe-added`, topic: data.topic }
+          );
+        }
+      },
+      "subscribe-remove": (data) => {
+        const index = this.publishList.indexOf(data.topic);
+        if (index !== -1) {
+          this.publishList.splice(index, 1);
+          this.sendReply(
+            //
+            data.messageId,
+            { command: `subscribe-removed`, topic: data.topic }
+          );
+        } else {
+          this.sendReply(data.messageId, { command: `subscribe-notfound` });
+        }
+      },
+    };
   }
 
   send(message, options = {}) {
     console.log(`[${this.constructor.name}]`, `send() >> `);
-    let payload = {
+    const payload = {
       messageId: uuid(),
       layer: `session`,
       type: `message`,
@@ -172,13 +222,13 @@ class Session extends EventEmitter {
   }
 
   sendPublish(topic, message, options = {}) {
-    let payload = {
+    const payload = {
       messageId: uuid(),
       layer: `session`,
       type: `message`,
       command: `publish`,
-      topic: topic,
-      message: this.encodeMessage(message)
+      topic,
+      message: this.encodeMessage(message),
     };
     this.initParam(payload, options);
     this.sendRaw(JSON.stringify(payload));
@@ -187,55 +237,56 @@ class Session extends EventEmitter {
   sendRaw(message) {
     this.channel.send(message);
   }
-  
+
   sendReply(messageId, options = {}) {
-    let payload = {
-      messageId: messageId,
+    const payload = {
+      messageId,
       layer: `session`,
-      type: `reply`
+      type: `reply`,
     };
     return new Promise((resolve, reject) => {
       Promise.resolve()
-      .then(() => this.initParam(payload, options))
-      .then(() => this.sendRaw(JSON.stringify(payload)))
-      .then((ret) => resolve(ret))
-      .catch((err) => reject(err));
+        .then(() => this.initParam(payload, options))
+        .then(() => this.sendRaw(JSON.stringify(payload)))
+        .then((ret) => resolve(ret))
+        .catch((err) => reject(err));
     });
   }
 
   sendRequest(options = {}) {
-    let payload = {
+    const payload = {
       messageId: uuid(),
       layer: `session`,
-      type: `request`
+      type: `request`,
     };
     return new Promise((resolve, reject) => {
       Promise.resolve()
-      .then(() => this.initParam(payload, options))
-      .then(() => this.sendRaw(JSON.stringify(payload)))
-      .then(() => this.waitForReply(payload.messageId))
-      .then((ret) => resolve(ret))
-      .catch((err) => reject(err));
+        .then(() => this.initParam(payload, options))
+        .then(() => this.sendRaw(JSON.stringify(payload)))
+        .then(() => this.waitForReply(payload.messageId))
+        .then((ret) => resolve(ret))
+        .catch((err) => reject(err));
     });
   }
 
   waitForReply(messageId) {
     return new Promise((resolve, reject) => {
       let timeout = null;
-      let onMessage = (message) => {
-        let ret = this.decodeMessage(message);
-        if(ret && ret.messageId == messageId) {
+      const onMessage = (message) => {
+        const ret = this.decodeMessage(message);
+        if (ret && ret.messageId === messageId) {
           clearTimeout(timeout);
           this.removeAllListeners(`reply`);
-          messageId && resolve(ret);
+          if (messageId) resolve(ret);
         }
       };
       this.on(`reply`, onMessage.bind(this));
       timeout = setTimeout(
+        //
         () => {
           this.removeAllListeners(`reply`);
           reject(new Error(`Call-respond timeout.`));
-        }, 
+        },
         this.config.channel.callrespond.timeout
       );
     });
@@ -245,22 +296,22 @@ class Session extends EventEmitter {
     console.log(`[${this.constructor.name}]`, `createOffer() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
-      .then(() => this.peerConnection.createOffer())
-      .then((offer) => {
-        console.log(`[${this.constructor.name}]`, `offer`, offer);
-        this.offer = offer;
-        return this.peerConnection.setLocalDescription(offer);
-      })
-      .then(() => resolve(this.offer))
-      .catch((err) => reject(err));
-    })
+        .then(() => this.peerConnection.createOffer())
+        .then((offer) => {
+          console.log(`[${this.constructor.name}]`, `offer`, offer);
+          this.offer = offer;
+          return this.peerConnection.setLocalDescription(offer);
+        })
+        .then(() => resolve(this.offer))
+        .catch((err) => reject(err));
+    });
   }
 
   getOffer() {
     console.log(`[${this.constructor.name}]`, `getOffer() >> `);
     return {
       type: this.offer.type,
-      sdp: this.offer.sdp
+      sdp: this.offer.sdp,
     };
   }
 
@@ -270,13 +321,19 @@ class Session extends EventEmitter {
   }
 
   addAnswer(answer) {
-    console.log(`[${this.constructor.name}]`, `addAnswer() >> `, JSON.stringify(answer));
+    console.log(
+      `[${this.constructor.name}]`,
+      `addAnswer() >> `,
+      JSON.stringify(answer)
+    );
     return new Promise((resolve, reject) => {
       Promise.resolve()
-      .then(() => this.peerConnection.setRemoteDescription(answer))
-      .then(() => this.answer = answer)
-      .then((ret) => resolve({ result: true && ret }))
-      .catch((err) => reject(err));
+        .then(() => this.peerConnection.setRemoteDescription(answer))
+        .then(() => {
+          this.answer = answer;
+        })
+        .then((ret) => resolve({ result: true && ret }))
+        .catch((err) => reject(err));
     });
   }
 
@@ -284,31 +341,29 @@ class Session extends EventEmitter {
     console.log(`[${this.constructor.name}]`, `addAnswerCandidate() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
-      .then(() => {
-        const candidate = new RTCIceCandidate(answerCandidate);
-        this.peerConnection.addIceCandidate(candidate);
-        this.answerCandidate.push(answerCandidate);
-      })
-      .then(() => resolve({ result: true }))
-      .catch((err) => reject(err));
-    })
+        .then(() => {
+          const candidate = new RTCIceCandidate(answerCandidate);
+          this.peerConnection.addIceCandidate(candidate);
+          this.answerCandidate.push(answerCandidate);
+        })
+        .then(() => resolve({ result: true }))
+        .catch((err) => reject(err));
+    });
   }
 
   destroy() {
-    this.interval && clearInterval(this.interval);
-    
-    this.channel.sender && 
-    this.channel.setupSenderListener(false) &&
-    delete this.channel.sender;
+    if (this.interval) clearInterval(this.interval);
 
-    this.channel.receiver && 
-    this.channel.setupReceiverListener(false) &&
-    delete this.channel.receiver;
-    
+    if (this.channel.sender && this.channel.setupSenderListener(false))
+      delete this.channel.sender;
+
+    if (this.channel.receiver && this.channel.setupReceiverListener(false))
+      delete this.channel.receiver;
+
     this.peerConnection.close();
-    
+
     delete this.peerConnection;
-    
+
     console.log(`[${this.constructor.name}]`, `[${this.id}]`, `destroy`);
     this.emit(`destroy`, this.id);
   }
@@ -317,13 +372,13 @@ class Session extends EventEmitter {
   decodeMessage(text) {
     try {
       return JSON.parse(text);
-    } catch(err) {
+    } catch (err) {
       return text;
     }
   }
 
   encodeMessage(arg) {
-    return (typeof arg == `object`) ? JSON.stringify(arg) : arg;
+    return typeof arg === `object` ? JSON.stringify(arg) : arg;
   }
 }
 

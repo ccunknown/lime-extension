@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 /* eslint-disable no-bitwise */
 const MAX_LOG_KEEP = 1000;
 /* eslint-disable no-undef */
@@ -13,6 +14,7 @@ export default class ExtensionRTCPageController {
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => this.initVue())
+        .then(() => this.initFunction())
         .then(() => resolve())
         .catch((err) => reject(err));
     });
@@ -48,7 +50,6 @@ export default class ExtensionRTCPageController {
             switchToggle: () => {},
             addSubscribe: () => {},
             removeSubscribe: () => {},
-            idColoring: () => {},
           },
         },
         methods: {},
@@ -74,43 +75,77 @@ export default class ExtensionRTCPageController {
             this.vue.resource.subscribeList.splice(index, 1);
           }
         },
-        idColoring: (eid) => {
-          const color = this.idColoring(eid);
-          this.console.log(`id:`, eid, color);
-          return {
-            backgroundColor: color,
-          };
-        },
-        jidColoring: (log) => {
-          // return `#${id.padStart(6, `0`).slice(0, 6)}`;
-          let color = 0xdddddd;
-          log.forEach((e) => {
-            const idStr = e.match(/\[JID:([^\]]*)\]/);
-            if (idStr && idStr[1]) {
-              color = this.idColoring(idStr[1]);
-              this.console.log(`id:`, idStr[1], color);
-            }
-          });
-          return {
-            backgroundColor: color,
-          };
-        },
-        getLogJID: (logArr) => {
-          return logArr.find((e) => {
-            const idStr = e.match(/\[JID:([^\]]*)\]/);
-            return idStr && idStr[1];
-          });
-        },
-        getLogWithoutJID: (logArr) => {
-          return logArr.filter((e) => {
-            const idStr = e.match(/\[JID:([^\]]*)\]/);
-            return !(idStr && idStr[1]);
-          });
-        },
       };
       this.console.log(this.vue);
       resolve();
     });
+  }
+
+  initFunction() {
+    const consoleDisplay = document.getElementById(
+      `contents-rtcoverlay-console-display`
+    );
+    // consoleDisplay.scrollIntoView({
+    //   behavior: "smooth",
+    //   block: "end",
+    //   inline: "nearest",
+    // });
+    // let middleScrollCount = 0;
+    // consoleDisplay.addEventListener(`scroll`, (event) => {
+    //   const element = event.target;
+    //   const pageScroll = () => {
+    //     element.scrollBy(0, 1);
+    //     this.scroller = setTimeout(pageScroll, 10);
+    //   };
+    //   if (element.scrollHeight - element.scrollTop === element.clientHeight) {
+    //     this.console.log(`bottom scrolled`);
+    //     middleScrollCount = 0;
+    //     if (!this.scroller) this.scroller = setTimeout(pageScroll, 10);
+    //   } else {
+    //     this.console.log(`middle scrolled`, middleScrollCount);
+    //     middleScrollCount += 1;
+    //     if (middleScrollCount > 20) {
+    //       clearTimeout(this.scroller);
+    //       this.scroller = null;
+    //     }
+    //   }
+    // });
+
+    const pageScroll = () => {
+      consoleDisplay.scrollBy(0, 1);
+      this.scroller = setTimeout(pageScroll, 10);
+    };
+    consoleDisplay.addEventListener(`wheel`, (event) => {
+      // const element = event.target;
+      if (event.deltaY < 0) {
+        console.log('scrolling up');
+        clearTimeout(this.scroller);
+        this.scroller = null;
+      } else if (
+        Math.abs(
+          consoleDisplay.scrollHeight -
+            consoleDisplay.scrollTop -
+            consoleDisplay.clientHeight
+        ) <= 0
+      ) {
+        this.console.log(`bottom wheel`);
+        if (!this.scroller) this.scroller = setTimeout(pageScroll, 10);
+      }
+      // else {
+      //   this.console.log(`middle wheel ########################`);
+      //   clearTimeout(this.scroller);
+      //   this.scroller = null;
+      // }
+    });
+    pageScroll();
+  }
+
+  idStyleColoring(eid) {
+    const color = this.idColoring(eid);
+    // this.console.log(`id:`, eid, color);
+    return {
+      backgroundColor: color,
+    };
   }
 
   idColoring(eid) {
@@ -144,17 +179,6 @@ export default class ExtensionRTCPageController {
     }
     return hash;
   }
-
-  // eslint-disable-next-line class-methods-use-this
-  // hashCode(str) {
-  //   let hash = 0;
-  //   for (let i = 0; i < str.length; i += 1) {
-  //     const char = str.charCodeAt(i);
-  //     hash = (hash << 5) - hash + char;
-  //     hash &= hash; // Convert to 32bit integer
-  //   }
-  //   return new Uint32Array([hash])[0];
-  // }
 
   // eslint-disable-next-line class-methods-use-this
   HSVtoRGB(hue, sat, val) {
@@ -223,11 +247,34 @@ export default class ExtensionRTCPageController {
 
   subscribeCallback(...args) {
     this.console.log(`subscribeCallback`, ...args);
-    this.vue.resource.logList.push({
+    const myArgs = [...args];
+    const id = myArgs[0];
+    const jid = this.getLogJID(myArgs[1]);
+    const log = {
       timestamp: new Date(),
-      message: [...args],
-    });
+      raw: myArgs,
+      cooked: {
+        id,
+        idColor: this.idStyleColoring(id),
+        jid,
+        jidColor: this.idStyleColoring(jid),
+        message: this.getLogWithoutJID(myArgs[1]),
+      },
+    };
+    this.console.log(`log`, log);
+    this.vue.resource.logList.push(log);
     while (this.vue.resource.logList.length > MAX_LOG_KEEP)
       this.vue.resource.logList.shift();
+  }
+
+  getLogJID(log) {
+    const idStr = log.match(/\[JID:([^\]]*)\]/);
+    if (idStr && idStr[1]) return idStr[1];
+    return ``;
+  }
+
+  getLogWithoutJID(log) {
+    const regex = /\[JID:[^\]]+\] ?/g;
+    return log.replaceAll(regex, ``);
   }
 }

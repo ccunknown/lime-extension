@@ -4,82 +4,206 @@
 >
   <div class="miso-absolute-overlay-content text-light d-flex">
     <div class="miso-absolute-overlay-content-console w-100 d-flex flex-column">
-      <div
-        class="
-          miso-absolute-overlay-content-console-monitor
-          border-warning
-          w-100
-          grow-1
-        "
-        style="
-          font-family: Consolas,monaco,monospace;
-          overflow: scroll;
-          white-space: nowrap;
-        "
-      >
-        <template
-          v-for="log in resource.logList"
+      <!-- Console panel -->
+      <div class="d-flex flex-column align-items-end grow-1">
+        <!-- Console display -->
+        <div
+          id="contents-rtcoverlay-console-display"
+          class="
+            miso-absolute-overlay-content-console-monitor
+            bottomright-union
+            border-warning
+            grow-1
+            w-100
+            d-flex
+            flex-column
+          "
+          style="
+            font-family: Consolas,monaco,monospace;
+            white-space: nowrap;
+            overflow: scroll;
+            height: 100px;
+          "
         >
-          <div class="d-flex flex-row mb-1">
-            <span class="bg-dark">{{log.timestamp.toISOString()}}</span>
-            &nbsp;:&nbsp;
-            <span
-              class="text-truncate"
-              style="
-                width: 200px;
-                direction: rtl;
-              "
-              data-toggle="tooltop"
-              :title="log.message[0]"
-              :style="fn.idColoring(log.message[0])"
-            >
-              {{log.message[0]}}
-            </span>
-            &nbsp;
-            <span
-              :style="fn.jidColoring(log.message[1])"
-            >
-              {{fn.getLogJID(log.message[1])}}
-            </span>
-            &nbsp;
-            <span>
-              {{fn.getLogWithoutJID(log.message[1]).join(` `)}}
-            </span>
-          </div>
-        </template>
-      </div>
-      <div
-        class="
-          miso-absolute-overlay-content-console-cmd
-          border-warning
-          d-flex flex-column
-          justify-content-between
-        "
-      >
-        <div>
           <template
-            v-for="subscribeText in resource.subscribeList"
+            v-for="log in resource.logList"
           >
-            <div class="list-group-item list-group-item-action bg-transparent text-light d-flex justify-content-between">
-              <div class="grow-1 d-flex flex-column">
-                <span>Sub: {{subscribeText}}</span>
-              </div>
+            <div class="d-flex flex-row mb-1">
+              <!-- Timestamp -->
+              <span class="bg-dark">{{log.timestamp.toISOString()}}</span>
+              &nbsp;:&nbsp;
+              <!-- Object ID -->
+              <span
+                class="text-truncate"
+                style="
+                  width: 200px;
+                  min-width: 200px;
+                  direction: rtl;
+                "
+                data-toggle="tooltop"
+                :title="log.cooked.id"
+                :style="log.cooked.idColor"
+              >
+                {{log.cooked.id}}
+              </span>
+              &nbsp;
+              <!-- Job ID -->
+              <span
+                :style="log.cooked.jidColor"
+              >
+                {{log.cooked.jid}}
+              </span>
+              &nbsp;
+              <!-- Log Message -->
               <span>
-                <button 
-                  class="btn btn-danger"
-                  @click="fn.removeSubscribe(subscribeText)"
-                >
-                  <i class="fas fa-trash fa-lg"></i>
-                </button>
+                {{log.cooked.message}}
               </span>
             </div>
           </template>
         </div>
-        <div class="d-flex justify-content-between align-items-center p-3">
-          <input type="text" class="grow-1 mr-3" v-model="resource.cmdInput">
-          <button class="btn btn-primary" @click="fn.addSubscribe()">Subscribe</button>
+        <!-- <div
+          class="
+            miso-absolute-overlay-content-console-monitor
+            bottomright-union
+            border-warning
+            w-100
+            grow-1
+          "
+          style="
+            height: 100px;
+            overflow: scroll;
+          "
+        >
+          <div
+            class="w-100 d-flex flex-column"
+            style="
+              font-family: Consolas,monaco,monospace;
+              white-space: nowrap;
+              overflow: visible;
+            "
+          >
+            <template
+              v-for="log in resource.logList"
+            >
+              <div class="d-flex flex-row mb-1">
+                <span class="bg-dark">{{log.timestamp.toISOString()}}</span>
+                &nbsp;:&nbsp;
+                <span
+                  class="text-truncate"
+                  style="
+                    width: 200px;
+                    min-width: 200px;
+                    direction: rtl;
+                  "
+                  data-toggle="tooltop"
+                  :title="log.message[0]"
+                  :style="fn.idColoring(log.message[0])"
+                >
+                  {{log.message[0]}}
+                </span>
+                &nbsp;
+                <span
+                  :style="fn.jidColoring(log.message[1])"
+                >
+                  {{fn.getLogJID(log.message[1])}}
+                </span>
+                &nbsp;
+                <span>
+                  {{fn.getLogWithoutJID(log.message[1])}}
+                </span>
+              </div>
+            </template>
+          </div>
+        </div> -->
+        <!-- Control bar -->
+        <div
+          class="
+            vertical-union
+            round-edge
+            text-truncate
+            d-flex flex-row justify-content-end
+          "
+        >
+          <div class="horizontal-union bg-dark text-light p-2">
+            Play
+          </div>
+          <div class="horizontal-union bg-success text-light p-2">
+            Pause
+          </div>
+          <div class="horizontal-union bg-warning text-light p-2">
+            Clear
+          </div>
         </div>
-      </div>  
+      </div>
+      
+      <!-- Gap -->
+      <!-- <div
+        class="
+          miso-absolute-overlay-content-console-functionbar
+          d-flex flex-row
+          justify-content-between
+        "
+      >
+      </div> -->
+
+      <!-- Subscription panel -->
+      <div style="position: relative">
+        <!-- Quick subscribe -->
+        <div
+          class="vertical-union round-edge d-flex flex-row text-truncate"
+          style="position: absolute; bottom: 100%"
+        >
+          <div class="horizontal-union bg-dark text-light p-2">
+            All
+          </div>
+          <div class="horizontal-union bg-success text-light p-2">
+            Devices
+          </div>
+          <div class="horizontal-union bg-warning text-light p-2">
+            Engines
+          </div>
+          <div class="horizontal-union bg-info text-light p-2">
+            Ports
+          </div>
+          <div class="horizontal-union bg-danger text-light p-2">
+            None
+          </div>
+        </div>
+        <!-- Subscribe commandline -->
+        <div
+          class="
+            miso-absolute-overlay-content-console-cmd
+            topleft-union
+            border-warning
+            d-flex flex-column
+            justify-content-between
+          "
+        >
+          <div>
+            <template
+              v-for="subscribeText in resource.subscribeList"
+            >
+              <div class="list-group-item list-group-item-action bg-transparent text-light d-flex justify-content-between">
+                <div class="grow-1 d-flex flex-column">
+                  <span>Sub: {{subscribeText}}</span>
+                </div>
+                <span>
+                  <button 
+                    class="btn btn-danger"
+                    @click="fn.removeSubscribe(subscribeText)"
+                  >
+                    <i class="fas fa-trash fa-lg"></i>
+                  </button>
+                </span>
+              </div>
+            </template>
+          </div>
+          <div class="d-flex justify-content-between align-items-center p-3">
+            <input type="text" class="grow-1 mr-3" v-model="resource.cmdInput">
+            <button class="btn btn-primary" @click="fn.addSubscribe()">Subscribe</button>
+          </div>
+        </div>  
+      </div>
     </div>
   </div>
 </div>

@@ -7,6 +7,7 @@ class ObjectOperator {
     this.parentService = parentService;
     this.state = `unload`;
     this.queue = new Queue(`${this.parentService.id}-${this.id}`);
+    this.queue.empty();
 
     this.objMon = this.parent.om.obj;
     this.taskMon = this.parent.om.task;

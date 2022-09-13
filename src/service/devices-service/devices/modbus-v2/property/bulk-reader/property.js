@@ -59,7 +59,7 @@ class BulkReader extends PropertyTemplate {
         config.address = addr;
         confJson[id] = config;
       });
-      console.log(`confJson: ${JSON.stringify(confJson, null, 2)}`);
+      // console.log(`confJson: ${JSON.stringify(confJson, null, 2)}`);
       Object.keys(confJson)
         .reduce((prevProm, id) => {
           return this.addProperty(id, confJson[id]);
@@ -142,131 +142,6 @@ class BulkReader extends PropertyTemplate {
   }
 
   // eslint-disable-next-line no-unused-vars
-  // processor(jobId, cmd) {
-  //   // console.log(`${this.id}: DefaultProperty: _periodWork() >> `);
-  //   return new Promise((resolve, reject) => {
-  //     setTimeout(
-  //       () => reject(new Error(`period work timeout!`)),
-  //       PERIOD_WORK_TIMEOUT
-  //     );
-
-  //     const engine = this.device.getEngine();
-  //     const script = this.device.getScript();
-  //     // const ip = this.device.exConf.config.hasOwnProperty(`ip`)
-  //     const ip = Object.prototype.hasOwnProperty.call(
-  //       this.device.exConf.config,
-  //       `ip`
-  //     )
-  //       ? this.device.exConf.config.ip
-  //       : undefined;
-  //     // const port = this.device.exConf.config.hasOwnProperty(`port`)
-  //     const port = Object.prototype.hasOwnProperty.call(
-  //       this.device.exConf.config,
-  //       `port`
-  //     )
-  //       ? this.device.exConf.config.port
-  //       : undefined;
-  //     const id = this.device.exConf.config.address;
-  //     const { table } = this.config;
-  //     const chunkSize = this.config.size;
-
-  //     const tmpAddrArr = [...this.config.address];
-  //     tmpAddrArr.sort((a, b) => a - b);
-  //     const queryTask = [];
-  //     // let firstAddr = null;
-  //     while (tmpAddrArr.length) {
-  //       const arr = [];
-  //       arr.push(tmpAddrArr.shift());
-  //       while (tmpAddrArr.length) {
-  //         if (
-  //           tmpAddrArr[0] +
-  //             script.map[table][tmpAddrArr[0]].registerSpec.number -
-  //             arr[0] <=
-  //           chunkSize
-  //         )
-  //           arr.push(tmpAddrArr.shift());
-  //         else break;
-  //       }
-  //       const opt = {
-  //         action: `read`,
-  //         id,
-  //         address: arr[0],
-  //         table,
-  //         numtoread:
-  //           arr[arr.length - 1] -
-  //           arr[0] +
-  //           script.map[table][arr[arr.length - 1]].registerSpec.number,
-  //       };
-  //       if (ip && port) {
-  //         opt.ip = ip;
-  //         opt.port = port;
-  //       }
-  //       queryTask.push(opt);
-  //     }
-
-  //     if (script && engine && engine.getState() === `running`) {
-  //       queryTask
-  //         .reduce((prevProm, opt) => {
-  //           return prevProm
-  //             .then(() => engine.act(opt, jobId))
-  //             .then((ret) => {
-  //               if (ret.error) throw new Error(ret.error);
-  //               else return ret;
-  //             })
-  //             .then((ret) => {
-  //               const arr = [...this.config.address]
-  //                 .filter(
-  //                   (e) => e >= opt.address && e < opt.address + opt.numtoread
-  //                 )
-  //                 .sort((a, b) => a - b);
-  //               arr.forEach((addr) => {
-  //                 const ref = script.map[table][addr];
-  //                 const bytes =
-  //                   (ref.registerSpec.number * ref.registerSpec.size) / 8;
-  //                 const startPoint =
-  //                   (ref.registerSpec.size / 8) * (addr - arr[0]);
-  //                 const endPoint = startPoint + bytes;
-  //                 const buffVal = Buffer.from(ret.slice(startPoint, endPoint));
-
-  //                 const value = script.map[table][addr].translator(
-  //                   buffVal,
-  //                   script.map[table][addr]
-  //                 );
-  //                 const addrStr = addr.toString(16);
-  //                 const addrStrLen =
-  //                   addrStr.length % 2 === 0
-  //                     ? addrStr.length
-  //                     : addrStr.length + 1;
-  //                 this.om.task.log(
-  //                   jobId,
-  //                   `result`,
-  //                   `<addr:0x${addrStr.padStart(addrStrLen, `0`)}>`,
-  //                   `<raw:0x${buffVal.toString(`hex`)}>`,
-  //                   `<${ref.name}:${value}>`
-  //                 );
-  //                 this.device
-  //                   .findProperty(this.generatePropertyId(addr))
-  //                   .setCachedValueAndNotify(value);
-  //               });
-  //               // return;
-  //             });
-  //         }, Promise.resolve())
-  //         // .then(() => this.onPeriodSuccess())
-  //         .then(() => resolve())
-  //         .catch((err) => {
-  //           console.log(`BulkReaderProperty: periodWork() >> Error!!!`);
-  //           // this.onPeriodFail(err);
-  //           reject(err);
-  //         });
-  //     } else if (engine == null) {
-  //       reject(new Error(`engine unavailable`));
-  //     } else {
-  //       reject(new Error(`component missing`));
-  //     }
-  //   });
-  // }
-
-  // eslint-disable-next-line no-unused-vars
   processor(jobId, cmd) {
     return new Promise((resolve, reject) => {
       setTimeout(
@@ -318,7 +193,6 @@ class BulkReader extends PropertyTemplate {
     const tmpAddrArr = [...this.config.address];
     tmpAddrArr.sort((a, b) => a - b);
     this.queryTemplate = [];
-    // let firstAddr = null;
     while (tmpAddrArr.length) {
       const opt = {
         calculate: [],
@@ -353,7 +227,6 @@ class BulkReader extends PropertyTemplate {
 
       opt.engineOpt.numtoread =
         addrArr[addrArr.length - 1] + numtoread - addrArr[0];
-      // opt.engineOpt.address = addrArr[0];
       [opt.engineOpt.address] = addrArr;
       if (ip && port) {
         opt.engineOpt.ip = ip;
@@ -361,7 +234,7 @@ class BulkReader extends PropertyTemplate {
       }
       this.queryTemplate.push(opt);
     }
-    console.log(`queryTemplate:`, this.queryTemplate);
+    // console.log(`queryTemplate:`, this.queryTemplate);
     this.om.obj.log(
       `Query template built, got ${
         Object.keys(this.queryTemplate).length
