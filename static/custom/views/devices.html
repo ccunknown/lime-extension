@@ -97,8 +97,9 @@
                         </button>
                         <div class="dropdown-menu bg-dark text-light">
                           <a 
-                          v-if="!!ui.slider['edit-id']"
-                          @click="fn.showPropertyMetrics(i)" class="dropdown-item d-flex text-light" href="#">
+                            v-if="!!ui.slider['edit-id']"
+                            @click="fn.showPropertyMetrics(i)" class="dropdown-item d-flex text-light" href="#"
+                          >
                             <div class="miso-icon-box-16">
                               <i class="fas fa-chart-bar fa-lg"></i>
                             </div>
@@ -187,6 +188,17 @@
                     <i class="fas fa-bars fa-lg"></i>
                   </button>
                   <div class="dropdown-menu bg-dark text-light">
+                    <a 
+                      @click="fn.addSubscribe(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
+                      <div class="miso-icon-box-16">
+                        <!-- <i class="fas fa-chart-bar fa-lg"></i> -->
+                        <i class="fa-solid fa-terminal fa-lg"></i>
+                      </div>
+                      <span>Log Subscribe</span>
+                    </a>
                     <a 
                       @click="fn.showMetrics(id)" 
                       class="dropdown-item d-flex text-light" 
@@ -418,7 +430,7 @@
   <div v-if="loader.extension.debug">
     <code class="text-light">
       <template v-for="(elem, index) in $data">
-        <div v-if="index != 'loader'">
+        <div v-if="index !== 'loader'">
           <b>{{index}} :</b>
           <pre class="text-light">{{elem}}</pre>
         </div>

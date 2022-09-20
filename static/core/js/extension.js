@@ -38,12 +38,13 @@ export default class ExtensionMain extends window.Extension {
 
   initLoader() {
     return new Promise((resolve, reject) => {
-      import(`/extensions/${this.id}/static/core/js/loader.js`)
-      .then((ExtensionLoader) => new ExtensionLoader.default(this))
-      .then((loader) => this.loader = loader)
-      .then(() => this.loader.init())
-      .then(() => resolve())
-      .catch((err) => reject(err));
+      Promise.resolve()
+        .then(() => import(`/extensions/${this.id}/static/core/js/loader.js`))
+        .then((ExtensionLoader) => new ExtensionLoader.default(this))
+        .then((loader) => this.loader = loader)
+        .then(() => this.loader.init())
+        .then(() => resolve())
+        .catch((err) => reject(err));
     });
   }
 

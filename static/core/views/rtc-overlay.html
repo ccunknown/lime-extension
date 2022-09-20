@@ -25,14 +25,12 @@
             height: 100px;
           "
         >
-          <template
+          <!-- <template
             v-for="log in resource.logList"
           >
             <div class="d-flex flex-row mb-1">
-              <!-- Timestamp -->
               <span class="bg-dark">{{log.timestamp.toISOString()}}</span>
               &nbsp;:&nbsp;
-              <!-- Object ID -->
               <span
                 class="text-truncate"
                 style="
@@ -47,74 +45,20 @@
                 {{log.cooked.id}}
               </span>
               &nbsp;
-              <!-- Job ID -->
               <span
                 :style="log.cooked.jidColor"
               >
                 {{log.cooked.jid}}
               </span>
               &nbsp;
-              <!-- Log Message -->
-              <span>
+              <span
+                :style="log.cooked.levelColor"
+              >
                 {{log.cooked.message}}
               </span>
             </div>
-          </template>
+          </template> -->
         </div>
-        <!-- <div
-          class="
-            miso-absolute-overlay-content-console-monitor
-            bottomright-union
-            border-warning
-            w-100
-            grow-1
-          "
-          style="
-            height: 100px;
-            overflow: scroll;
-          "
-        >
-          <div
-            class="w-100 d-flex flex-column"
-            style="
-              font-family: Consolas,monaco,monospace;
-              white-space: nowrap;
-              overflow: visible;
-            "
-          >
-            <template
-              v-for="log in resource.logList"
-            >
-              <div class="d-flex flex-row mb-1">
-                <span class="bg-dark">{{log.timestamp.toISOString()}}</span>
-                &nbsp;:&nbsp;
-                <span
-                  class="text-truncate"
-                  style="
-                    width: 200px;
-                    min-width: 200px;
-                    direction: rtl;
-                  "
-                  data-toggle="tooltop"
-                  :title="log.message[0]"
-                  :style="fn.idColoring(log.message[0])"
-                >
-                  {{log.message[0]}}
-                </span>
-                &nbsp;
-                <span
-                  :style="fn.jidColoring(log.message[1])"
-                >
-                  {{fn.getLogJID(log.message[1])}}
-                </span>
-                &nbsp;
-                <span>
-                  {{fn.getLogWithoutJID(log.message[1])}}
-                </span>
-              </div>
-            </template>
-          </div>
-        </div> -->
         <!-- Control bar -->
         <div
           class="
@@ -123,49 +67,89 @@
             text-truncate
             d-flex flex-row justify-content-end
           "
+          style="font-size: 1rem;"
         >
-          <div class="horizontal-union bg-dark text-light p-2">
-            Play
+          <!-- Play/Pause button -->
+          <div
+            class="
+              horizontal-union
+              text-light
+              pointer-cursor
+            "
+            @click="fn.consolePlayToggle()"
+            style="width: 2.5rem; height: 2.5rem;"
+          >
+            <div
+              class="
+                w-100 h-100
+                bg-success
+                d-flex justify-content-center align-items-center
+              "
+              :class="{hide: ui.play}"
+            >
+              <i class="fas fa-play"></i>
+            </div>
+            <div
+              class="
+                w-100 h-100
+                bg-info
+                d-flex justify-content-center align-items-center
+              "
+              :class="{hide: !ui.play}"
+            >
+              <i class="fas fa-pause"></i>
+            </div>
           </div>
-          <div class="horizontal-union bg-success text-light p-2">
-            Pause
-          </div>
-          <div class="horizontal-union bg-warning text-light p-2">
-            Clear
+          <div
+            class="
+              horizontal-union
+              text-light
+              pointer-cursor
+            "
+            @click="fn.consoleClear()"
+            style="width: 2.5rem; height: 2.5rem;"
+          >
+            <div
+              class="
+                w-100 h-100
+                bg-danger
+                d-flex justify-content-center align-items-center
+              "
+            >
+              <i class="fas fa-xmark"></i>
+            </div>
           </div>
         </div>
       </div>
-      
-      <!-- Gap -->
-      <!-- <div
-        class="
-          miso-absolute-overlay-content-console-functionbar
-          d-flex flex-row
-          justify-content-between
-        "
-      >
-      </div> -->
 
       <!-- Subscription panel -->
       <div style="position: relative">
         <!-- Quick subscribe -->
         <div
           class="vertical-union round-edge d-flex flex-row text-truncate"
-          style="position: absolute; bottom: 100%"
+          style="position: absolute; bottom: 100%; font-size: 1rem;"
         >
-          <div class="horizontal-union bg-dark text-light p-2">
-            All
-          </div>
-          <div class="horizontal-union bg-success text-light p-2">
-            Devices
-          </div>
-          <div class="horizontal-union bg-warning text-light p-2">
-            Engines
-          </div>
-          <div class="horizontal-union bg-info text-light p-2">
-            Ports
-          </div>
-          <div class="horizontal-union bg-danger text-light p-2">
+          <template v-for="elem in resource.quickSubscribeList">
+            <div
+              class="
+                horizontal-union
+                bg-dark text-light p-2
+                pointer-cursor
+              "
+              @click="fn.addSubscribe(elem.topic)"
+            >
+              {{elem.title}}
+            </div>  
+          </template>
+          <div
+            class="
+              horizontal-union
+              bg-danger text-light p-2
+              pointer-cursor
+              hide
+            "
+            @click="fn.removeSubscribe()"
+          >
             None
           </div>
         </div>

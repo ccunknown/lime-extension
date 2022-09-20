@@ -27,8 +27,9 @@
       <div class="card-body bg-dark">
 
         <div 
-        v-if="!ui.slider.ready"
-        class="">
+          v-if="!ui.slider.ready"
+          class=""
+        >
           <div class="d-flex flex-column justify-content-center">
             <br>
             <div class="text-light">
@@ -45,8 +46,9 @@
         </div>
 
         <div 
-        v-if="ui.slider.ready"
-        class="miso-form-container align-items-center col-sm-12 col-md-10 col-lg-8 w-100">
+          v-if="ui.slider.ready"
+          class="miso-form-container align-items-center col-sm-12 col-md-10 col-lg-8 w-100"
+        >
 
           <div class="miso-badge-header-group align-items-end w-100">
             <label class="miso-label-badge badge-info font-size-inherit">Config</label>
@@ -58,11 +60,12 @@
                     {{(param.title) ? param.title : index}}
                   </label>
                   <json-schema-form 
-                  v-bind:param="param"
-                  class="miso-badge-union border-secondary"
-                  v-bind:class="{'no-resize': param.attrs && param.attrs.type == 'textarea'}"
-                  v-model="ui.slider.form[index]"
-                  @change="param.alternate && fn.onAlternateChange()">
+                    v-bind:param="param"
+                    class="miso-badge-union border-secondary"
+                    v-bind:class="{'no-resize': param.attrs && param.attrs.type == 'textarea'}"
+                    v-model="ui.slider.form[index]"
+                    @change="param.alternate && fn.onAlternateChange()"
+                  >
                   </json-schema-form>
                 </div>
               </template>
@@ -93,8 +96,9 @@
       <div class="card-body bg-dark">
         <!-- Base Body Loader -->
         <div 
-        v-if="!ui.base.ready"
-        class="">
+          v-if="!ui.base.ready"
+          class=""
+        >
           <div class="d-flex flex-column justify-content-center">
             <br>
             <div class="text-light">
@@ -111,12 +115,14 @@
         </div>
         <!-- Base Body Item Container -->
         <div 
-        v-if="ui.base.ready"
-        class="miso-grid-item-container">
+          v-if="ui.base.ready"
+          class="miso-grid-item-container"
+        >
           <!-- Items -->
           <div 
-          class="card miso-grid-item" 
-          v-for="(item, id) in resource.systemEngine">
+            class="card miso-grid-item" 
+            v-for="(item, id) in resource.systemEngine"
+          >
             <!-- Item Header -->
             <div class="card-header d-flex justify-content-between bg-dark text-light">
               <!-- Icon & Title -->
@@ -130,7 +136,22 @@
                     <i class="fas fa-bars fa-lg"></i>
                   </button>
                   <div class="dropdown-menu bg-dark text-light">
-                    <a v-if="['stopped', 'semi-running'].includes(item.state)" @click="fn.start(id)" class="dropdown-item d-flex text-light" href="#">
+                    <a
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                      @click="fn.addSubscribe(id)"
+                    >
+                      <div class="miso-icon-box-16">
+                        <i class="fa-solid fa-terminal fa-lg"></i>
+                      </div>
+                      <span>Log Subscribe</span>
+                    </a>
+                    <a
+                      v-if="['stopped', 'semi-running'].includes(item.state)"
+                      class="dropdown-item d-flex text-light"
+                      href="#"
+                      @click="fn.start(id)"
+                    >
                       <div class="miso-icon-box-16">
                         <i class="fas fa-play fa-lg"></i>
                       </div>
@@ -187,12 +208,13 @@
                 <span class="header-item text-truncate mr-2">
                   <span class="bg-dark text-light">status</span>
                   <span 
-                  class="" 
-                  :class="{
-                    'bg-success text-light': item.state == 'running',
-                    'bg-warning text-dark': ['starting', 'restarting'].includes(item.state), 
-                    'bg-danger text-light': !['running', 'starting', 'restarting'].includes(item.state)
-                  }">
+                    class="" 
+                    :class="{
+                      'bg-success text-light': item.state == 'running',
+                      'bg-warning text-dark': ['starting', 'restarting'].includes(item.state), 
+                      'bg-danger text-light': !['running', 'starting', 'restarting'].includes(item.state)
+                    }"
+                  >
                     {{item.state}}
                   </span>
                 </span>
@@ -201,8 +223,9 @@
           </div>
           <!-- Adder -->
           <div 
-          class="card miso-grid-item miso-grid-item-adder bg-secondary"
-          @click="fn.add()">
+            class="card miso-grid-item miso-grid-item-adder bg-secondary"
+            @click="fn.add()"
+          >
             <div class="card-body">
               <div class="d-flex flex-column justify-content-center align-items-center w-100 h-100">
                 <i class="fas fa-plus fa-4x"></i>

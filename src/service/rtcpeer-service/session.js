@@ -206,6 +206,14 @@ class Session extends EventEmitter {
           this.sendReply(data.messageId, { command: `subscribe-notfound` });
         }
       },
+      "subscribe-remove-all": (data) => {
+        this.publishList = [];
+        this.sendReply(
+          //
+          data.messageId,
+          { command: `all-subscribe-removed` }
+        );
+      },
     };
   }
 
@@ -215,10 +223,18 @@ class Session extends EventEmitter {
       messageId: uuid(),
       layer: `session`,
       type: `message`,
-      message: this.encodeMessage(message)
+      message: this.encodeMessage(message),
     };
     this.initParam(payload, options);
     this.sendRaw(JSON.stringify(payload));
+  }
+
+  publish(topic, message, options = {}) {
+    this.publishList
+      .map((t) => `^${t}$`)
+      .forEach((re) => {
+        if (topic.match(re)) this.sendPublish(topic, message, options);
+      });
   }
 
   sendPublish(topic, message, options = {}) {

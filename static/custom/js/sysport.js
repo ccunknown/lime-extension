@@ -7,6 +7,12 @@ export default class PageSysport {
     this.console = this.extension.console;
     this.api = this.extension.api;
     this.ui = this.extension.ui;
+    this.meta = {
+      "service-id": "sysport-service",
+      "service-title": "System Port Service",
+      "resource-id": "port",
+      "resource-title": "Port",
+    };
   }
 
   init(config) {
@@ -24,16 +30,10 @@ export default class PageSysport {
   initCustomRest() {
     this.console.trace(`initCustomRest() >> `);
     return new Promise((resolve, reject) => {
-      const meta = {
-        "service-id": "sysport-service",
-        "service-title": "System Port Service",
-        "resource-id": "port",
-        "resource-title": "Port",
-      };
       let customRest = null;
       Promise.resolve()
         .then(() =>
-          this.ui.getCustomObject(`custom-rest`, {}, this.extension, meta)
+          this.ui.getCustomObject(`custom-rest`, {}, this.extension, this.meta)
         )
         .then((object) => {
           customRest = object;
@@ -84,10 +84,10 @@ export default class PageSysport {
 
   initVue() {
     this.console.trace(`initVue()`);
-    const id = this.ui.said(`content.sysport.section`);
+    const domId = this.ui.said(`content.sysport.section`);
 
     this.vue = new Vue({
-      el: `#${id}`,
+      el: `#${domId}`,
       data: {
         // Loader
         loader: this.extension.schema,
@@ -123,9 +123,21 @@ export default class PageSysport {
 
     //  Setup vue function.
     this.vue.fn = {
-      add: async () => {
+      add: () => {
         this.vue.ui.slider[`edit-id`] = null;
-        this.renderSlider();
+        return this.renderSlider();
+      },
+      addSubscribe: (id) => {
+        this.console.log(`addSubscribe(${id})`);
+        return new Promise((resolve, reject) => {
+          const { rtcpageController } = this.extension;
+          const topic = `/service/${this.meta[`service-id`]}/monitor/${id}/.*`;
+          Promise.resolve()
+            .then(() => this.console.log(`topic:`, topic))
+            .then(() => rtcpageController.addSubscribe(topic))
+            .then(() => resolve())
+            .catch((err) => reject(err));
+        });
       },
       edit: (iden) => {
         this.console.log(`edit(${iden})`);
@@ -185,16 +197,16 @@ export default class PageSysport {
         this.render(false);
       },
       updateSystemPort: async () => {
-        console.log(`sysport.updateSystemPort()`);
+        this.console.log(`sysport.updateSystemPort()`);
         this.vue.resource.systemPort = await this.rest.getSystemPort();
       },
       shortSchemaCall: (key) => {
         const res = this.ui.shortJsonElement(this.vue.resource.schema, key);
-        console.log(`short json : ${JSON.stringify(res, null, 2)}`);
+        this.console.log(`short json : ${JSON.stringify(res, null, 2)}`);
         return res;
       },
       print: (obj) => {
-        console.log(obj);
+        this.console.log(obj);
       },
     };
   }

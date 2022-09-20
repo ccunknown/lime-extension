@@ -42,6 +42,7 @@
                 "extension-script-raid",
                 "extension-script-ui",
                 "extension-script-page",
+                "extension-script-coloring-tool",
                 "extension-script-webrtc-rtcpage-controller",
                 "extension-script-webrtc-channel-pair",
                 "extension-script-webrtc-session",
@@ -141,6 +142,11 @@
         "path": "/core/js/webrtc/rtcpage-controller.js",
         "object-name": "ExtensionRTCPageController",
         "core": "rtcPageController",
+      },
+      "extension-script-coloring-tool": {
+        "type": "global-script",
+        "path": "/core/js/coloring-tool.js",
+        "object-name": "LimeExtensionRTCColoringTool",
       },
 
       "extension-view-resource": {
@@ -297,7 +303,7 @@
   };
 
   return new Promise(async (resolve, reject) => {
-    let Extension = (await import(`/extensions/${schema.extension.full}/static/core/js/extension.js`)).default;
+    const Extension = (await import(`/extensions/${schema.extension.full}/static/core/js/extension.js`)).default;
     //console.log(Extension);
     new Extension(schema);
     resolve();

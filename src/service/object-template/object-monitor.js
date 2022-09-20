@@ -19,7 +19,7 @@ class ObjectMonitor {
       service,
       id,
       storageDir,
-      publishPath: `/service/${service.id}/monitor/${id}`,
+      publishPath: `/service/${service.id}/monitor/${id}/`,
       rtcPeerService: service.laborsManager.getService(`rtcpeer-service`).obj,
       logger: winston.createLogger(
         generateConfig({
@@ -53,19 +53,19 @@ class ObjectMonitor {
       state: (state) => {
         const msg = `[STATE:${state}]`;
         this.logger.info(msg);
-        this.publish(msg, this.publishPath);
+        this.publish(msg, `state`);
       },
       log: (...message) => {
         const msg = [...message].join(` `);
         this.logger.info(msg);
-        this.publish(msg, this.publishPath);
+        this.publish(msg);
       },
       error: (err) => {
         const msg = `[ERR: <${err.name}:${err.message}> <stack:[${err.stack
           .split(`\n`)
           .join(`, `)}]>]`;
         this.logger.error(msg);
-        this.publish(msg, this.publishPath);
+        this.publish(msg, `log`, `error`);
       },
     };
   }
@@ -95,13 +95,19 @@ class ObjectMonitor {
             .join(`, `)}]>]`,
         ].join(` `);
         this.logger.error(msg);
-        this.publish(msg, this.publishPath);
+        this.publish(msg, `log`, `error`);
       },
     };
   }
 
-  publish(msg) {
-    this.rtcPeerService.publish(this.publishPath, msg);
+  publish(msg, category = `log`, level = `log`, timestamp = new Date()) {
+    const topic = Path.join(this.publishPath, category);
+    const message = JSON.stringify({
+      timestamp,
+      level,
+      message: msg,
+    });
+    this.rtcPeerService.publish(topic, message);
   }
 }
 

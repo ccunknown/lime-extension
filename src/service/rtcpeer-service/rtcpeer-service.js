@@ -56,27 +56,31 @@ class rtcpeerService extends Service {
   }
 
   publish(topic, message) {
-    // console.log(
-    //   `[${this.constructor.name}]`,
-    //   `publish(${topic}) >> ${message}`
-    // );
-    this.sessions.forEach((session) => {
-      // console.log(`[${session.id}]`, session.publishList);
-      if (
-        session.publishList.map((re) => `^${re}$`).find((re) => topic.match(re))
-      ) {
-        // console.log(
-        //   `[${this.constructor.name}]`,
-        //   `[${session.id}]`,
-        //   `publish(${topic}) >> ${message}`
-        // );
-        session.sendPublish(topic, message);
-        // console.log(`publish condition >> true`);
-      } else {
-        // console.log(`publish condition >> false`);
-      }
-    });
+    this.sessions.forEach((session) => session.publish(topic, message));
   }
+
+  // publish(topic, message) {
+  //   // console.log(
+  //   //   `[${this.constructor.name}]`,
+  //   //   `publish(${topic}) >> ${message}`
+  //   // );
+  //   this.sessions.forEach((session) => {
+  //     // console.log(`[${session.id}]`, session.publishList);
+  //     if (
+  //       session.publishList.map((re) => `^${re}$`).find((re) => topic.match(re))
+  //     ) {
+  //       // console.log(
+  //       //   `[${this.constructor.name}]`,
+  //       //   `[${session.id}]`,
+  //       //   `publish(${topic}) >> ${message}`
+  //       // );
+  //       session.sendPublish(topic, message);
+  //       // console.log(`publish condition >> true`);
+  //     } else {
+  //       // console.log(`publish condition >> false`);
+  //     }
+  //   });
+  // }
 
   send(session, message) {
     const ss = typeof session === `string` ? this.getSession(session) : session;

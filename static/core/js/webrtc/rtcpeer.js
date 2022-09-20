@@ -59,12 +59,7 @@ export default class ExtensionRTCPeer {
   }
 
   addSubscribe(topic, callback) {
-    if (
-      this.session &&
-      this.session.channel &&
-      this.session.channel.sender.readyState === `open` &&
-      this.session.channel.receiver.readyState === `open`
-    ) {
+    if (this.isSessionReady()) {
       this.session.addSubscribe(topic, callback);
     } else {
       this.subscribeList.push({
@@ -72,6 +67,21 @@ export default class ExtensionRTCPeer {
         callback,
       });
     }
+  }
+
+  removeSubscribe(topic) {
+    if (this.isSessionReady()) {
+      this.session.removeSubscribe(topic);
+    }
+  }
+
+  isSessionReady() {
+    return (
+      this.session &&
+      this.session.channel &&
+      this.session.channel.sender.readyState === `open` &&
+      this.session.channel.receiver.readyState === `open`
+    );
   }
 
   onMessage(event) {}

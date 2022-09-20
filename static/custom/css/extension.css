@@ -670,6 +670,14 @@
 
 /* Millicious Components */
 
+#extension-lime-contents .pointer-cursor {
+  cursor: auto;
+}
+
+#extension-lime-contents .pointer-cursor:hover {
+  cursor: pointer;
+}
+
 #extension-lime-contents .progress-bar-black-striped {
   background-image: linear-gradient(45deg, rgba(0, 0, 0, 0.75) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.75) 50%, rgba(0, 0, 0, 0.75) 75%, transparent 75%, transparent);
   background-size: 1rem 1rem;
@@ -768,7 +776,7 @@
 }
 
 #extension-lime-contents .hide {
-  display: none;
+  display: none !important;
 }
 
 #extension-lime-contents .font-size-inherit {

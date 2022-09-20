@@ -1,3 +1,6 @@
+/* eslint-disable class-methods-use-this */
+/* eslint-disable global-require */
+/* eslint-disable import/no-dynamic-require */
 const Mustache = require(`mustache`);
 
 const {
@@ -15,7 +18,7 @@ class DeviceConfigTranslator {
     this.scriptsService = this.devicesService.scriptsService;
     this.scriptBuilder = new ScriptBuilder();
 
-    let rootDir = this.devicesService.getRootDirectory();
+    const rootDir = this.devicesService.getRootDirectory();
     this.Errors = require(`${rootDir}/constants/errors.js`);
     this.propertySchemaConfig = require(`${rootDir}/config/property-schema.js`);
     this.propIdPattern = this.propertySchemaConfig.idPattern.regex;
@@ -26,58 +29,82 @@ class DeviceConfigTranslator {
     console.log(`DeviceConfigTranslator: generateConfigSchema() >> `);
     console.log(`>> params: ${JSON.stringify(params, null, 2)}`);
     return new Promise((resolve, reject) => {
-
       //  Copy config from ValidateConfigSchema.
       let config = JSON.parse(JSON.stringify(ValidateConfigSchema));
-      let propertiesStr = JSON.stringify(config.properties.properties);
+      const propertiesStr = JSON.stringify(config.properties.properties);
 
-      let mustacheData = JSON.stringify(this.propertySchemaConfig).replace(/\\/g, `\\\\`);
-      config.properties.properties = JSON.parse(Mustache.render(propertiesStr, JSON.parse(mustacheData)));
+      const mustacheData = JSON.stringify(this.propertySchemaConfig).replace(
+        /\\/g,
+        `\\\\`
+      );
+      config.properties.properties = JSON.parse(
+        Mustache.render(propertiesStr, JSON.parse(mustacheData))
+      );
 
       //  Adjust condition field and assign enum.
-      this.assignConditionField(config, params, CompatibleList)
-      .then((conf) => config = conf)
+      Promise.resolve()
+        .then(() => this.assignConditionField(config, params, CompatibleList))
+        .then((conf) => {
+          config = conf;
+        })
 
-      //  Extend properties config using 'params.properties'.
-      .then(() => this.assignPatternProperties(config.properties.properties.patternProperties[this.propIdPattern], params))
-      .then((prop) => config.properties.properties.patternProperties[this.propIdPattern] = prop)
+        //  Extend properties config using 'params.properties'.
+        .then(() =>
+          this.assignPatternProperties(
+            config.properties.properties.patternProperties[this.propIdPattern],
+            params
+          )
+        )
+        .then((prop) => {
+          config.properties.properties.patternProperties[this.propIdPattern] =
+            prop;
+        })
 
-      //  Assign 'attrs' attribute.
-      .then(() => this.assignAttribute(config, AttributeList))
-      .then((conf) => config = conf)
+        //  Assign 'attrs' attribute.
+        .then(() => this.assignAttribute(config, AttributeList))
+        .then((conf) => {
+          config = conf;
+        })
 
-      //  Assign 'alternate' attribute.
-      .then(() => this.assignAlternate(config, AlternateList))
-      .then((conf) => config = conf)
+        //  Assign 'alternate' attribute.
+        .then(() => this.assignAlternate(config, AlternateList))
+        .then((conf) => {
+          config = conf;
+        })
 
-      //  Resolve config.
-      .then(() => resolve(config))
-      .catch((err) => reject(err));
+        //  Resolve config.
+        .then(() => resolve(config))
+        .catch((err) => reject(err));
     });
   }
 
   assignAlternate(conf, alternateList) {
-    return new Promise((resolve, reject) => {
-      let config = JSON.parse(JSON.stringify(conf));
+    return new Promise((resolve) => {
+      const config = JSON.parse(JSON.stringify(conf));
 
       //  Assign 'alternate' attribute.
       alternateList.forEach((index) => {
-        let indexArray = index.split(`.`);
+        const indexArray = index.split(`.`);
         let pointer = config;
-        while(indexArray.length > 0) {
-          let i = indexArray.shift();
+        while (indexArray.length > 0) {
+          const i = indexArray.shift();
           console.log(`index: ${i}`);
-          if(pointer.hasOwnProperty(`properties`) && pointer.properties.hasOwnProperty(i)) {
+          if (
+            Object.prototype.hasOwnProperty.call(pointer, `properties`) &&
+            Object.prototype.hasOwnProperty.call(pointer, i)
+          ) {
             pointer = pointer.properties[i];
-            if(indexArray.length == 0)
-              pointer.alternate = true;
-          }
-          else if(pointer.hasOwnProperty(`patternProperties`) && pointer.patternProperties.hasOwnProperty(i)) {
+            if (indexArray.length === 0) pointer.alternate = true;
+          } else if (
+            Object.prototype.hasOwnProperty.call(
+              pointer,
+              `patternProperties`
+            ) &&
+            Object.prototype.hasOwnProperty.call(pointer, i)
+          ) {
             pointer = pointer.patternProperties[i];
-            if(indexArray.length == 0)
-              pointer.alternate = true;
-          }
-          else {
+            if (indexArray.length === 0) pointer.alternate = true;
+          } else {
             break;
           }
         }
@@ -87,12 +114,13 @@ class DeviceConfigTranslator {
   }
 
   assignAttribute(conf, attributeList) {
-    return new Promise((resolve, reject) => {
-      let config = JSON.parse(JSON.stringify(conf));
+    return new Promise((resolve) => {
+      const config = JSON.parse(JSON.stringify(conf));
 
       //  Assign 'attrs' attribute.
       attributeList.forEach((index) => {
-        if(config.properties.hasOwnProperty(index.target))
+        // if (config.properties.hasOwnProperty(index.target))
+        if (Object.prototype.hasOwnProperty.call(config, index.target))
           config.properties[index.target].attrs = index.attrs;
       });
       resolve(config);
@@ -101,136 +129,177 @@ class DeviceConfigTranslator {
 
   assignConditionField(conf, params, compatibleList) {
     return new Promise((resolve, reject) => {
-      let config = JSON.parse(JSON.stringify(conf));
-      let scriptCompatibleList = [...compatibleList.script];
-      // let engineTemplateName = undefined;
-      
+      const config = JSON.parse(JSON.stringify(conf));
+      const scriptCompatibleList = [...compatibleList.script];
+
       //  Initial 'enum' attribute [engine].
-      this.devicesService.getCompatibleEngine(compatibleList.engine)
-      .then((list) => config.properties.engine.enum = list)
+      Promise.resolve()
+        .then(() =>
+          this.devicesService.getCompatibleEngine(compatibleList.engine)
+        )
+        .then((list) => {
+          config.properties.engine.enum = list;
+        })
 
-      //  Adjust config by engine type.
-      .then(() => (params && params.engine) ? this.devicesService.getEngineTemplateName(params.engine) : undefined)
-      .then((engTempName) => {
-        scriptCompatibleList.push(engTempName)
-        switch(engTempName) {
-          case `modbus-rtu`:
-          case `modbus-rtu-v2`:
-            delete config.properties[`ip`];
-            delete config.properties[`port`];
-            break;
-          case `modbus-tcp`:
-            config.required.push(`ip`);
-            config.required.push(`port`);
-            config.properties.address.title = `Unit ID`;
-            break;
-          default:
-            // console.error(`Engine template name "${engTempName}" not in scope!!!`);
-            // reject(this.Errors.ObjectNotFound(engTempName));
-            break;
-        }
-      })
+        //  Adjust config by engine type.
+        .then(() =>
+          params && params.engine
+            ? this.devicesService.getEngineTemplateName(params.engine)
+            : undefined
+        )
+        .then((engTempName) => {
+          scriptCompatibleList.push(engTempName);
+          switch (engTempName) {
+            case `modbus-rtu`:
+            case `modbus-rtu-v2`:
+              delete config.properties.ip;
+              delete config.properties.port;
+              break;
+            case `modbus-tcp`:
+              config.required.push(`ip`);
+              config.required.push(`port`);
+              config.properties.address.title = `Unit ID`;
+              break;
+            default:
+              // console.error(`Engine template name "${engTempName}" not in scope!!!`);
+              // reject(this.Errors.ObjectNotFound(engTempName));
+              break;
+          }
+        })
 
-      //  Initial 'enum' attribute.
-      .then(() => this.devicesService.getCompatibleScript(scriptCompatibleList))
-      .then((list) => config.properties.script.enum = list)
-      .then(() => this.devicesService.getDirectorySchema(`property`, {"deep": true, "absolute": `${__dirname}`}))
-      .then((dirSchema) => dirSchema.children)
-      .then((propDirSchema) => config.properties.properties.patternProperties[this.propIdPattern].properties.template.enum = propDirSchema.map((elem) => elem.name))
+        //  Initial 'enum' attribute.
+        .then(() =>
+          this.devicesService.getCompatibleScript(scriptCompatibleList)
+        )
+        .then((list) => {
+          config.properties.script.enum = list;
+        })
+        .then(() =>
+          this.devicesService.getDirectorySchema(`property`, {
+            deep: true,
+            absolute: `${__dirname}`,
+          })
+        )
+        .then((dirSchema) => dirSchema.children)
+        .then((propDirSchema) => {
+          config.properties.properties.patternProperties[
+            this.propIdPattern
+          ].properties.template.enum = propDirSchema.map((elem) => elem.name);
+        })
 
-      // Initial 'Retry' group attribute.
-      .then(() => {
-        if(!params.retry) {
-          delete config.properties[`retryNumber`];
-          delete config.properties[`retryDelay`];
-        }
-      })
+        // Initial 'Retry' group attribute.
+        .then(() => {
+          if (!params.retry) {
+            delete config.properties.retryNumber;
+            delete config.properties.retryDelay;
+          }
+        })
 
-      .then(() => resolve(config))
-      .catch((err) => reject(err));
+        .then(() => resolve(config))
+        .catch((err) => reject(err));
     });
   }
 
   assignPatternProperties(property, params) {
-    return new Promise((resolve, reject) => {
-      let patternProperty = JSON.parse(JSON.stringify(property));
-      
+    return new Promise((resolve) => {
+      const patternProperty = JSON.parse(JSON.stringify(property));
+
       //  Check 'params' has properties template and that template are included in pattern property enum choice.
-      if(params && 
+      if (
+        params &&
         params.properties &&
         params.properties.template &&
-        params.properties.template != `` &&
-        patternProperty.properties.template.enum.includes(params.properties.template)) {
-
-        let PropertyConfigTranslator = require(`./property/${params.properties.template}/config-translator.js`);
-        let propConfTrans = new PropertyConfigTranslator(this.devicesService);
-        propConfTrans.generateConfigSchema(params)
-        .then((propConf) => {
-          Object.keys(propConf.properties).forEach((i) => {
-            patternProperty.properties[i] = propConf.properties[i];
-          });
-          //  Merge 'required' array.
-          patternProperty.required = [...patternProperty.required, ...propConf.required];
-        })
-        .then(() => resolve(patternProperty));
-      }
-      else
-        resolve(patternProperty);
+        params.properties.template !== `` &&
+        patternProperty.properties.template.enum.includes(
+          params.properties.template
+        )
+      ) {
+        const PropertyConfigTranslator = require(`./property/${params.properties.template}/config-translator.js`);
+        const propConfTrans = new PropertyConfigTranslator(this.devicesService);
+        Promise.resolve()
+          .then(() => propConfTrans.generateConfigSchema(params))
+          .then((propConf) => {
+            Object.keys(propConf.properties).forEach((i) => {
+              patternProperty.properties[i] = propConf.properties[i];
+            });
+            //  Merge 'required' array.
+            patternProperty.required = [
+              ...patternProperty.required,
+              ...propConf.required,
+            ];
+          })
+          .then(() => resolve(patternProperty));
+      } else resolve(patternProperty);
     });
   }
 
   generatePropertyId(params) {
     console.log(`DeviceConfigTranslator: generatePropertyId() >> `);
     return new Promise((resolve, reject) => {
-      let PropertyConfigTranslator = require(`./property/${params.properties.template}/config-translator.js`);
-      let propConfTrans = new PropertyConfigTranslator(this.devicesService);
-      propConfTrans.generateId(params)
-      .then((result) => resolve(result))
-      .catch((err) => reject(err));
+      const PropertyConfigTranslator = require(`./property/${params.properties.template}/config-translator.js`);
+      const propConfTrans = new PropertyConfigTranslator(this.devicesService);
+      Promise.resolve()
+        .then(() => propConfTrans.generateId(params))
+        .then((result) => resolve(result))
+        .catch((err) => reject(err));
     });
   }
 
   translate(config, options) {
     console.log(`DeviceConfigTranslator: translate() >> `);
     return new Promise((resolve, reject) => {
-      let schema = {
-        "name": config.name,
+      const schema = {
+        name: config.name,
         // "type": [
         //   "modbus-device"
         // ],
-        "description": config.description,
+        description: config.description,
         "@context": "https://iot.mozilla.org/schemas",
-        "@type": [`EnergyMonitor`]
+        "@type": [`EnergyMonitor`],
       };
 
-      this.buildFullMap(config.script)
-      .then((fullMap) => {
-        if(options && options.properties) {
-          schema.properties = {};
-          for(let i in config.properties) {
-            let PropertyConfigTranslator = require(`./property/${config.properties[i].template}/config-translator.js`);
-            let propConfTrans = new PropertyConfigTranslator(this.devicesService);
-            schema.properties[i] = propConfTrans.translate(config.properties[i], fullMap);
+      Promise.resolve()
+        .then(() => this.buildFullMap(config.script))
+        .then((fullMap) => {
+          if (options && options.properties) {
+            schema.properties = {};
+            Object.keys(config.properties).forEach((i) => {
+              const PropertyConfigTranslator = require(`./property/${config.properties[i].template}/config-translator.js`);
+              const propConfTrans = new PropertyConfigTranslator(
+                this.devicesService
+              );
+              schema.properties[i] = propConfTrans.translate(
+                config.properties[i],
+                fullMap
+              );
+            });
+            return Promise.all(Object.values(schema.properties));
           }
-          return Promise.all(Object.values(schema.properties));
-        }
-      })
-      .then(() => resolve(schema))
-      .catch((err) => reject(err));
+          return null;
+        })
+        .then(() => resolve(schema))
+        .catch((err) => reject(err));
     });
   }
 
   buildFullMap(scriptName) {
     console.log(`DeviceConfigTranslator: buildFullMap() >> `);
     return new Promise((resolve, reject) => {
-      this.scriptsService.get(scriptName, {"object": true, "deep": true})
-      .then((script) => {
-        let readMap = script.children.find((elem) => elem.name == `readMap.js`).object;
-        let calcMap = script.children.find((elem) => elem.name == `calcMap.js`).object;
-        return this.scriptBuilder.buildFullMap(readMap, calcMap);
-      })
-      .then((fullMap) => resolve(fullMap))
-      .catch((err) => reject(err));
+      Promise.resolve()
+        .then(() =>
+          this.scriptsService.get(scriptName, { object: true, deep: true })
+        )
+        .then((script) => {
+          const readMap = script.children.find(
+            (elem) => elem.name === `readMap.js`
+          ).object;
+          const calcMap = script.children.find(
+            (elem) => elem.name === `calcMap.js`
+          ).object;
+          return this.scriptBuilder.buildFullMap(readMap, calcMap);
+        })
+        .then((fullMap) => resolve(fullMap))
+        .catch((err) => reject(err));
     });
   }
 }
