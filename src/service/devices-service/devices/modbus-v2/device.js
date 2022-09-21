@@ -224,7 +224,8 @@ class ModbusDevice extends Device {
       if (id) {
         let property = this.findProperty(id);
         property = property.master ? property.master : property;
-        resolve(property.metrics.get());
+        // resolve(property.metrics.get());
+        resolve(property.generateMetric());
       } else {
         const result = {};
         // let propKeyList = Object.keys(this.properties);

@@ -323,7 +323,8 @@ class RoutesManager extends APIHandler {
                     .getService(`devices-service`)
                     .obj.get(id, { object: true })
                 )
-                .then((device) => device.getMetrics())
+                // .then((device) => device.getMetrics())
+                .then((device) => device.generateMetric())
                 .then((res) =>
                   resolve(this.makeJsonRespond(JSON.stringify(res)))
                 )
@@ -353,7 +354,9 @@ class RoutesManager extends APIHandler {
                     .obj.get(deviceId, { object: true })
                 )
                 .then((device) => device.getPropertyMetrics(propertyId))
-                .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
+                .then((res) =>
+                  resolve(this.makeJsonRespond(JSON.stringify(res)))
+                )
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
