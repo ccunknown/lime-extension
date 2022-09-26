@@ -1,4 +1,3 @@
-// const Queue = require(`bull`);
 const ObjectTemplate = require(`../../../object-template/object-template`);
 
 class PropertyTemplate extends ObjectTemplate {

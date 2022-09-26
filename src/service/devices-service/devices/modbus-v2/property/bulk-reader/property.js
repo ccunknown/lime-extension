@@ -13,11 +13,11 @@ const PropertyUnit = require(`./propertyUnit.js`);
 
 class BulkReader extends PropertyTemplate {
   constructor(device, id, config) {
-    super(device.exConf[`devices-service`], device.id, id);
+    super(device.devicesService, device.id, id);
     this.id = id;
     this.config = config;
     this.device = device;
-    this.devicesService = device.exConf[`devices-service`];
+    this.devicesService = device.devicesService;
     this.timeout = 9000;
     this.meta = {
       type: `period-worker`,
@@ -41,16 +41,17 @@ class BulkReader extends PropertyTemplate {
   init() {
     return new Promise((resolve, reject) => {
       this.initProperty(this.config)
-        .then(() => resolve())
+        .then((props) => resolve(props))
         .catch((err) => reject(err));
     });
   }
 
   initProperty(bulkConf) {
-    console.log(`BulkReaderProperty: initProperty() >> `);
+    console.log(`[${this.constructor.name}]`, `initProperty() >> `);
     return new Promise((resolve, reject) => {
       // console.log(`bulkConf: ${JSON.stringify(bulkConf, null, 2)}`)
       const confJson = {};
+      const propUnits = new Map();
       bulkConf.address.forEach((addr) => {
         const id = this.generatePropertyId(addr);
         const config = JSON.parse(JSON.stringify(bulkConf));
@@ -62,15 +63,19 @@ class BulkReader extends PropertyTemplate {
       // console.log(`confJson: ${JSON.stringify(confJson, null, 2)}`);
       Object.keys(confJson)
         .reduce((prevProm, id) => {
-          return this.addProperty(id, confJson[id]);
+          return prevProm
+            .then(() => this.addUnitProperty(id, confJson[id]))
+            .then((propUnit) => {
+              if (propUnit) propUnits.set(id, propUnit);
+            });
         }, Promise.resolve())
-        .then(() => resolve())
+        .then(() => resolve(propUnits))
         .catch((err) => reject(err));
     });
   }
 
-  addProperty(id, config) {
-    console.log(`BulkReaderProperty: addProperty(${id}) >> `);
+  addUnitProperty(id, config) {
+    console.log(`[${this.constructor.name}]`, `addUnitProperty(${id}) >> `);
     return new Promise((resolve, reject) => {
       const conf = JSON.parse(JSON.stringify(config));
       const fullMap = this.device.getScript();
@@ -79,34 +84,38 @@ class BulkReader extends PropertyTemplate {
         .then(() => this.configTranslator.translate(conf, fullMap))
         .then((translated) => {
           // console.log(`${id}: ${JSON.stringify(translated, null, 2)}`);
-          return new PropertyUnit(this.device, this, id, translated);
+          return new PropertyUnit(this, id, translated);
         })
-        .then((prop) => this.device.properties.set(id, prop))
-        .then(() => resolve())
+        // .then((prop) => this.device.do.wtDevice.properties.set(id, prop))
+        .then((propUnit) => resolve(propUnit))
         .catch((err) => reject(err));
     });
   }
 
   start() {
-    console.log(`${this.id}: BulkReaderProperty: start() >> `);
+    console.log(`[${this.constructor.name}]`, `start() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
-        .then(() => this.buildQueryTemplate())
-        .then(() => this.setPeriodWork())
+        .then(() => !this.isRunning() && this.buildQueryTemplate())
+        .then(() => !this.isRunning() && this.setPeriodWork())
         .then((res) => resolve(res))
         .catch((err) => reject(err));
     });
   }
 
   stop() {
-    console.log(`${this.id}: BulkReaderProperty: stop() >> `);
+    console.log(`[${this.constructor.name}]`, `stop() >> `);
     return this.clearPeriodWork();
   }
 
+  isRunning() {
+    return !!this.period;
+  }
+
   setPeriodWork() {
-    console.log(`${this.id}: BulkReaderProperty: setPeriodWork() >> `);
+    console.log(`[${this.constructor.name}]`, `setPeriodWork() >> `);
     return new Promise((resolve, reject) => {
-      if (this.device && !this.period) {
+      if (this.device.do.wtDevice && !this.period) {
         console.log(`>> setPeriodWork(${this.id}) >> Accept.`);
         Promise.resolve()
           .then(() => this.act())
@@ -115,9 +124,9 @@ class BulkReader extends PropertyTemplate {
           })
           .then(() => resolve(null))
           .catch((err) => reject(err));
-      } else if (!this.device) {
+      } else if (!this.device.do.wtDevice) {
         console.log(`>> setPeriodWork(${this.id}) >> Deny.`);
-        reject(new Error(`Device ${this.device.id} unavailable!`));
+        reject(new Error(`Device ${this.device.do.wtDevice.id} unavailable!`));
       } else if (this.period) {
         reject(new Error(`Period already set at ${this.period}`));
       }
@@ -156,11 +165,11 @@ class BulkReader extends PropertyTemplate {
         .then(([engine, script]) => {
           if (!engine)
             throw new Error(
-              `Engine "${this.device.exConf.config.engine}" unavailable`
+              `Engine "${this.device.config.engine}" unavailable`
             );
           if (!script)
             throw new Error(
-              `Script "${this.device.exConf.config.engine}" unavailable`
+              `Script "${this.device.config.engine}" unavailable`
             );
           return this.queryTemplate.reduce((prevProm, opt) => {
             return prevProm.then(() => this.chunkProcess(jobId, opt, engine));
@@ -174,19 +183,16 @@ class BulkReader extends PropertyTemplate {
   buildQueryTemplate() {
     this.om.obj.log(`building query template.`);
     const script = this.device.getScript();
-    const ip = Object.prototype.hasOwnProperty.call(
-      this.device.exConf.config,
-      `ip`
-    )
-      ? this.device.exConf.config.ip
+    const ip = Object.prototype.hasOwnProperty.call(this.device.config, `ip`)
+      ? this.device.config.ip
       : undefined;
     const port = Object.prototype.hasOwnProperty.call(
-      this.device.exConf.config,
+      this.device.config,
       `port`
     )
-      ? this.device.exConf.config.port
+      ? this.device.config.port
       : undefined;
-    const id = this.device.exConf.config.address;
+    const id = this.device.config.address;
     const { table } = this.config;
     const chunkSize = this.config.size;
 
@@ -275,7 +281,7 @@ class BulkReader extends PropertyTemplate {
                 `<${e.name}:${value}>`
               );
 
-              this.device
+              this.device.do.wtDevice
                 .findProperty(this.generatePropertyId(e.registerAddress))
                 .setCachedValueAndNotify(value);
             } else {
