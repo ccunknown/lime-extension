@@ -9,7 +9,7 @@ class DeviceTemplate extends ObjectTemplate {
     this.devicesService = devicesService;
     this.config = deviceConfig;
 
-    this.do = new DeviceOperator(this);
+    this.to = new DeviceOperator(this);
     this.om.obj.log(`${this.id}`, `Construct device template`);
   }
 }

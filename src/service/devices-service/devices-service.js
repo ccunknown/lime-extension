@@ -228,10 +228,13 @@ class DevicesService extends Service {
           const Obj = require(path);
           device = new Obj(this, id, config);
         })
-        .then(() => device.do.init())
+        .then(() => device.oo.init())
         // .then(() => this.applyObjectOptions(id, options))
+        .then(() => {
+          this.devices[id] = device;
+        })
         .then(() => device.getState())
-        .then(() => device.do.wtDevice.asThing())
+        .then(() => device.to.wtDevice.asThing())
         .then((ret) => resolve(ret))
         .catch((err) => {
           reject(err);
@@ -285,7 +288,8 @@ class DevicesService extends Service {
       const device = this.devices[id];
       if (device) {
         Promise.resolve()
-          .then(() => device.do.stop())
+          .then(() => device.oo.stop())
+          .then(() => delete this.devices[id])
           .then(() => resolve({}))
           .catch((err) => reject(err));
       } else {
@@ -321,13 +325,13 @@ class DevicesService extends Service {
           resolve(id ? this.devices[id] : this.devices);
         else if (id) {
           const device = this.devices[id];
-          const json = device.do.wtDevice.asThing();
+          const json = device.to.wtDevice.asThing();
           resolve(JSON.parse(JSON.stringify(json)));
         } else {
           const deviceList = this.devices;
           const json = [];
           Object.values(deviceList).forEach((dev) =>
-            json.push(dev.do.wtDevice.asThing())
+            json.push(dev.to.wtDevice.asThing())
           );
           // for(let i in deviceList)
           //   json.push(deviceList[i].asThing());
@@ -432,50 +436,46 @@ class DevicesService extends Service {
       if (id) {
         const device = this.devices[id] ? this.devices[id] : undefined;
         let config = null;
-        const subCondition = {};
+        const subCondition = {
+          config: `unavailable`,
+          enable: false,
+          inServiceList: false,
+          objectState: `undefined`,
+          serveQuality: 0,
+        };
         Promise.resolve()
+          // Check device config (unavailable, invalid, valid).
           .then(() => this.getConfigDevice(id))
           .then((conf) => {
             config = conf;
           })
-          //  Valid ?
           .then(() => this.isValidConfig(config))
           .then((valid) => {
-            subCondition.valid = valid;
+            subCondition.config =
+              !config || !Object.keys(config).length
+                ? `unavailable`
+                : valid
+                ? `valid`
+                : `invalid`;
           })
           //  Enable ?
           .then(() => {
-            subCondition.enable = config._config.enable;
+            subCondition.enable = config
+              ? config._config.enable
+              : subCondition.enable;
           })
-          //  In adapter ?
+          //  In service list ?
           .then(() => {
-            subCondition.inadapter = !!device;
+            subCondition.inServiceList = !!device;
           })
           //  Device state ?
-          .then(() => (device ? device.getState() : null))
+          .then(() => (device ? device.getState() : subCondition.objectState))
           .then((deviceState) => {
-            subCondition.device = deviceState;
+            subCondition.objectState = deviceState;
           })
-          //  Summary
-          .then(() => {
-            console.log(
-              `[${this.constructor.name}]`,
-              `${JSON.stringify(subCondition, null, 2)}`
-            );
-            return (
-              // eslint-disable-next-line no-nested-ternary
-              subCondition.inadapter
-                ? `${subCondition.device}`
-                : subCondition.valid
-                ? subCondition.enable
-                  ? subCondition.device === `pending`
-                    ? `${subCondition.device}`
-                    : `corrupted`
-                  : `disabled`
-                : `invalid-schema`
-            );
-          })
-          .then((ret) => resolve(ret))
+          //  Device serve quality ? (0 - 100)
+          // .then(() => (device ? device.mb.buildMetric))
+          .then(() => resolve(subCondition))
           .catch((err) => reject(err));
       } else {
         const result = {};

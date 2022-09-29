@@ -27,7 +27,7 @@ class ObjectMetricBuilder {
         .then((logParagraph) => {
           logs = this.logFormat(logParagraph);
           jobs = this.jobsTrim(this.logsToJobs(logs));
-          jobs.forEach((e) => console.log(e.jid));
+          // jobs.forEach((e) => console.log(e.jid));
           jobsMetric = jobs.map((job) => this.jobEvaluate(job));
           completeJobsMetric = jobsMetric.filter(
             (j) => j.addTime && j.stopTime
@@ -66,17 +66,17 @@ class ObjectMetricBuilder {
   }
 
   gatherLog(dir = this.directory) {
-    console.log(`current id:`, this.filename);
+    // console.log(`current id:`, this.filename);
     let log = ``;
     fs.readdirSync(dir, { withFileTypes: true })
       .filter((dirent) => dirent.isFile())
       .filter((dirent) => `${dirent.name}`.startsWith(this.filename))
       .forEach((dirent) => {
-        console.log(
-          dirent.name,
-          typeof dirent,
-          dirent.name.startsWith(this.filename)
-        );
+        // console.log(
+        //   dirent.name,
+        //   typeof dirent,
+        //   dirent.name.startsWith(this.filename)
+        // );
         log = `${log}${fs.readFileSync(Path.join(dir, dirent.name))}`;
       });
     // console.log(`log:`, log);

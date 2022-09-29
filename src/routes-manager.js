@@ -257,7 +257,9 @@ class RoutesManager extends APIHandler {
                     .getService(`devices-service`)
                     .obj.configTranslator.validate(req.body)
                 )
-                .then((json) => resolve(this.makeJsonRespond(JSON.stringify(json))))
+                .then((json) =>
+                  resolve(this.makeJsonRespond(JSON.stringify(json)))
+                )
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -353,7 +355,20 @@ class RoutesManager extends APIHandler {
                     .getService(`devices-service`)
                     .obj.get(deviceId, { object: true })
                 )
-                .then((device) => device.getPropertyMetrics(propertyId))
+                // .then((device) => device.getPropertyMetrics(propertyId))
+                .then((device) => {
+                  if (!device) throw new Errors.ObjectNotFound(deviceId);
+                  return device.do.getProperty(propertyId);
+                })
+                .then((property) => {
+                  if (!property) throw new Errors.ObjectNotFound(propertyId);
+                  console.log(
+                    `property constructor:`,
+                    property.constructor.name
+                  );
+                  return property.mb.buildMetric();
+                })
+
                 .then((res) =>
                   resolve(this.makeJsonRespond(JSON.stringify(res)))
                 )

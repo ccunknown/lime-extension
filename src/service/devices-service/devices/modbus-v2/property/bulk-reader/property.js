@@ -41,7 +41,7 @@ class BulkReader extends PropertyTemplate {
   init() {
     return new Promise((resolve, reject) => {
       this.initProperty(this.config)
-        .then((props) => resolve(props))
+        .then((wtPropMap) => resolve(wtPropMap))
         .catch((err) => reject(err));
     });
   }
@@ -86,7 +86,8 @@ class BulkReader extends PropertyTemplate {
           // console.log(`${id}: ${JSON.stringify(translated, null, 2)}`);
           return new PropertyUnit(this, id, translated);
         })
-        // .then((prop) => this.device.do.wtDevice.properties.set(id, prop))
+        // .then((prop) => this.device.to.wtDevice.properties.set(id, prop))
+        .then((prop) => this.device.to.wtDevice.addProperty(prop))
         .then((propUnit) => resolve(propUnit))
         .catch((err) => reject(err));
     });
@@ -115,7 +116,7 @@ class BulkReader extends PropertyTemplate {
   setPeriodWork() {
     console.log(`[${this.constructor.name}]`, `setPeriodWork() >> `);
     return new Promise((resolve, reject) => {
-      if (this.device.do.wtDevice && !this.period) {
+      if (this.device.to.wtDevice && !this.period) {
         console.log(`>> setPeriodWork(${this.id}) >> Accept.`);
         Promise.resolve()
           .then(() => this.act())
@@ -124,9 +125,9 @@ class BulkReader extends PropertyTemplate {
           })
           .then(() => resolve(null))
           .catch((err) => reject(err));
-      } else if (!this.device.do.wtDevice) {
+      } else if (!this.device.to.wtDevice) {
         console.log(`>> setPeriodWork(${this.id}) >> Deny.`);
-        reject(new Error(`Device ${this.device.do.wtDevice.id} unavailable!`));
+        reject(new Error(`Device ${this.device.to.wtDevice.id} unavailable!`));
       } else if (this.period) {
         reject(new Error(`Period already set at ${this.period}`));
       }
@@ -281,7 +282,7 @@ class BulkReader extends PropertyTemplate {
                 `<${e.name}:${value}>`
               );
 
-              this.device.do.wtDevice
+              this.device.to.wtDevice
                 .findProperty(this.generatePropertyId(e.registerAddress))
                 .setCachedValueAndNotify(value);
             } else {

@@ -37,8 +37,6 @@ class DeviceOperator {
     );
     this.wtDevice.limeDevice = this.parent;
 
-    this.startRetirement = {};
-
     this.parent.om.obj.log(`${this.id}`, `Construct device operator`);
   }
 
@@ -63,180 +61,111 @@ class DeviceOperator {
 
   init() {
     return new Promise((resolve, reject) => {
+      // let wtPropertyMap;
       Promise.resolve()
         .then(() => this.parent.init())
+        // .then((propMap) => {
+        //   wtPropertyMap = propMap;
+        // })
         .then(() => this.wtAdapter.handleDeviceAdded(this.wtDevice))
+        // .then(() =>
+        //   wtPropertyMap.forEach((key, value) =>
+        //     this.wtDevice.addProperty(value)
+        //   )
+        // )
         .then(() => resolve())
         .catch((err) => reject(err));
     });
   }
 
-  addProperty(id, templatePath, config) {
-    console.log(`[${this.constructor.name}]: addProperty() >> `);
-    // console.log(`>> config: ${JSON.stringify(config, null, 2)}`);
-    return new Promise((resolve, reject) => {
-      const PropertyObject = require(templatePath);
-      const property = new PropertyObject(this.parent, id, config);
-      let unitProperty;
-      Promise.resolve()
-        .then(() => property.init())
-        .then((unitProp) => {
-          unitProperty = unitProp;
-        })
-        .then(() =>
-          this.retryStartProperty(
-            property,
-            this.config.retry ? this.config.retryNumber : 0,
-            this.config.retry ? this.config.retryDelay : undefined
-          )
-        )
-        .then(() => {
-          if (unitProperty && unitProperty.constructor.name === `Map`)
-            unitProperty.forEach((propUnit, propUnitId) =>
-              this.wtDevice.properties.set(propUnitId, propUnit)
-            );
-          else if (unitProperty)
-            this.wtDevice.properties.set(unitProperty.name, unitProperty);
-          else this.wtDevice.properties.set(id, property);
-        })
-        // .then(() => this.wtDevice.properties.set(id, property))
-        .then(() => resolve())
-        .catch((err) => reject(err));
-      // .finally(() => this.wtDevice.properties.set(id, property));
-    });
+  getProperty(id) {
+    console.log(`[${this.constructor.name}]:`, `getProperty(${id})`);
+    console.log(
+      `[${this.constructor.name}]:`,
+      `properties:`,
+      Object.keys(this.properties)
+    );
+    const propertyUnit = this.wtDevice.findProperty(id);
+    return propertyUnit && propertyUnit.master
+      ? propertyUnit.master
+      : propertyUnit;
+  }
+
+  addChild(childId /* , child */) {
+    console.log(`[${this.constructor.name}]`, `addChild(${childId})`);
+    // this.wtDevice.addProperty(child.propertyUnit);
   }
 
   start() {
     console.log(`[${this.constructor.name}]`, `start() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
-        .then(() => this.retryStartProperty())
+        .then(() => this.parent.oo.startChild())
         .then((ret) => resolve(ret))
         .catch((err) => {
-          this.error = err;
           reject(err);
         });
     });
   }
 
-  retryStartProperty(property, retry, delay) {
+  startChild(childId) {
     console.log(
       `[${this.constructor.name}]`,
-      `retryStartProperty(${property ? property.id : ``}) >> `
+      `startChild(${childId || ``}) >> `
     );
-    return new Promise((resolve, reject) => {
-      if (property) {
-        Promise.resolve()
-          .then(() => this.startProperty(property))
-          .then(
-            () => {},
-            (reason) => {
-              this.parent.om.obj.error(reason);
-              if (retry > 0)
-                this.startRetirement[property.id] = setTimeout(
-                  () => this.startPropertyRetry(property, retry - 1, delay),
-                  delay
-                );
-            }
-          )
-          .then(() => resolve())
-          .catch((err) => reject(err));
-      } else {
-        Promise.resolve()
-          .then(() => this.wtDevice.getPropertyDescriptions())
-          .then((properties) =>
-            Object.values(properties).reduce((prevProm, prop) => {
-              return prevProm.then(() =>
-                this.startPropertyRetry(
-                  prop,
-                  this.config.retry ? this.config.retryNumber : 0,
-                  this.config.retry ? this.config.retryDelay : 0
-                ).catch((err) => this.parent.om.obj.error(err))
-              );
-            }, Promise.resolve())
-          )
-          .catch((err) => this.parent.om.obj.error(err));
-      }
-    });
-  }
-
-  startProperty(property) {
-    console.log(
-      `[${this.constructor.name}]`,
-      `startProperty(${property.id}) >> `
-    );
-    return new Promise((resolve) => {
-      Promise.resolve()
-        .then(() => property.start())
-        .then(() => resolve(true))
-        .catch((err) => {
-          console.error(err);
-          resolve(false);
-        });
-    });
+    // return new Promise((resolve, reject) => {
+    //   Promise.resolve()
+    //     .then(() => property.start())
+    //     .then(() => resolve(true))
+    //     .catch((err) => {
+    //       reject(err);
+    //     });
+    // });
   }
 
   stop() {
     console.log(`[${this.constructor.name}]`, `stop() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
-        .then(() => this.stopPropertyStartRetirement())
-        .then(() => this.stopProperty())
-        .then(() => this.wtAdapter.handleDeviceRemoved(this.wtDevice))
-        // .then(() => this.getState())
+        .then(() => this.parent.oo.stopChild())
+        // .then(() => this.wtAdapter.handleDeviceRemoved(this.wtDevice))
         .then((ret) => resolve(ret))
         .catch((err) => {
-          this.state = `error`;
-          this.error = err;
           reject(err);
         });
     });
   }
 
-  stopProperty(property) {
-    console.log(`[${this.constructor.name}]`, `stopProperty() >> `);
-    return new Promise((resolve, reject) => {
-      if (property) {
-        Promise.resolve()
-          .then(() => property.stop())
-          .then(() => resolve())
-          .catch((err) => {
-            this.parent.om.obj.error(err);
-            reject(err);
-          });
-      } else {
-        Promise.resolve()
-          .then(() => this.wtDevice.getPropertyDescriptions())
-          .then((properties) =>
-            Object.values(properties).reduce((prevProm, prop) => {
-              return prevProm
-                .then(() => this.stopProperty(prop))
-                .catch((err) => this.parent.om.obj.error(err));
-            }, Promise.resolve())
-          )
-          .then(() => resolve())
-          .catch((err) => {
-            this.parent.om.obj.error(err);
-            reject(err);
-          });
-      }
-    });
-  }
-
-  stopPropertyStartRetirement(propertyId) {
+  stopChild(childId) {
     console.log(
       `[${this.constructor.name}]`,
-      `stopPropertyStartRetirement() >> `
+      `stopChild(${childId || ``}) >> `
     );
-    if (propertyId) {
-      if (this.startRetirement[propertyId])
-        clearTimeout(this.startRetirement[propertyId]);
-      this.startRetirement[propertyId] = undefined;
-    } else {
-      Object.keys(this.startRetryment).forEach((id) => {
-        this.stopPropertyStartRetirement(id);
-      });
-    }
+    // return new Promise((resolve, reject) => {
+    //   if (childId) {
+    //     Promise.resolve()
+    //       .then(() => this.wtDevice.findProperty(childId))
+    //       .then((child) => child.oo.stop())
+    //       .then(() => resolve())
+    //       .catch((err) => {
+    //         reject(err);
+    //       });
+    //   } else {
+    //     Promise.resolve()
+    //       .then(() => this.wtDevice.getPropertyDescriptions())
+    //       .then((children) =>
+    //         Object.values(children).reduce((prevProm, child) => {
+    //           return prevProm
+    //             .then(() => this.stopProperty(child))
+    //             .catch((err) => this.parent.om.obj.error(err));
+    //         }, Promise.resolve())
+    //       )
+    //       .then(() => resolve())
+    //       .catch((err) => {
+    //         reject(err);
+    //       });
+    //   }
+    // });
   }
 }
 

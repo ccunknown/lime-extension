@@ -51,17 +51,19 @@ class ModbusDevice extends DeviceTemplate {
       const propertiesConfig = this.config.properties;
       Object.keys(propertiesConfig)
         .reduce((prevProm, id) => {
-          return prevProm.then(() =>
-            this.do.addProperty(
-              id,
-              Path.join(
-                __dirname,
-                `/property/${propertiesConfig[id].template}/property.js`
-              ),
-              // `./property/${propertiesConfig[id].template}/property.js`,
-              propertiesConfig[id]
+          return prevProm
+            .then(() =>
+              this.oo.addChild(
+                id,
+                Path.join(
+                  __dirname,
+                  `/property/${propertiesConfig[id].template}/property.js`
+                ),
+                // `./property/${propertiesConfig[id].template}/property.js`,
+                propertiesConfig[id]
+              )
             )
-          );
+            .then(() => this.oo.startChild(id));
         }, Promise.resolve())
         .then(() => resolve())
         .catch((err) => reject(err));
@@ -137,7 +139,7 @@ class ModbusDevice extends DeviceTemplate {
 
   // eslint-disable-next-line class-methods-use-this
   getState() {
-    return `running`;
+    return this.oo.getState();
   }
 }
 

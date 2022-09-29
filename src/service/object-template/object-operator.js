@@ -1,18 +1,36 @@
 const Queue = require(`bull`);
+const { ObjectState, ObjectActivity } = require(`./object-state`);
 
 class ObjectOperator {
   constructor(parent, parentService, id) {
     this.parent = parent;
     this.id = id;
     this.parentService = parentService;
-    this.state = `unload`;
+    this.state = ObjectState.UNLOAD;
+    this.activity = ObjectActivity.IDLE;
     this.queue = new Queue(`${this.parentService.id}-${this.id}`);
     this.queue.empty();
 
     this.objMon = this.parent.om.obj;
     this.taskMon = this.parent.om.task;
 
+    this.startRetirement = undefined;
+    this.children = new Map();
+
     this.initProcessor();
+  }
+
+  init() {
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        .then(() =>
+          this.parent.to && this.parent.to.init
+            ? this.parent.to.init()
+            : this.parent.init()
+        )
+        .then(() => resolve())
+        .catch((err) => reject(err));
+    });
   }
 
   getState() {
@@ -20,8 +38,27 @@ class ObjectOperator {
   }
 
   setState(state) {
-    this.state = state;
-    this.objMon.state(state);
+    if (state !== this.state) {
+      if (!Object.values(ObjectState).includes(state))
+        this.objMon.error(new Error(`Object state '${state}' not in scope.`));
+      this.state = state;
+      this.objMon.state(state);
+    }
+  }
+
+  getActivity() {
+    return this.getActivity;
+  }
+
+  setActivity(activity) {
+    if (activity !== this.activity) {
+      if (!Object.values(ObjectActivity).includes(activity))
+        this.objMon.error(
+          new Error(`Object activity '${activity}' not in scope.`)
+        );
+      this.activity = activity;
+      // this.objMon.state(activity);
+    }
   }
 
   enable() {
@@ -66,19 +103,53 @@ class ObjectOperator {
 
   start() {
     // console.log(`[${this.constructor.name}]`, `oo start() >> `);
-    return new Promise((resolve) => {
-      try {
-        Promise.resolve()
-          .then(() => this.objMon.log(`${this.id} starting`))
-          .then(() => this.parent.start())
-          .then(() => this.setState(`running`))
-          .then((ret) => resolve(ret));
-      } catch (err) {
-        this.setState(`error`);
-        this.objMon.error(err);
-        this.restart();
-        resolve();
-      }
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        .then(() => this.setState(ObjectState.PENDING))
+        .then(() =>
+          this.retryStart(
+            this.parent.config.retry ? this.parent.config.retryNumber : 0,
+            this.parent.config.retry ? this.parent.config.retryDelay : 0
+          )
+        )
+        .then((ret) => resolve(ret))
+        .catch((err) => {
+          this.objMon.error(err);
+          reject(err);
+        });
+    });
+  }
+
+  retryStart(retryNumber = 0, retryDelay = 0) {
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        // .then(() => this.objMon.log(`${this.id} starting`))
+        .then(() => this.setState(ObjectState.PENDING))
+        .then(() =>
+          this.parent.to && this.parent.to.start
+            ? this.parent.to.start()
+            : this.parent.start()
+        )
+        .then(
+          // Start success
+          (ret) => {
+            this.setState(ObjectState.RUNNING);
+            this.startRetirement = undefined;
+            resolve(ret);
+          },
+          // Start fail
+          () => {
+            if (retryNumber && retryDelay) {
+              // this.setState(`wait-for-restart`);
+              this.startRetirement = setTimeout(
+                () => this.retryStart(retryNumber - 1, retryDelay),
+                retryDelay
+              );
+            } else this.setState(ObjectState.MAXSTARTRETIREMENT);
+          }
+        )
+        .then(() => resolve())
+        .catch((err) => reject(err));
     });
   }
 
@@ -86,28 +157,107 @@ class ObjectOperator {
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => this.objMon.log(`${this.id} stopping.`))
-        .then(() => this.parent.stop())
-        .then(() => this.setState(`stopped`))
+        .then(() => this.stopStartRetirement())
+        .then(() => this.stopChild())
+        .then(() =>
+          this.parent.to && this.parent.to.stop
+            ? this.parent.to.stop()
+            : this.parent.stop()
+        )
+        .then(() => this.setState(ObjectState.STOPPED))
         .then(() => resolve())
         .catch((err) => {
-          this.setState(`error`);
+          // this.setState(`error`);
           this.objMon.error(err);
           reject(err);
         });
     });
   }
 
-  restart() {
-    return new Promise((resolve) => {
+  stopStartRetirement() {
+    console.log(`[${this.constructor.name}]`, `stopStartRetirement() >> `);
+    if (this.startRetirement) clearTimeout(this.startRetirement);
+  }
+
+  addChild(childId, templatePath, config) {
+    return new Promise((resolve, reject) => {
+      let ChildObject;
+      let child;
       Promise.resolve()
-        .then(() => this.setState(`restarting`))
-        .then(() => this.parent.stop())
-        .then(() => this.parent.start())
-        .then(() => resolve())
-        .catch((err) => {
-          this.objMon.error(err);
-          setTimeout(() => this.restart(), 5000);
-        });
+        .then(() => {
+          // eslint-disable-next-line import/no-dynamic-require, global-require
+          ChildObject = require(templatePath);
+          child = new ChildObject(this.parent, childId, config);
+        })
+        .then(() => child.init())
+        .then(() => this.children.set(childId, child))
+        .then(() =>
+          this.parent.to && this.parent.to.addChild
+            ? this.parent.to.addChild(childId, child)
+            : this.parent.addChild(childId, child)
+        )
+        // .then(() => child.oo.start())
+        .then(() => resolve(child))
+        .catch((err) => reject(err));
+    });
+  }
+
+  startChild(childId) {
+    return new Promise((resolve, reject) => {
+      if (childId) {
+        Promise.resolve()
+          .then(() => this.children.get(childId))
+          .then((child) => {
+            if (!child)
+              throw new Error(`Child with id '${childId}' not found.`);
+            return child.start();
+          })
+          .then(() =>
+            this.parent.to && this.parent.to.startChild
+              ? this.parent.to.startChild(childId)
+              : this.parent.startChild(childId)
+          )
+          .then(() => resolve())
+          .catch((err) => reject(err));
+      } else {
+        Promise.resolve()
+          .then(() =>
+            Array.from(this.children.keys()).reduce((prevProm, id) => {
+              return prevProm.then(() => this.startChild(id));
+            }, Promise.resolve())
+          )
+          .then(() => resolve())
+          .catch((err) => reject(err));
+      }
+    });
+  }
+
+  stopChild(childId) {
+    return new Promise((resolve, reject) => {
+      if (childId) {
+        Promise.resolve()
+          .then(() => this.children.get(childId))
+          .then((child) => {
+            if (!child)
+              throw new Error(`Child with id '${childId}' not found.`);
+            return child.stop();
+          })
+          .then(() =>
+            this.parent.to && this.parent.to.stopChild
+              ? this.parent.to.stopChild(childId)
+              : this.parent.stopChild(childId)
+          )
+          .catch((err) => reject(err));
+      } else {
+        Promise.resolve()
+          .then(() =>
+            Array.from(this.children.keys()).reduce((prevProm, id) => {
+              return prevProm.then(() => this.stopChild(id));
+            }, Promise.resolve())
+          )
+          .then(() => resolve())
+          .catch((err) => reject(err));
+      }
     });
   }
 
@@ -127,12 +277,16 @@ class ObjectOperator {
   processor(jobId, cmd) {
     return new Promise((resolve, reject) => {
       Promise.resolve()
+        .then(() => this.setActivity(ObjectActivity.ACTIVE))
         .then(() => this.parent.processor(jobId, cmd))
         .then((ret) => {
           return ret;
         })
         .then((ret) => resolve(ret))
-        .catch((err) => reject(err));
+        .catch((err) => {
+          reject(err);
+        })
+        .finally(() => this.setActivity(ObjectActivity.IDLE));
     });
   }
 }
