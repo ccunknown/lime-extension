@@ -38,6 +38,7 @@ class ObjectOperator {
   }
 
   setState(state) {
+    console.log(`[${this.constructor.name}]`, `setState:`, state);
     if (state !== this.state) {
       if (!Object.values(ObjectState).includes(state))
         this.objMon.error(new Error(`Object state '${state}' not in scope.`));
@@ -61,6 +62,12 @@ class ObjectOperator {
     }
   }
 
+  getSchema() {
+    return this.parent.to.getSchema
+      ? this.parent.to.getSchema()
+      : this.parent.getSchema();
+  }
+
   enable() {
     return new Promise((resolve, reject) => {
       Promise.resolve()
@@ -71,8 +78,8 @@ class ObjectOperator {
             `service-config.${this.parentService.id}.list.${this.id}._config`
           )
         )
-        .then(() => ![`running`].includes(this.getState()) && this.start())
-        .then(() => this.setState(`enabled`))
+        // .then(() => ![`running`].includes(this.getState()) && this.start())
+        // .then(() => this.setState(`enabled`))
         .then(() => resolve())
         .catch((err) => {
           reject(err);
@@ -93,7 +100,7 @@ class ObjectOperator {
         .then(
           () => ![`stop`, `disabled`].includes(this.getState()) && this.stop()
         )
-        .then(() => this.setState(`disabled`))
+        // .then(() => this.setState(`disabled`))
         .then(() => resolve())
         .catch((err) => {
           reject(err);
@@ -105,6 +112,7 @@ class ObjectOperator {
     // console.log(`[${this.constructor.name}]`, `oo start() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
+        // .then(() => this.objMon.log(`Object '${this.id}' starting`))
         .then(() => this.setState(ObjectState.PENDING))
         .then(() =>
           this.retryStart(
@@ -145,7 +153,7 @@ class ObjectOperator {
                 () => this.retryStart(retryNumber - 1, retryDelay),
                 retryDelay
               );
-            } else this.setState(ObjectState.MAXSTARTRETIREMENT);
+            } else this.setState(ObjectState.MAXPENDING);
           }
         )
         .then(() => resolve())
@@ -176,7 +184,10 @@ class ObjectOperator {
 
   stopStartRetirement() {
     console.log(`[${this.constructor.name}]`, `stopStartRetirement() >> `);
-    if (this.startRetirement) clearTimeout(this.startRetirement);
+    if (this.startRetirement) {
+      clearTimeout(this.startRetirement);
+      this.startRetirement = undefined;
+    }
   }
 
   addChild(childId, templatePath, config) {
@@ -200,6 +211,17 @@ class ObjectOperator {
         .then(() => resolve(child))
         .catch((err) => reject(err));
     });
+  }
+
+  getChild(childId) {
+    if (this.parent.to.getChild) {
+      const child = this.parent.to.getChild(childId);
+      return childId
+        ? child.master || child
+        : child.map((kid) => kid.master || kid);
+    }
+    if (childId) return this.children.get(childId);
+    return Object.fromEntries(this.children);
   }
 
   startChild(childId) {

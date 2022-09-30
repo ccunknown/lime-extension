@@ -50,21 +50,25 @@ class ModbusDevice extends DeviceTemplate {
     return new Promise((resolve, reject) => {
       const propertiesConfig = this.config.properties;
       Object.keys(propertiesConfig)
-        .reduce((prevProm, id) => {
-          return prevProm
-            .then(() =>
-              this.oo.addChild(
-                id,
-                Path.join(
-                  __dirname,
-                  `/property/${propertiesConfig[id].template}/property.js`
-                ),
-                // `./property/${propertiesConfig[id].template}/property.js`,
-                propertiesConfig[id]
+        .reduce(
+          (prevProm, id) =>
+            prevProm
+              .then(() =>
+                this.oo.addChild(
+                  id,
+                  Path.join(
+                    __dirname,
+                    `/property/${propertiesConfig[id].template}/property.js`
+                  ),
+                  // `./property/${propertiesConfig[id].template}/property.js`,
+                  propertiesConfig[id]
+                )
               )
-            )
-            .then(() => this.oo.startChild(id));
-        }, Promise.resolve())
+              // .then(() => {})
+              // .then(() => this.oo.startChild(id))
+              .catch((err) => this.om.obj.error(err)),
+          Promise.resolve()
+        )
         .then(() => resolve())
         .catch((err) => reject(err));
     });

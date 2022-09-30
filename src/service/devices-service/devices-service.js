@@ -12,6 +12,7 @@ const Path = require(`path`);
 const Service = require(`../service`);
 // const Database = require(`../../lib/my-database`);
 // const {Defaults, Errors} = require(`../../../constants/constants`);
+const { ObjectServiceState } = require(`../object-template/object-state`);
 const { Errors } = require(`../../../constants/constants`);
 
 const ConfigTranslator = require(`./config-translator.js`);
@@ -142,7 +143,7 @@ class DevicesService extends Service {
       if (!device) reject(new Errors.ObjectNotFound(`${id}`));
       else {
         Promise.resolve()
-          .then(() => device.start())
+          .then(() => device.oo.start())
           .then(() => resolve())
           .catch((err) => reject(err));
       }
@@ -157,7 +158,7 @@ class DevicesService extends Service {
       if (!device) reject(new Errors.ObjectNotFound(`${id}`));
       else {
         Promise.resolve()
-          .then(() => device.stop())
+          .then(() => device.oo.stop())
           .then(() => resolve())
           .catch((err) => reject(err));
       }
@@ -229,12 +230,13 @@ class DevicesService extends Service {
           device = new Obj(this, id, config);
         })
         .then(() => device.oo.init())
+        .then(() => device.oo.start())
         // .then(() => this.applyObjectOptions(id, options))
         .then(() => {
           this.devices[id] = device;
         })
         .then(() => device.getState())
-        .then(() => device.to.wtDevice.asThing())
+        .then(() => device.oo.getSchema())
         .then((ret) => resolve(ret))
         .catch((err) => {
           reject(err);
@@ -325,13 +327,13 @@ class DevicesService extends Service {
           resolve(id ? this.devices[id] : this.devices);
         else if (id) {
           const device = this.devices[id];
-          const json = device.to.wtDevice.asThing();
+          const json = device.oo.getSchema();
           resolve(JSON.parse(JSON.stringify(json)));
         } else {
           const deviceList = this.devices;
           const json = [];
           Object.values(deviceList).forEach((dev) =>
-            json.push(dev.to.wtDevice.asThing())
+            json.push(dev.oo.getSchema())
           );
           // for(let i in deviceList)
           //   json.push(deviceList[i].asThing());
@@ -441,7 +443,7 @@ class DevicesService extends Service {
           enable: false,
           inServiceList: false,
           objectState: `undefined`,
-          serveQuality: 0,
+          // serveQuality: { value: 0, level: 0 },
         };
         Promise.resolve()
           // Check device config (unavailable, invalid, valid).
@@ -453,28 +455,50 @@ class DevicesService extends Service {
           .then((valid) => {
             subCondition.config =
               !config || !Object.keys(config).length
-                ? `unavailable`
+                ? ObjectServiceState.config.UNAVAILABLE
                 : valid
-                ? `valid`
-                : `invalid`;
+                ? ObjectServiceState.config.VALID
+                : ObjectServiceState.config.INVALID;
           })
           //  Enable ?
           .then(() => {
-            subCondition.enable = config
-              ? config._config.enable
-              : subCondition.enable;
+            subCondition.enable =
+              config && config._config
+                ? config._config.enable
+                  ? ObjectServiceState.enable.ENABLE
+                  : ObjectServiceState.enable.DISABLE
+                : subCondition.enable;
           })
           //  In service list ?
           .then(() => {
-            subCondition.inServiceList = !!device;
+            subCondition.inServiceList = device
+              ? ObjectServiceState.inServiceList.INSERVICE
+              : ObjectServiceState.inServiceList.NOTINSERVICE;
           })
           //  Device state ?
           .then(() => (device ? device.getState() : subCondition.objectState))
           .then((deviceState) => {
             subCondition.objectState = deviceState;
           })
+          // // Device serve quality ?
+          // .then(() => (device ? device.mb.buildMetric() : undefined))
+          // .then((metric) => {
+          //   const count = metric ? metric.jobs.success + metric.jobs.fail : 0;
+          //   return count ? (metric.jobs.success * 100) / count : 0;
+          // })
+          // .then((value) => {
+          //   subCondition.serveQuality.value =
+          //     value || subCondition.serveQuality;
+          //   subCondition.serveQuality.level = subCondition.serveQuality.value;
+          // })
           //  Device serve quality ? (0 - 100)
           // .then(() => (device ? device.mb.buildMetric))
+          // .then(() =>
+          //   console.log(
+          //     `subCondition >>>>>>>>>>>>>>`,
+          //     JSON.stringify(subCondition, null, 2)
+          //   )
+          // )
           .then(() => resolve(subCondition))
           .catch((err) => reject(err));
       } else {

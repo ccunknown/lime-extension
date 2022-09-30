@@ -9,6 +9,7 @@ const ModbusRTU = require("modbus-serial");
 // const AsyncLock = require("async-lock");
 
 const EngineTemplate = require(`../../engine-template/engines-template.js`);
+const { ObjectState } = require(`../../../object-template/object-state.js`);
 
 class ModbusRtu extends EngineTemplate {
   constructor(enginesService, config) {
@@ -151,7 +152,7 @@ class ModbusRtu extends EngineTemplate {
   processor(jobId, cmd) {
     // const timestamp = new Date().toISOString();
     return new Promise((resolve, reject) => {
-      if (this.getState() !== `running`) {
+      if (this.getState() !== ObjectState.RUNNING) {
         reject(new Error(`Port currently "${this.getState()}".`));
       } else if (cmd.action === `read`) {
         this.client.setID(cmd.id);

@@ -78,6 +78,10 @@ class DeviceOperator {
     });
   }
 
+  getSchema() {
+    return this.wtDevice.asThing();
+  }
+
   getProperty(id) {
     console.log(`[${this.constructor.name}]:`, `getProperty(${id})`);
     console.log(
@@ -93,7 +97,12 @@ class DeviceOperator {
 
   addChild(childId /* , child */) {
     console.log(`[${this.constructor.name}]`, `addChild(${childId})`);
-    // this.wtDevice.addProperty(child.propertyUnit);
+  }
+
+  getChild(childId) {
+    return childId
+      ? this.wtDevice.findProperty(childId)
+      : this.wtDevice.getPropertyDescriptions();
   }
 
   start() {
@@ -113,14 +122,6 @@ class DeviceOperator {
       `[${this.constructor.name}]`,
       `startChild(${childId || ``}) >> `
     );
-    // return new Promise((resolve, reject) => {
-    //   Promise.resolve()
-    //     .then(() => property.start())
-    //     .then(() => resolve(true))
-    //     .catch((err) => {
-    //       reject(err);
-    //     });
-    // });
   }
 
   stop() {
@@ -128,7 +129,6 @@ class DeviceOperator {
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => this.parent.oo.stopChild())
-        // .then(() => this.wtAdapter.handleDeviceRemoved(this.wtDevice))
         .then((ret) => resolve(ret))
         .catch((err) => {
           reject(err);
@@ -141,31 +141,6 @@ class DeviceOperator {
       `[${this.constructor.name}]`,
       `stopChild(${childId || ``}) >> `
     );
-    // return new Promise((resolve, reject) => {
-    //   if (childId) {
-    //     Promise.resolve()
-    //       .then(() => this.wtDevice.findProperty(childId))
-    //       .then((child) => child.oo.stop())
-    //       .then(() => resolve())
-    //       .catch((err) => {
-    //         reject(err);
-    //       });
-    //   } else {
-    //     Promise.resolve()
-    //       .then(() => this.wtDevice.getPropertyDescriptions())
-    //       .then((children) =>
-    //         Object.values(children).reduce((prevProm, child) => {
-    //           return prevProm
-    //             .then(() => this.stopProperty(child))
-    //             .catch((err) => this.parent.om.obj.error(err));
-    //         }, Promise.resolve())
-    //       )
-    //       .then(() => resolve())
-    //       .catch((err) => {
-    //         reject(err);
-    //       });
-    //   }
-    // });
   }
 }
 

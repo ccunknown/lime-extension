@@ -358,7 +358,7 @@ class RoutesManager extends APIHandler {
                 // .then((device) => device.getPropertyMetrics(propertyId))
                 .then((device) => {
                   if (!device) throw new Errors.ObjectNotFound(deviceId);
-                  return device.do.getProperty(propertyId);
+                  return device.oo.getChild(propertyId);
                 })
                 .then((property) => {
                   if (!property) throw new Errors.ObjectNotFound(propertyId);

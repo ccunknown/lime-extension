@@ -469,6 +469,39 @@ export default class PageDevices {
         // }
         return result;
       },
+      craftDeviceStatus: (state) => {
+        const result = {
+          config: state.config,
+        };
+        const enableKey = state.enable.value ? `enable` : `disable`;
+        const enableKeyLevel = state.enable.value ? 100 : 0;
+        const enableKeyValue = {
+          value: state.inServiceList.value
+            ? state.objectState.value
+            : `not-in-list`,
+          level: state.inServiceList
+            ? state.objectState.level
+            : state.inServiceList.level,
+        };
+        // const enableKeyValue = {
+        //   value: state.inServiceList.value
+        //     ? state.objectState.value === `running`
+        //       ? `${state.serveQuality.value ? state.serveQuality.value : 0}%`
+        //       : state.objectState.value
+        //     : `not-in-list`,
+        //   level: state.inServiceList
+        //     ? state.objectState.value === `running`
+        //       ? state.serveQuality.level
+        //       : state.objectState.value
+        //     : state.inServiceList.level,
+        // };
+        result[enableKey] = {
+          keyLevel: enableKeyLevel,
+          value: enableKeyValue.value,
+          level: enableKeyValue.level,
+        };
+        return result;
+      },
     };
     this.console.log(this.vue);
   }
