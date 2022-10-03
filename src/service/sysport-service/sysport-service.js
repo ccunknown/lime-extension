@@ -1,7 +1,7 @@
 /* eslint-disable global-require */
 /* eslint-disable import/no-dynamic-require */
 /* eslint-disable no-nested-ternary */
-const Service = require(`../service`);
+const Service = require(`../service-template/service`);
 // const Database = require(`../../lib/my-database`);
 // const { Defaults, Errors } = require(`../../../constants/constants`);
 const { Errors } = require(`../../../constants/constants`);

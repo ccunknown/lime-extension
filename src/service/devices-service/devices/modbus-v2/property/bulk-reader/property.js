@@ -32,10 +32,10 @@ class BulkReader extends PropertyTemplate {
     this.Errors = require(`${this.devicesService.getRootDirectory()}/constants/errors.js`);
     this.configTranslator = new ConfigTranslator(this.devicesService);
 
-    const itemMetricsPath = `${this.devicesService.getRootDirectory()}/src/service/item-metrics.js`;
-    console.log(`Item Metrics Path: ${itemMetricsPath}`);
-    const ItemMetrics = require(itemMetricsPath);
-    this.metrics = new ItemMetrics({});
+    // const itemMetricsPath = `${this.devicesService.getRootDirectory()}/src/service/item-metrics.js`;
+    // console.log(`Item Metrics Path: ${itemMetricsPath}`);
+    // const ItemMetrics = require(itemMetricsPath);
+    // this.metrics = new ItemMetrics({});
   }
 
   init() {

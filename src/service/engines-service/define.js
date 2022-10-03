@@ -22,9 +22,9 @@ const ValidateConfigSchema = {
     },
     _config: {
       type: "object",
-      required: [`addToService`],
+      required: [`enable`],
       properties: {
-        addToService: {
+        enable: {
           type: "boolean",
           default: true,
         },

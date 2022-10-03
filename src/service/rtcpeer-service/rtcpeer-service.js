@@ -1,4 +1,4 @@
-const Service = require(`../service`);
+const Service = require(`../service-template/service`);
 const Session = require(`./session`);
 
 class rtcpeerService extends Service {

@@ -1,5 +1,6 @@
 /* eslint-disable global-require */
 /* eslint-disable import/no-dynamic-require */
+// const Path = require(`path`);
 const { Validator } = require(`jsonschema`);
 
 const {
@@ -11,6 +12,10 @@ const {
 class ServiceConfigTranslator {
   constructor(devicesService) {
     this.devicesService = devicesService;
+    console.log(
+      `[${this.constructor.name}] >>>>>>>>>>>>>>>>>>>>>>>>>>`,
+      this.devicesService.constructor.name
+    );
     this.Errors = require(`${this.devicesService.getRootDirectory()}/constants/errors.js`);
   }
 

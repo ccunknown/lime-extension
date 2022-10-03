@@ -1,10 +1,11 @@
-'use strict'
-
+/* eslint-disable global-require */
+/* eslint-disable import/no-dynamic-require */
+/* eslint-disable class-methods-use-this */
 const Path = require(`path`);
 
-const Service = require(`../service`);
-const Database = require('../../lib/my-database');
-const {Defaults, Errors} = require('../../../constants/constants');
+const Service = require(`../service-template/service`);
+// const Database = require(`../../lib/my-database`);
+// const { Defaults, Errors } = require(`../../../constants/constants`);
 
 class ScriptsService extends Service {
   constructor(extension, config, id) {
@@ -14,16 +15,16 @@ class ScriptsService extends Service {
 
   init(config) {
     console.log(`ScriptsService: init() >> `);
-    return new Promise(async (resolve, reject) => {
-      this.config = (config) ? config : this.config;
+    return new Promise((resolve) => {
+      this.config = config || this.config;
       resolve();
     });
   }
 
   start() {
     console.log(`ScriptsService: start() >> `);
-    return new Promise(async (resolve, reject) => {
-      //await this.initScript();
+    return new Promise((resolve) => {
+      // await this.initScript();
       resolve();
     });
   }
@@ -52,90 +53,136 @@ class ScriptsService extends Service {
     */
 
     console.log(`ScriptsService: create(${schema.name}) >> `);
-    //console.log(`schema : ${JSON.stringify(schema, null, 2)}`);
-    return new Promise(async (resolve, reject) => {
-      let serviceSchema = this.getSchema();
-      parentPath = (parentPath) ? parentPath : ``;
-      if(schema.meta) {
+    return new Promise((resolve) => {
+      const path = parentPath || ``;
+      if (schema.meta) {
         schema.children.push({
-          "name": "metadata.js",
-          "type": "file",
-          "base64": this.base64Encode(this.initialMeta(schema.meta))
+          name: "metadata.js",
+          type: "file",
+          base64: this.base64Encode(this.initialMeta(schema.meta)),
         });
       }
-      for(let i in schema.children) {
-        if(schema.children[i].type == `file`)
-          await this.createFile(Path.join(parentPath, schema.name, schema.children[i].name), schema.children[i].base64);
-        else if(schema.children[i].type == `directory`)
-          await this.create(schema.children[i], Path.join(parentPath, schema.name));
-        else
+      Object.keys(schema.children).reduce((prevProm, i) => {
+        return prevProm.then(() => {
+          if (schema.children[i].type === `file`)
+            return this.createFile(
+              Path.join(path, schema.name, schema.children[i].name),
+              schema.children[i].base64
+            );
+          if (schema.children[i].type === `directory`)
+            return this.create(
+              schema.children[i],
+              Path.join(path, schema.name)
+            );
           console.warn(`Type '${schema.children[i].type}' not support!!!`);
-      }
+          return undefined;
+        });
+      }, Promise.resolve());
+      // Object.keys(schema.children).forEach((i) => {
+      //   if (schema.children[i].type == `file`)
+      //     await this.createFile(
+      //       Path.join(path, schema.name, schema.children[i].name),
+      //       schema.children[i].base64
+      //     );
+      //   else if (schema.children[i].type == `directory`)
+      //     await this.create(
+      //       schema.children[i],
+      //       Path.join(path, schema.name)
+      //     );
+      //   else console.warn(`Type '${schema.children[i].type}' not support!!!`);
+      // });
       resolve({});
     });
   }
 
   createFile(path, raw) {
     console.log(`ScriptsService: createFile() >> `);
-    //console.log(`schema : ${JSON.stringify(schema, null, 2)}`);
-    return new Promise(async (resolve, reject) => {
-      let data = this.base64Decode(raw);
-      console.log(`create file : ${path}`);
-      await this.writeFile(path, data);
-      resolve();
+    // console.log(`schema : ${JSON.stringify(schema, null, 2)}`);
+    return new Promise((resolve, reject) => {
+      let data;
+      Promise.resolve()
+        .then(() => {
+          data = this.base64Decode(raw);
+          console.log(`create file : ${path}`);
+        })
+        .then(() => this.writeFile(path, data))
+        .then(() => resolve())
+        .catch((err) => reject(err));
     });
   }
 
   delete(name) {
     console.log(`ScriptsService: delete(${name}) >> `);
-    return new Promise(async (resolve, reject) => {
-      let script = await this.get(name, {"deep": true});
-      //console.log(`delete: ${JSON.stringify(script, null, 2)}`);
-      if(script) {
-        await this.deleteDirectory(script.path);
-        resolve({});
-      }
-      else {
-        reject(`Directory not found!!!`)
-      }
-      //this.delete();
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        .then(() => this.get(name, { deep: true }))
+        .then((script) => {
+          if (!script) throw new Error(`Directory not found!!!`);
+          return this.deleteDirectory(script.path);
+        })
+        .then(() => resolve({}))
+        .catch((err) => reject(err));
     });
   }
 
   get(name, options) {
-    console.log(`ScriptsService: get(${(name) ? `${name}` : ``})`);
-    return new Promise(async (resolve, reject) => {
-      let serviceSchema = this.getSchema();
-      let opttmp = (options) ? JSON.parse(JSON.stringify(options)) : {};
+    console.log(`[${this.constructor.name}]`, `get(${name || ``})`);
+    return new Promise((resolve, reject) => {
+      const serviceSchema = this.getSchema();
+      const opttmp = options ? JSON.parse(JSON.stringify(options)) : {};
       opttmp.object = false;
-      let scriptList = (await this.getDirectorySchema(serviceSchema.directory, opttmp)).children;
-      console.log(`directory: ${serviceSchema.directory}`);
-      //console.log(`scriptList: ${JSON.stringify(scriptList, null, 2)}`);
-      if(name) {
-        let script = scriptList.find((elem) => elem.name == name);
-        script = await this.getDirectorySchema(script.path, options);
-        if(!script)
-          resolve(undefined);
-        else {
-          // let script = JSON.parse(JSON.stringify(script));
-          let meta = script.children.find((elem) => elem.name == `metadata.js`);
-          script.children = script.children.filter((elem) => elem.name != `metadata.js`);
-          // let path = Path.join(__dirname, script.path.replace(/^\//, ``), `metadata.js`);
-          let path = Path.join(__dirname, script.path, `metadata.js`);
-          if(require.cache[require.resolve(path)])
-            delete require.cache[require.resolve(path)];
-          script.meta = (meta) ? JSON.parse(JSON.stringify(require(path))) : {};
-          resolve(script);
-        }
-      }
-      else {
-        let result = [];
-        for(let i in scriptList) {
-          let script = await this.get(scriptList[i].name, options);
-          result.push(script);
-        }
-        resolve(result);
-      }
+      let scriptList;
+      Promise.resolve()
+        .then(() => this.getDirectorySchema(serviceSchema.directory, opttmp))
+        .then((slist) => {
+          scriptList = slist.children;
+          // console.log(`directory: ${serviceSchema.directory}`);
+        })
+        .then(() => {
+          if (name) {
+            const script = scriptList.find((elem) => elem.name === name);
+            Promise.resolve()
+              .then(() => this.getDirectorySchema(script.path, options))
+              .then((sDirSchema) => {
+                const scriptDirSchema = sDirSchema;
+                if (!scriptDirSchema) resolve(undefined);
+                else {
+                  // let script = JSON.parse(JSON.stringify(script));
+                  const meta = scriptDirSchema.children.find(
+                    (elem) => elem.name === `metadata.js`
+                  );
+                  scriptDirSchema.children = scriptDirSchema.children.filter(
+                    (elem) => elem.name !== `metadata.js`
+                  );
+                  // let path = Path.join(__dirname, script.path.replace(/^\//, ``), `metadata.js`);
+                  const path = Path.join(
+                    __dirname,
+                    scriptDirSchema.path,
+                    `metadata.js`
+                  );
+                  if (require.cache[require.resolve(path)])
+                    delete require.cache[require.resolve(path)];
+                  scriptDirSchema.meta = meta
+                    ? JSON.parse(JSON.stringify(require(path)))
+                    : {};
+                  resolve(scriptDirSchema);
+                }
+              });
+          } else {
+            const result = [];
+            Promise.resolve()
+              .then(() =>
+                Object.keys(scriptList).reduce((prevProm, i) => {
+                  return prevProm
+                    .then(() => this.get(scriptList[i].name, options))
+                    .then((script) => result.push(script));
+                }, Promise.resolve())
+              )
+              .then(() => resolve(result))
+              .catch((err) => reject(err));
+          }
+        })
+        .catch((err) => reject(err));
     });
   }
 

@@ -8,12 +8,12 @@ const Path = require(`path`);
 const ModbusRTU = require("modbus-serial");
 // const AsyncLock = require("async-lock");
 
-const EngineTemplate = require(`../../engine-template/engines-template.js`);
+const EngineTemplate = require(`../../engine-template/engine-template.js`);
 const { ObjectState } = require(`../../../object-template/object-state.js`);
 
 class ModbusRtu extends EngineTemplate {
-  constructor(enginesService, config) {
-    super(enginesService, config);
+  constructor(enginesService, id, config) {
+    super(enginesService, id, config);
     this.enginesService = enginesService;
     this.sysportService = enginesService.sysportService;
     this.config = config;

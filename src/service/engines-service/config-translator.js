@@ -48,7 +48,7 @@ class ServiceConfigTranslator {
           config.properties.template.enum = engineTemplate.map((e) => e.name);
           if (params && params.template && params.template.length) {
             const dir =
-              this.enginesService.config["service-config"][
+              this.enginesService.config[`service-config`][
                 this.enginesService.id
               ].directory;
             const EngineConfigTranslator = require(Path.join(

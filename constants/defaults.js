@@ -5,6 +5,21 @@ const Defaults = {
   },
   config: {
     service: {
+      //  Script Service
+      "scripts-service": {
+        path: "/scripts-service/scripts-service.js",
+        enable: true,
+        status: "unknow",
+        description:
+          "Controller of scripts of slave serial devices, used to translatation for devices-service.",
+      },
+      // Rtcpeer Service
+      "rtcpeer-service": {
+        path: "/rtcpeer-service/rtcpeer-service.js",
+        enable: true,
+        status: "unknow",
+        description: "Client - Server communitaction service using WEBRTC.",
+      },
       //  Port Service
       "sysport-service": {
         path: "sysport-service/sysport-service.js",
@@ -20,14 +35,6 @@ const Defaults = {
         description:
           "Engine is a solution to provide data from port to script.",
       },
-      //  Script Service
-      "scripts-service": {
-        path: "/scripts-service/scripts-service.js",
-        enable: true,
-        status: "unknow",
-        description:
-          "Controller of scripts of slave serial devices, used to translatation for devices-service.",
-      },
       //  Device Service
       "devices-service": {
         path: "/devices-service/devices-service.js",
@@ -36,33 +43,11 @@ const Defaults = {
         description:
           "A combination of script and engine to define what was device should be.",
       },
-      // Rtcpeer Service
-      "rtcpeer-service": {
-        path: "/rtcpeer-service/rtcpeer-service.js",
-        enable: true,
-        status: "unknow",
-        description: "Client - Server communitaction service using WEBRTC.",
-      },
     },
     "service-config": {
-      //  Port Service
-      "sysport-service": {
-        directory: "./sysport",
-        list: {},
-      },
-      //  Engine Service
-      "engines-service": {
-        directory: "./engines",
-        list: {},
-      },
       //  Script Service
       "scripts-service": {
         directory: "/scripts",
-        list: {},
-      },
-      //  Device Service
-      "devices-service": {
-        directory: "/devices",
         list: {},
       },
       // Rtcpeer Service
@@ -91,6 +76,21 @@ const Defaults = {
             timeout: 3000,
           },
         },
+      },
+      //  Port Service
+      "sysport-service": {
+        directory: "./sysport",
+        list: {},
+      },
+      //  Engine Service
+      "engines-service": {
+        directory: "./engines",
+        list: {},
+      },
+      //  Device Service
+      "devices-service": {
+        directory: "/devices",
+        list: {},
       },
     },
   },
@@ -134,85 +134,6 @@ const Defaults = {
         ],
         additionalProperties: false,
         properties: {
-          //  Port Service
-          "sysport-service": {
-            type: "object",
-            required: ["directory", "list"],
-            additionalProperties: false,
-            properties: {
-              directory: {
-                type: "string",
-              },
-              list: {
-                type: "object",
-                default: {},
-                additionalProperties: false,
-                patternProperties: {
-                  ".+": {
-                    type: "object",
-                  },
-                },
-              },
-            },
-          },
-          //  Engine Service
-          "engines-service": {
-            type: "object",
-            required: ["directory", "list"],
-            additionalProperties: false,
-            properties: {
-              directory: {
-                type: "string",
-              },
-              list: {
-                type: "object",
-                default: {},
-                additionalProperties: false,
-                patternProperties: {
-                  ".+": {
-                    type: "object",
-                    // "required": ["name", "engine", "port"],
-                    // "additionalProperties": false,
-                    // "properties": {
-                    //   "name": {
-                    //     "type": "string"
-                    //   },
-                    //   "engine": {
-                    //     "type": "string"
-                    //   },
-                    //   "port": {
-                    //     "type": "string"
-                    //   }
-                    // }
-                    required: ["name", "description", "template"],
-                    additionalProperties: true,
-                    properties: {
-                      name: {
-                        type: "string",
-                      },
-                      description: {
-                        type: "string",
-                      },
-                      template: {
-                        type: "string",
-                      },
-                      _config: {
-                        type: "object",
-                        required: ["addToService"],
-                        additionalProperties: true,
-                        properties: {
-                          addToService: {
-                            type: "boolean",
-                            default: true,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
           //  Script Service
           "scripts-service": {
             type: "object",
@@ -276,6 +197,88 @@ const Defaults = {
               },
             },
           },
+          //  RTCPeer Service
+          "rtcpeer-service": {
+            type: "object",
+            required: ["peerConnectionConfig", "session", "channel"],
+            properties: {
+              peerConnectionConfig: {
+                type: "object",
+              },
+              session: {
+                type: "object",
+              },
+              channel: {
+                type: "object",
+              },
+            },
+          },
+          //  Port Service
+          "sysport-service": {
+            type: "object",
+            required: ["directory", "list"],
+            additionalProperties: false,
+            properties: {
+              directory: {
+                type: "string",
+              },
+              list: {
+                type: "object",
+                default: {},
+                additionalProperties: false,
+                patternProperties: {
+                  ".+": {
+                    type: "object",
+                  },
+                },
+              },
+            },
+          },
+          //  Engine Service
+          "engines-service": {
+            type: "object",
+            required: ["directory", "list"],
+            additionalProperties: false,
+            properties: {
+              directory: {
+                type: "string",
+              },
+              list: {
+                type: "object",
+                default: {},
+                additionalProperties: false,
+                patternProperties: {
+                  ".+": {
+                    type: "object",
+                    // required: ["name", "description", "template"],
+                    // additionalProperties: true,
+                    // properties: {
+                    //   name: {
+                    //     type: "string",
+                    //   },
+                    //   description: {
+                    //     type: "string",
+                    //   },
+                    //   template: {
+                    //     type: "string",
+                    //   },
+                    //   _config: {
+                    //     type: "object",
+                    //     required: ["addToService"],
+                    //     additionalProperties: true,
+                    //     properties: {
+                    //       addToService: {
+                    //         type: "boolean",
+                    //         default: true,
+                    //       },
+                    //     },
+                    //   },
+                    // },
+                  },
+                },
+              },
+            },
+          },
           //  Device Service
           "devices-service": {
             type: "object",
@@ -292,41 +295,25 @@ const Defaults = {
                 patternProperties: {
                   ".+": {
                     type: "object",
-                    required: ["name", "description", "template", "properties"],
-                    additionalProperties: true,
-                    properties: {
-                      name: {
-                        type: "string",
-                      },
-                      description: {
-                        type: "string",
-                      },
-                      template: {
-                        type: "string",
-                      },
-                      properties: {
-                        type: "object",
-                        default: {},
-                      },
-                    },
+                    // required: ["name", "description", "template", "properties"],
+                    // additionalProperties: true,
+                    // properties: {
+                    //   name: {
+                    //     type: "string",
+                    //   },
+                    //   description: {
+                    //     type: "string",
+                    //   },
+                    //   template: {
+                    //     type: "string",
+                    //   },
+                    //   properties: {
+                    //     type: "object",
+                    //     default: {},
+                    //   },
+                    // },
                   },
                 },
-              },
-            },
-          },
-          //  RTCPeer Service
-          "rtcpeer-service": {
-            type: "object",
-            required: ["peerConnectionConfig", "session", "channel"],
-            properties: {
-              peerConnectionConfig: {
-                type: "object",
-              },
-              session: {
-                type: "object",
-              },
-              channel: {
-                type: "object",
               },
             },
           },

@@ -286,10 +286,14 @@
 }
 
 #extension-lime-contents .miso-grid-item .card-text {
-  -webkit-line-clamp: 2;
+  /* -webkit-line-clamp: 2; */
   -webkit-box-orient: vertical;
   display: -webkit-box;
   overflow: hidden;
+}
+
+#extension-lime-contents .miso-grid-item .line-clamp-4 {
+  -webkit-line-clamp: 2;
 }
 
 

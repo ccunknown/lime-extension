@@ -201,7 +201,7 @@ class RoutesManager extends APIHandler {
         },
       },
 
-      //  Resource : /service/devices-service/generatePropertyId
+      //  Resource : /service/devices-service/config/generatePropertyId
       {
         resource: /\/service\/devices-service\/config\/generate-property-id/,
         method: {
@@ -223,7 +223,7 @@ class RoutesManager extends APIHandler {
         },
       },
 
-      //  Resource : /service/devices-service/translate
+      //  Resource : /service/devices-service/config/translate
       {
         resource: /\/service\/devices-service\/config\/translate/,
         method: {
@@ -245,7 +245,7 @@ class RoutesManager extends APIHandler {
         },
       },
 
-      //  Resource : /service/devices-service/validate
+      //  Resource : /service/devices-service/config/validate
       {
         resource: /\/service\/devices-service\/config\/validate/,
         method: {
@@ -276,7 +276,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`devices-service`)
-                    .obj.getServiceDevice()
+                    .obj.getServiceObject()
                 )
                 .then((devices) =>
                   resolve(this.makeJsonRespond(JSON.stringify(devices)))
@@ -298,7 +298,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`devices-service`)
-                    .obj.getServiceDevice(id)
+                    .obj.getServiceObject(id)
                 )
                 .then((devices) =>
                   resolve(this.makeJsonRespond(JSON.stringify(devices)))
@@ -394,7 +394,7 @@ class RoutesManager extends APIHandler {
                   .then(() =>
                     this.laborsManager
                       .getService(`devices-service`)
-                      .obj.startDevice(id)
+                      .obj.startObject(id)
                   )
                   .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -403,7 +403,7 @@ class RoutesManager extends APIHandler {
                   .then(() =>
                     this.laborsManager
                       .getService(`devices-service`)
-                      .obj.stopDevice(id)
+                      .obj.stopObject(id)
                   )
                   .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -462,7 +462,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`devices-service`)
-                    .obj.getConfigDevice()
+                    .obj.getObjectConfig()
                 )
                 .then((devices) =>
                   resolve(this.makeJsonRespond(JSON.stringify(devices)))
@@ -478,7 +478,9 @@ class RoutesManager extends APIHandler {
                     .getService(`devices-service`)
                     .obj.add(req.body)
                 )
-                .then((json) => resolve(this.makeJsonRespond(JSON.stringify(json))))
+                .then((json) =>
+                  resolve(this.makeJsonRespond(JSON.stringify(json)))
+                )
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -494,7 +496,7 @@ class RoutesManager extends APIHandler {
               const id = req.path.split(`/`).pop();
               this.laborsManager
                 .getService(`devices-service`)
-                .obj.getConfigDevice(id)
+                .obj.getObjectConfig(id)
                 .then((device) =>
                   resolve(this.makeJsonRespond(JSON.stringify(device)))
                 )
@@ -620,7 +622,7 @@ class RoutesManager extends APIHandler {
         },
       },
 
-      //  Resource : /service/engines-service/generate-schema
+      //  Resource : /service/engines-service/config/generate-schema
       {
         resource: /\/service\/engines-service\/config\/generate-schema/,
         method: {
@@ -651,7 +653,8 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`engines-service`)
-                    .obj.getServiceEngine()
+                    // .obj.getServiceEngine()
+                    .obj.getServiceObject()
                 )
                 .then((engines) =>
                   resolve(this.makeJsonRespond(JSON.stringify(engines)))
@@ -674,7 +677,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`engines-service`)
-                    .obj.getServiceEngine(id)
+                    .obj.getServiceObject(id)
                 )
                 .then((engines) =>
                   resolve(this.makeJsonRespond(JSON.stringify(engines)))
@@ -701,7 +704,7 @@ class RoutesManager extends APIHandler {
                   .then(() =>
                     this.laborsManager
                       .getService(`engines-service`)
-                      .obj.startEngine(id)
+                      .obj.startObject(id)
                   )
                   .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -710,7 +713,7 @@ class RoutesManager extends APIHandler {
                   .then(() =>
                     this.laborsManager
                       .getService(`engines-service`)
-                      .obj.stopEngine(id)
+                      .obj.stopObject(id)
                   )
                   .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
