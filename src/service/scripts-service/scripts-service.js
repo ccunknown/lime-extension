@@ -118,7 +118,7 @@ class ScriptsService extends Service {
         .then(() => this.get(name, { deep: true }))
         .then((script) => {
           if (!script) throw new Error(`Directory not found!!!`);
-          return this.deleteDirectory(script.path);
+          return this.directory.delete(script.path);
         })
         .then(() => resolve({}))
         .catch((err) => reject(err));
@@ -128,12 +128,13 @@ class ScriptsService extends Service {
   get(name, options) {
     console.log(`[${this.constructor.name}]`, `get(${name || ``})`);
     return new Promise((resolve, reject) => {
-      const serviceSchema = this.getSchema();
+      // const serviceSchema = this.getSchema();
+      const serviceConfig = this.getConfig();
       const opttmp = options ? JSON.parse(JSON.stringify(options)) : {};
       opttmp.object = false;
       let scriptList;
       Promise.resolve()
-        .then(() => this.getDirectorySchema(serviceSchema.directory, opttmp))
+        .then(() => this.directory.getSchema(serviceConfig.directory, opttmp))
         .then((slist) => {
           scriptList = slist.children;
           // console.log(`directory: ${serviceSchema.directory}`);
@@ -142,7 +143,7 @@ class ScriptsService extends Service {
           if (name) {
             const script = scriptList.find((elem) => elem.name === name);
             Promise.resolve()
-              .then(() => this.getDirectorySchema(script.path, options))
+              .then(() => this.directory.getSchema(script.path, options))
               .then((sDirSchema) => {
                 const scriptDirSchema = sDirSchema;
                 if (!scriptDirSchema) resolve(undefined);

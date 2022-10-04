@@ -40,17 +40,16 @@ class ServiceConfigTranslator {
       //  Initial 'enum' attribute.
       let engineTemplate;
       Promise.resolve()
-        .then(() => this.enginesService.getTemplate(null, { deep: true }))
+        .then(() =>
+          this.enginesService.objects.getTemplate(null, { deep: true })
+        )
         .then((templates) => {
           engineTemplate = templates;
         })
         .then(() => {
           config.properties.template.enum = engineTemplate.map((e) => e.name);
           if (params && params.template && params.template.length) {
-            const dir =
-              this.enginesService.config[`service-config`][
-                this.enginesService.id
-              ].directory;
+            const dir = this.enginesService.config.directory;
             const EngineConfigTranslator = require(Path.join(
               dir.startsWith(`./`) ? Path.join(__dirname, dir) : dir,
               params.template,

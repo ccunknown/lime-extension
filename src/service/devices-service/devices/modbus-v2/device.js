@@ -78,7 +78,9 @@ class ModbusDevice extends DeviceTemplate {
     return new Promise((resolve, reject) => {
       const { enginesService } = this.devicesService;
       Promise.resolve()
-        .then(() => enginesService.get(this.config.engine, { object: true }))
+        .then(() =>
+          enginesService.objects.get(this.config.engine, { object: true })
+        )
         .then((engine) => {
           if (!engine)
             throw new Error(`Engine "${engineName}" not in service.`);
@@ -122,7 +124,7 @@ class ModbusDevice extends DeviceTemplate {
     if (state === `running`) {
       return Promise.resolve(this.engine);
     }
-    return this.devicesService.enginesService.get(this.config.engine, {
+    return this.devicesService.enginesService.objects.get(this.config.engine, {
       object: true,
     });
     // return state === `running` ? engine : null;

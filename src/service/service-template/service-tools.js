@@ -7,17 +7,17 @@ module.exports = {
     return split.join(`/`);
   },
 
-  base64Encode(data) {
-    const buff = Buffer.from(data);
-    const base64 = buff.toString(`base64`);
-    return base64;
-  },
+  // base64Encode(data) {
+  //   const buff = Buffer.from(data);
+  //   const base64 = buff.toString(`base64`);
+  //   return base64;
+  // },
 
-  base64Decode(data, encoding) {
-    const buff = Buffer.from(data, `base64`);
-    const result = buff.toString(encoding || `utf8`);
-    return result;
-  },
+  // base64Decode(data, encoding) {
+  //   const buff = Buffer.from(data, `base64`);
+  //   const result = buff.toString(encoding || `utf8`);
+  //   return result;
+  // },
 
   jsonToArray(json, keyOfId) {
     const arr = [];
@@ -35,5 +35,9 @@ module.exports = {
       json[elem[keyAttr]] = elem;
     });
     return JSON.parse(JSON.stringify(json));
+  },
+
+  mapToObject(map) {
+    return [...map].reduce((p, a) => ({ ...p, [a[0]]: a[1] }), {});
   },
 };

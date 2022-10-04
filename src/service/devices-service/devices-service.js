@@ -62,15 +62,16 @@ class DevicesService extends Service {
   initDevices() {
     console.log(`[${this.constructor.name}]`, `initDevices() >> `);
     return new Promise((resolve, reject) => {
-      const serviceSchema = this.getSchema();
-      const { list } = serviceSchema;
+      // const serviceSchema = this.getSchema();
+      const serviceConfig = this.getConfig();
+      const { list } = serviceConfig;
 
       Object.keys(list)
         .reduce((prevProm, id) => {
           return prevProm
             .then(() =>
               list[id]._config && list[id]._config.enable
-                ? this.addToService(id, list[id])
+                ? this.objects.addToService(id, list[id])
                 : Promise.resolve()
             )
             .catch((err) => console.error(err));
@@ -139,23 +140,23 @@ class DevicesService extends Service {
     });
   }
 
-  getEngineTemplateName(engineName) {
-    console.log(
-      `[${this.constructor.name}]`,
-      `getEngineTemplateName(${engineName})`
-    );
-    return new Promise((resolve, reject) => {
-      Promise.resolve()
-        .then(() => this.enginesService.getSchema({ renew: true }))
-        .then((config) =>
-          Object.prototype.hasOwnProperty.call(config.list, engineName)
-            ? config.list[engineName].template
-            : null
-        )
-        .then((res) => resolve(res))
-        .catch((err) => reject(err));
-    });
-  }
+  // getEngineTemplateName(engineName) {
+  //   console.log(
+  //     `[${this.constructor.name}]`,
+  //     `getEngineTemplateName(${engineName})`
+  //   );
+  //   return new Promise((resolve, reject) => {
+  //     Promise.resolve()
+  //       .then(() => this.enginesService.getSchema({ renew: true }))
+  //       .then((config) =>
+  //         Object.prototype.hasOwnProperty.call(config.list, engineName)
+  //           ? config.list[engineName].template
+  //           : null
+  //       )
+  //       .then((res) => resolve(res))
+  //       .catch((err) => reject(err));
+  //   });
+  // }
 }
 
 module.exports = DevicesService;

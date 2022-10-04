@@ -276,7 +276,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`devices-service`)
-                    .obj.getServiceObject()
+                    .obj.objects.getServicing()
                 )
                 .then((devices) =>
                   resolve(this.makeJsonRespond(JSON.stringify(devices)))
@@ -298,7 +298,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`devices-service`)
-                    .obj.getServiceObject(id)
+                    .obj.objects.getServicing(id)
                 )
                 .then((devices) =>
                   resolve(this.makeJsonRespond(JSON.stringify(devices)))
@@ -323,7 +323,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`devices-service`)
-                    .obj.get(id, { object: true })
+                    .obj.objects.get(id, { object: true })
                 )
                 // .then((device) => device.getMetrics())
                 .then((device) => device.generateMetric())
@@ -353,7 +353,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`devices-service`)
-                    .obj.get(deviceId, { object: true })
+                    .obj.objects.get(deviceId, { object: true })
                 )
                 // .then((device) => device.getPropertyMetrics(propertyId))
                 .then((device) => {
@@ -394,7 +394,7 @@ class RoutesManager extends APIHandler {
                   .then(() =>
                     this.laborsManager
                       .getService(`devices-service`)
-                      .obj.startObject(id)
+                      .obj.objects.start(id)
                   )
                   .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -403,7 +403,7 @@ class RoutesManager extends APIHandler {
                   .then(() =>
                     this.laborsManager
                       .getService(`devices-service`)
-                      .obj.stopObject(id)
+                      .obj.objects.stop(id)
                   )
                   .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -462,7 +462,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`devices-service`)
-                    .obj.getObjectConfig()
+                    .obj.objects.getConfig()
                 )
                 .then((devices) =>
                   resolve(this.makeJsonRespond(JSON.stringify(devices)))
@@ -476,7 +476,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`devices-service`)
-                    .obj.add(req.body)
+                    .obj.objects.add(req.body)
                 )
                 .then((json) =>
                   resolve(this.makeJsonRespond(JSON.stringify(json)))
@@ -496,7 +496,7 @@ class RoutesManager extends APIHandler {
               const id = req.path.split(`/`).pop();
               this.laborsManager
                 .getService(`devices-service`)
-                .obj.getObjectConfig(id)
+                .obj.objects.getConfig(id)
                 .then((device) =>
                   resolve(this.makeJsonRespond(JSON.stringify(device)))
                 )
@@ -510,7 +510,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`devices-service`)
-                    .obj.update(id, req.body)
+                    .obj.objects.update(id, req.body)
                 )
                 .then((json) =>
                   resolve(this.makeJsonRespond(JSON.stringify(json)))
@@ -525,7 +525,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`devices-service`)
-                    .obj.remove(id)
+                    .obj.objects.remove(id)
                 )
                 .then((json) => {
                   // console.log(`device list : ${JSON.stringify(json, null, 2)}`);
@@ -654,7 +654,7 @@ class RoutesManager extends APIHandler {
                   this.laborsManager
                     .getService(`engines-service`)
                     // .obj.getServiceEngine()
-                    .obj.getServiceObject()
+                    .obj.objects.getServicing()
                 )
                 .then((engines) =>
                   resolve(this.makeJsonRespond(JSON.stringify(engines)))
@@ -677,7 +677,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`engines-service`)
-                    .obj.getServiceObject(id)
+                    .obj.objects.getServicing(id)
                 )
                 .then((engines) =>
                   resolve(this.makeJsonRespond(JSON.stringify(engines)))
@@ -704,7 +704,7 @@ class RoutesManager extends APIHandler {
                   .then(() =>
                     this.laborsManager
                       .getService(`engines-service`)
-                      .obj.startObject(id)
+                      .obj.objects.start(id)
                   )
                   .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -713,7 +713,7 @@ class RoutesManager extends APIHandler {
                   .then(() =>
                     this.laborsManager
                       .getService(`engines-service`)
-                      .obj.stopObject(id)
+                      .obj.objects.stop(id)
                   )
                   .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
@@ -756,7 +756,9 @@ class RoutesManager extends APIHandler {
             return new Promise((resolve) => {
               Promise.resolve()
                 .then(() =>
-                  this.laborsManager.getService(`engines-service`).obj.get()
+                  this.laborsManager
+                    .getService(`engines-service`)
+                    .obj.objects.get()
                 )
                 .then((engines) =>
                   resolve(this.makeJsonRespond(JSON.stringify(engines)))
@@ -770,7 +772,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`engines-service`)
-                    .obj.add(req.body)
+                    .obj.objects.add(req.body)
                 )
                 .then((engine) =>
                   resolve(this.makeJsonRespond(JSON.stringify(engine)))
@@ -790,7 +792,9 @@ class RoutesManager extends APIHandler {
               const id = decodeURI(req.path.split(`/`).pop());
               Promise.resolve()
                 .then(() =>
-                  this.laborsManager.getService(`engines-service`).obj.get(id)
+                  this.laborsManager
+                    .getService(`engines-service`)
+                    .obj.objects.get(id)
                 )
                 .then((engine) =>
                   resolve(this.makeJsonRespond(JSON.stringify(engine)))
@@ -805,7 +809,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`engines-service`)
-                    .obj.update(id, req.body)
+                    .obj.objects.update(id, req.body)
                 )
                 .then((engine) =>
                   resolve(this.makeJsonRespond(JSON.stringify(engine)))
@@ -820,7 +824,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`engines-service`)
-                    .obj.remove(id)
+                    .obj.objects.remove(id)
                 )
                 .then((engine) =>
                   resolve(this.makeJsonRespond(JSON.stringify(engine)))
@@ -881,7 +885,9 @@ class RoutesManager extends APIHandler {
             return new Promise((resolve) => {
               Promise.resolve()
                 .then(() =>
-                  this.laborsManager.getService(`sysport-service`).obj.get()
+                  this.laborsManager
+                    .getService(`sysport-service`)
+                    .obj.objects.get()
                 )
                 .then((ports) =>
                   resolve(this.makeJsonRespond(JSON.stringify(ports)))
@@ -895,7 +901,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`sysport-service`)
-                    .obj.add(req.body)
+                    .obj.objects.add(req.body)
                 )
                 .then((ports) =>
                   resolve(this.makeJsonRespond(JSON.stringify(ports)))
@@ -916,7 +922,9 @@ class RoutesManager extends APIHandler {
               console.log(`id:`, id);
               Promise.resolve()
                 .then(() =>
-                  this.laborsManager.getService(`sysport-service`).obj.get(id)
+                  this.laborsManager
+                    .getService(`sysport-service`)
+                    .obj.objects.get(id)
                 )
                 .then((port) => {
                   console.log(`ports: `, port.config);
@@ -935,7 +943,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`sysport-service`)
-                    .obj.update(id, req.body)
+                    .obj.objects.update(id, req.body)
                 )
                 .then((ports) =>
                   resolve(this.makeJsonRespond(JSON.stringify(ports)))
@@ -950,7 +958,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`sysport-service`)
-                    .obj.remove(id)
+                    .obj.objects.remove(id)
                 )
                 .then((ports) =>
                   resolve(this.makeJsonRespond(JSON.stringify(ports)))

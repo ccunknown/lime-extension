@@ -50,7 +50,7 @@ class EnginesService extends Service {
       Promise.resolve()
         .then(() => {
           this.engineList = [];
-          return this.getSchema();
+          return this.getConfig();
         })
         .then((schema) => schema.list)
         .then((list) =>
@@ -64,9 +64,9 @@ class EnginesService extends Service {
                 ) &&
                 list[id]._config.enable
               )
-                return this.addToService(id, list[id]).catch((err) =>
-                  console.error(err)
-                );
+                return this.objects
+                  .addToService(id, list[id])
+                  .catch((err) => console.error(err));
               return Promise.resolve();
             });
           }, Promise.resolve())
@@ -93,7 +93,9 @@ class EnginesService extends Service {
           const Obj = require(`./${path}/engine.js`);
           engine = new Obj(this, config);
         })
-        .then(() => this.sysportService.get(config.port, { object: true }))
+        .then(() =>
+          this.sysportService.objects.get(config.port, { object: true })
+        )
         .then((sysport) => engine.init(sysport))
         .then(() =>
           Object.prototype.hasOwnProperty.call(engine, `oo`) &&

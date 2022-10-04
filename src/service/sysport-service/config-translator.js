@@ -40,17 +40,16 @@ class ServiceConfigTranslator {
       //  Initial 'enum' attribute.
       let sysportTemplate;
       Promise.resolve()
-        .then(() => this.sysportService.getTemplate(null, { deep: true }))
+        .then(() =>
+          this.sysportService.objects.getTemplate(null, { deep: true })
+        )
         .then((template) => {
           sysportTemplate = template;
         })
         .then(() => {
           config.properties.template.enum = sysportTemplate.map((e) => e.name);
           if (params && params.template && params.template.length) {
-            const dir =
-              this.sysportService.config["service-config"][
-                this.sysportService.id
-              ].directory;
+            const dir = this.sysportService.config.directory;
             const SysportConfigTranslator = require(Path.join(
               dir.startsWith(`./`) ? Path.join(__dirname, dir) : dir,
               params.template,

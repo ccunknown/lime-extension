@@ -43,7 +43,9 @@ class ServiceConfigTranslator {
       //  Initial 'enum' attribute.
       let deviceTemplateList;
       Promise.resolve()
-        .then(() => this.devicesService.getTemplate(null, { deep: true }))
+        .then(() =>
+          this.devicesService.objects.getTemplate(null, { deep: true })
+        )
         .then((dtList) => {
           deviceTemplateList = dtList;
         })

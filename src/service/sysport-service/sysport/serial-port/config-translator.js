@@ -40,14 +40,12 @@ class SysportConfigTranslator {
       //  Initial 'enum' attribute.
       let systemPort;
       let configPort;
-      // let systemPort = await this.sysportService.getSerialPortList();
-      // let configPort = await this.sysportService.get();
       Promise.resolve()
         .then(() => this.getSerialPortList())
         .then((sysport) => {
           systemPort = sysport;
         })
-        .then(() => this.sysportService.get())
+        .then(() => this.sysportService.objects.get())
         .then((confPort) => {
           configPort = confPort;
         })

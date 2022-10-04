@@ -32,7 +32,7 @@ class DeviceOperator {
     */
     // this.wtDevice = new Device(this.devicesService.adapter, this.id);
     this.wtDevice = new Device(
-      this.devicesService.getSharedResource(`wtAdapter`),
+      this.devicesService.shareResource.get(`wtAdapter`),
       this.id
     );
     this.wtDevice.limeDevice = this.parent;
@@ -41,7 +41,7 @@ class DeviceOperator {
   }
 
   initWtAdapter() {
-    this.wtAdapter = this.devicesService.getSharedResource(`wtAdapter`);
+    this.wtAdapter = this.devicesService.shareResource.get(`wtAdapter`);
     if (!this.wtAdapter) {
       // eslint-disable-next-line new-cap
       this.wtAdapter = new wtAdapter(
@@ -50,7 +50,7 @@ class DeviceOperator {
         this.devicesService.manifest.name,
         this.devicesService
       );
-      this.devicesService.setSharedResource(`wtAdapter`, this.wtAdapter);
+      this.devicesService.shareResource.set(`wtAdapter`, this.wtAdapter);
 
       this.wtAdapter.extEventEmitter.removeAllListeners(`remove`);
       this.wtAdapter.extEventEmitter.on(`remove`, (deviceId) =>

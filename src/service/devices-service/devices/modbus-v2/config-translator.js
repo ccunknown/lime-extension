@@ -142,10 +142,18 @@ class DeviceConfigTranslator {
         })
 
         //  Adjust config by engine type.
+        // .then(() =>
+        //   params && params.engine
+        //     ? this.devicesService.getEngineTemplateName(params.engine)
+        //     : undefined
+        // )
         .then(() =>
           params && params.engine
-            ? this.devicesService.getEngineTemplateName(params.engine)
+            ? this.devicesService.getEngineConfig(params.engine)
             : undefined
+        )
+        .then((engineConfig) =>
+          engineConfig ? engineConfig.template : undefined
         )
         .then((engTempName) => {
           scriptCompatibleList.push(engTempName);
@@ -175,7 +183,7 @@ class DeviceConfigTranslator {
           config.properties.script.enum = list;
         })
         .then(() =>
-          this.devicesService.getDirectorySchema(`property`, {
+          this.devicesService.directory.getSchema(`property`, {
             deep: true,
             absolute: `${__dirname}`,
           })

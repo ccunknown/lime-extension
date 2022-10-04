@@ -40,7 +40,11 @@ class LaborsManager {
               return prevProm.then(() => {
                 const path = Path.join(`${servicePrefix}`, `${service.path}`);
                 const ServiceClass = require(`./${path}`);
-                service.obj = new ServiceClass(this.extension, conf, id);
+                service.obj = new ServiceClass(
+                  this.extension,
+                  conf[`service-config`][id],
+                  id
+                );
                 console.log(`[${this.constructor.name}]`, `service : ${id}`);
                 this.serviceList[id] = service;
               });

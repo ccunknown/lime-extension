@@ -9,12 +9,12 @@ const Path = require(`path`);
 const SysportTemplate = require(`../../sysport-template/sysport-template`);
 
 class SerialSysport extends SysportTemplate {
-  constructor(sysportService, config) {
-    super(sysportService, config);
+  constructor(sysportService, id, config) {
+    super(sysportService, id, config);
     this.sysportService = sysportService;
     this.config = config;
-    this.id = this.config.id;
-    delete this.config.id;
+    this.id = id;
+    // delete this.config.id;
     this.lastProcessTimestamp = new Date();
 
     // eslint-disable-next-line import/no-dynamic-require, global-require

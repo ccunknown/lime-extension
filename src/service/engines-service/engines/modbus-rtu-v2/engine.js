@@ -34,7 +34,9 @@ class ModbusRtu extends EngineTemplate {
     return new Promise((resolve, reject) => {
       let port;
       Promise.resolve()
-        .then(() => this.sysportService.get(this.config.port, { object: true }))
+        .then(() =>
+          this.sysportService.objects.get(this.config.port, { object: true })
+        )
         .then((sysport) => {
           port = sysport;
         })

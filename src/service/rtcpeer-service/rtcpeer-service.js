@@ -14,7 +14,8 @@ class rtcpeerService extends Service {
     // this.laborsManager = this.extension.laborsManager;
 
     // this.config = config.rtcpeer;
-    this.config = this.config[`service-config`][`rtcpeer-service`];
+    // this.config = this.config[`service-config`][`rtcpeer-service`];
+    this.config = config;
 
     this.sessions = [];
 
