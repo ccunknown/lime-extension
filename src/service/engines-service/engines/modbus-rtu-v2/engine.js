@@ -81,8 +81,6 @@ class ModbusRtu extends EngineTemplate {
   }
 
   start() {
-    // console.log(`[${this.constructor.name}]`, `engine start() >> `);
-    // if (this.getState() !== `restarting`) this.setState(`starting`);
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() =>
@@ -93,7 +91,6 @@ class ModbusRtu extends EngineTemplate {
               this.port._client.removeAllListeners("close");
               this.port._client.on(`close`, (err) => {
                 this.om.obj.log(`port close. >> `);
-                this.setState(`stopped`);
                 if (err) {
                   this.om.obj.error(err);
                 }
@@ -107,7 +104,6 @@ class ModbusRtu extends EngineTemplate {
   }
 
   stop() {
-    // if (this.getState() !== `restarting`) this.setState(`stoping`);
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() =>
@@ -116,20 +112,6 @@ class ModbusRtu extends EngineTemplate {
           })
         )
         .catch((err) => reject(err));
-    });
-  }
-
-  restart() {
-    this.setState(`restarting`);
-    return new Promise((resolve) => {
-      Promise.resolve()
-        .then(() => this.stop())
-        .then(() => this.start())
-        .then(() => resolve())
-        .catch((err) => {
-          this.om.obj.error(err);
-          setTimeout(() => this.restart(), 5000);
-        });
     });
   }
 
@@ -152,7 +134,6 @@ class ModbusRtu extends EngineTemplate {
   }
 
   processor(jobId, cmd) {
-    // const timestamp = new Date().toISOString();
     return new Promise((resolve, reject) => {
       if (this.getState() !== ObjectState.RUNNING) {
         reject(new Error(`Port currently "${this.getState()}".`));
@@ -193,7 +174,6 @@ class ModbusRtu extends EngineTemplate {
               );
               val = ret;
             })
-            // .then(() => clearTimeout(timeout))
             .then(() => {
               const ret = [...val.buffer];
               resolve(ret);
@@ -217,7 +197,6 @@ class ModbusRtu extends EngineTemplate {
         const timestamp = new Date();
         const alreadyDelay = timestamp - this.lastProcessTimestamp;
         const remainingDelay = ms - alreadyDelay;
-        // this.lastProcessTimestamp = timestamp;
         setTimeout(() => resolve(), Math.max(remainingDelay, 0));
       } catch (err) {
         reject(err);

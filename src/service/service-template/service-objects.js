@@ -26,12 +26,10 @@ class ServiceObjects {
     console.log(`[${this.constructor.name}]`, `getConfig(${id || ``})`);
     return new Promise((resolve, reject) => {
       Promise.resolve()
-        // .then(() => this.getSchema({ renew: true }))
         .then(() => this.parent.getConfig({ renew: true }))
         .then((conf) => {
           const { list } = conf;
           resolve(
-            // eslint-disable-next-line no-nested-ternary
             id
               ? Object.prototype.hasOwnProperty.call(list, id)
                 ? list[id]
@@ -101,7 +99,6 @@ class ServiceObjects {
 
   add(config) {
     console.log(`[${this.constructor.name}]`, `add() >> `);
-    // console.log(`config: ${JSON.stringify(config, null, 2)}`);
     return new Promise((resolve, reject) => {
       let id;
       Promise.resolve()
@@ -118,7 +115,7 @@ class ServiceObjects {
         .then(() => this.addToConfig(id, config))
         .then(() => this.addToService(id, config))
         .then(() => this.parent.reloadConfig())
-        .then(() => this.getServicing(id))
+        .then(() => this.getConfigWithState(id))
         .then((res) => resolve(res))
         .catch((err) => reject(err));
     });
@@ -162,7 +159,6 @@ class ServiceObjects {
         })
         .then(() => object.oo.init())
         .then(() => object.oo.start())
-        // .then(() => this.applyObjectOptions(id, options))
         .then(() => {
           this.objects.set(id, object);
         })
@@ -182,7 +178,7 @@ class ServiceObjects {
         .then(() =>
           this.parent.configManager.addToConfig(
             config,
-            `service-config.${this.id}.list.${id}`
+            `service-config.${this.parent.id}.list.${id}`
           )
         )
         .then((res) => resolve(res))
@@ -246,11 +242,10 @@ class ServiceObjects {
 
   get(id, options) {
     console.log(`[${this.constructor.name}]`, `get(${id})`);
-    console.log(`[${this.constructor.name}]`, Array.from(this.objects.keys()));
+    // console.log(`[${this.constructor.name}]`, Array.from(this.objects.keys()));
     return new Promise((resolve, reject) => {
       try {
         if (options && options.object)
-          // resolve(id ? this.objects.get(id) : Object.fromEntries(this.objects));
           resolve(
             id ? this.objects.get(id) : this.parent.mapToObject(this.objects)
           );
@@ -259,7 +254,6 @@ class ServiceObjects {
           const json = object.oo.getSchema();
           resolve(JSON.parse(JSON.stringify(json)));
         } else {
-          // const objectList = Object.fromEntries(this.objects);
           const objectList = this.parent.mapToObject(this.objects);
           const json = [];
           Object.values(objectList).forEach((dev) =>
@@ -270,44 +264,6 @@ class ServiceObjects {
       } catch (err) {
         reject(err);
       }
-    });
-  }
-
-  getServicing(id) {
-    console.log(
-      `[${this.constructor.name}]`,
-      `getServicing(${id ? `${id}` : ``})`
-    );
-    return new Promise((resolve, reject) => {
-      let config = null;
-      let state = null;
-      Promise.resolve()
-        .then(() => this.getConfig(id))
-        .then((conf) => {
-          config = conf;
-          // return this.getObjectConfigWithState(id);
-          return this.getState(id);
-        })
-        .then((s) => {
-          state = s;
-        })
-        .then(() => {
-          const result = JSON.parse(JSON.stringify(config));
-          // console.log(`>> result: ${JSON.stringify(result, null, 2)}`);
-          if (id) result.state = state;
-          else {
-            // for(let i in result) {
-            Object.keys(result).forEach((i) => {
-              if (Object.prototype.hasOwnProperty.call(state, i))
-                result[i].state = state[i];
-              else result[i].state = `undefined`;
-            });
-            // }
-          }
-          return result;
-        })
-        .then((res) => resolve(res))
-        .catch((err) => reject(err));
     });
   }
 
@@ -322,7 +278,6 @@ class ServiceObjects {
           enable: false,
           inServiceList: false,
           objectState: `undefined`,
-          // serveQuality: { value: 0, level: 0 },
         };
         Promise.resolve()
           // Check object config (unavailable, invalid, valid).
@@ -380,6 +335,40 @@ class ServiceObjects {
     });
   }
 
+  getConfigWithState(id) {
+    console.log(
+      `[${this.constructor.name}]`,
+      `getConfigWithState(${id || ``})`
+    );
+    return new Promise((resolve, reject) => {
+      let config = null;
+      let state = null;
+      Promise.resolve()
+        .then(() => this.getConfig(id))
+        .then((conf) => {
+          config = conf;
+          return this.getState(id);
+        })
+        .then((s) => {
+          state = s;
+        })
+        .then(() => {
+          const result = JSON.parse(JSON.stringify(config));
+          if (id) result.state = state;
+          else {
+            Object.keys(result).forEach((i) => {
+              if (Object.prototype.hasOwnProperty.call(state, i))
+                result[i].state = state[i];
+              else result[i].state = `undefined`;
+            });
+          }
+          return result;
+        })
+        .then((res) => resolve(res))
+        .catch((err) => reject(err));
+    });
+  }
+
   getByConfigAttribute(attr, value) {
     console.log(
       `[${this.constructor.name}]`,
@@ -408,10 +397,8 @@ class ServiceObjects {
   getTemplate(name, options) {
     console.log(`[${this.constructor.name}]`, `getTemplate(${name || ``})`);
     return new Promise((resolve, reject) => {
-      // const serviceSchema = this.getSchema();
       const serviceConfig = this.parent.getConfig();
       if (name) {
-        // let result = null;
         const opttmp = options ? JSON.parse(JSON.stringify(options)) : {};
         opttmp.object = false;
 

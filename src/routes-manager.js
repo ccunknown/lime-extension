@@ -276,7 +276,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`devices-service`)
-                    .obj.objects.getServicing()
+                    .obj.objects.getConfigWithState()
                 )
                 .then((devices) =>
                   resolve(this.makeJsonRespond(JSON.stringify(devices)))
@@ -298,7 +298,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`devices-service`)
-                    .obj.objects.getServicing(id)
+                    .obj.objects.getConfigWithState(id)
                 )
                 .then((devices) =>
                   resolve(this.makeJsonRespond(JSON.stringify(devices)))
@@ -654,7 +654,7 @@ class RoutesManager extends APIHandler {
                   this.laborsManager
                     .getService(`engines-service`)
                     // .obj.getServiceEngine()
-                    .obj.objects.getServicing()
+                    .obj.objects.getConfigWithState()
                 )
                 .then((engines) =>
                   resolve(this.makeJsonRespond(JSON.stringify(engines)))
@@ -677,7 +677,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.laborsManager
                     .getService(`engines-service`)
-                    .obj.objects.getServicing(id)
+                    .obj.objects.getConfigWithState(id)
                 )
                 .then((engines) =>
                   resolve(this.makeJsonRespond(JSON.stringify(engines)))
@@ -884,10 +884,15 @@ class RoutesManager extends APIHandler {
           GET: () => {
             return new Promise((resolve) => {
               Promise.resolve()
+                // .then(() =>
+                //   this.laborsManager
+                //     .getService(`sysport-service`)
+                //     .obj.objects.get()
+                // )
                 .then(() =>
                   this.laborsManager
                     .getService(`sysport-service`)
-                    .obj.objects.get()
+                    .obj.objects.getConfigWithState()
                 )
                 .then((ports) =>
                   resolve(this.makeJsonRespond(JSON.stringify(ports)))

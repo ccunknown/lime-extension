@@ -1,3 +1,4 @@
+/* eslint-disable import/no-dynamic-require */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable global-require */
 /* eslint-disable no-nested-ternary */
@@ -14,10 +15,8 @@ class SerialSysport extends SysportTemplate {
     this.sysportService = sysportService;
     this.config = config;
     this.id = id;
-    // delete this.config.id;
     this.lastProcessTimestamp = new Date();
 
-    // eslint-disable-next-line import/no-dynamic-require, global-require
     this.Errors = require(Path.join(
       this.sysportService.getRootDirectory(),
       `/constants/errors.js`
@@ -31,7 +30,6 @@ class SerialSysport extends SysportTemplate {
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => {
-          // this.port = new SerialPort(this.config.path, this.config.config);
           this.port = new SerialPort(this.config.path, {
             baudRate: this.config.baudRate,
             dataBits: this.config.databits,
@@ -64,7 +62,6 @@ class SerialSysport extends SysportTemplate {
   start() {
     return new Promise((resolve, reject) => {
       Promise.resolve()
-        // .then(() => this.setState(`running`))
         .then(() => resolve())
         .catch((err) => reject(err));
     });
@@ -80,24 +77,8 @@ class SerialSysport extends SysportTemplate {
             });
           }
         })
-        .then(() => this.setState(`stopped`))
         .then(() => resolve())
-        .catch((err) => reject(err))
-        .finally(() => (!this.port.isOpen ? this.setState(`stopped`) : {}));
-    });
-  }
-
-  restart() {
-    this.setState(`restarting`);
-    return new Promise((resolve) => {
-      Promise.resolve()
-        .then(() => this.stop())
-        .then(() => this.start())
-        .then(() => resolve())
-        .catch((err) => {
-          this.om.obj.error(err);
-          setTimeout(() => this.restart(), 5000);
-        });
+        .catch((err) => reject(err));
     });
   }
 
@@ -120,10 +101,7 @@ class SerialSysport extends SysportTemplate {
   }
 
   // eslint-disable-next-line no-unused-vars
-  processor(jobId, cmd) {
-    // const timestamp = new Date().toISOString();
-    // return new Promise((resolve, reject) => {});
-  }
+  processor(jobId, cmd) {}
 
   getSerialPortList() {
     console.log(`[${this.constructor.name}]`, `getSerialPortList() >> `);

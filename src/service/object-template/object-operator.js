@@ -39,11 +39,15 @@ class ObjectOperator {
 
   setState(state) {
     console.log(`[${this.constructor.name}]`, `setState:`, state);
-    if (state !== this.state) {
-      if (!Object.values(ObjectState).includes(state))
+    if (JSON.stringify(state) !== JSON.stringify(this.state)) {
+      if (
+        !Object.values(ObjectState)
+          .map((e) => JSON.stringify(e))
+          .includes(JSON.stringify(state))
+      )
         this.objMon.error(new Error(`Object state '${state}' not in scope.`));
       this.state = state;
-      this.objMon.state(state);
+      this.objMon.state(state.value);
     }
   }
 
