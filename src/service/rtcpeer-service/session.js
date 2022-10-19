@@ -72,7 +72,7 @@ class Session extends EventEmitter {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.onHandshakeFail();
-        reject(new Error(`handshake timeout.`));
+        // reject(new Error(`handshake timeout.`));
       }, this.config.handshake.abortcountdown);
       Promise.resolve()
         .then(() =>
@@ -95,7 +95,10 @@ class Session extends EventEmitter {
 
   onHandshakeFail() {
     this.abortcountdown -= 1;
-    if (this.abortcountdown <= 0) this.destroy();
+    if (this.abortcountdown <= 0) {
+      console.error(new Error(`handshake timeout.`));
+      this.destroy();
+    }
   }
 
   createPeerConnection(
@@ -138,9 +141,11 @@ class Session extends EventEmitter {
   }
 
   onMessage(message) {
-    console.log(`[${this.constructor.name}]`, `onMessage() >> `, message);
+    // console.log(`[${this.constructor.name}]`, `onMessage() >> `, message);
     try {
       const data = this.decodeMessage(message);
+      if (data.command !== `pong`)
+        console.log(`[${this.constructor.name}]`, `onMessage() >> `, message);
       if (data.type === `request`) this.emit(data.type, data);
       if (data.type === `reply`) this.emit(data.type, data);
       if (data.type === `message`) this.emit(data.type, data.message);

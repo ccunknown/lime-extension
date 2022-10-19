@@ -31,6 +31,10 @@ class ConfigManager {
           return conf;
         })
         .then((conf) => (path ? this.getJsonElement(conf, path) : conf))
+        .then((conf) => {
+          console.log(`[${this.constructor.name}]`, `config:`, JSON.stringify(conf));
+          return conf;
+        })
         .then((conf) => resolve(conf))
         .catch((err) => reject(err || new Errors.ErrorObjectNotReturn()));
       // try {
@@ -52,7 +56,7 @@ class ConfigManager {
   }
 
   saveConfig(config) {
-    console.log(`ConfigManager: saveConfig() >> `);
+    console.log(`[${this.constructor.name}]`, `saveConfig() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => this.saveConfigToDatabase(config))
@@ -62,7 +66,7 @@ class ConfigManager {
   }
 
   updateConfig(update, path) {
-    console.log(`ConfigManager: updateConfig() >> `);
+    console.log(`[${this.constructor.name}]`, `updateConfig() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => this.getConfig())
@@ -81,7 +85,8 @@ class ConfigManager {
   }
 
   addToConfig(newElem, path) {
-    console.log(`ConfigManager: addToConfig() >> `);
+    console.log(`[${this.constructor.name}]`, `addToConfig(${path}) >> `);
+    console.log(`[${this.constructor.name}]`, `element:`, JSON.stringify(newElem));
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => this.getConfig())
@@ -100,7 +105,7 @@ class ConfigManager {
   }
 
   deleteConfig(path) {
-    console.log(`ConfigManager: deleteConfig() >> `);
+    console.log(`[${this.constructor.name}]`, `deleteConfig() >> `);
     return new Promise((resolve, reject) => {
       if (path) {
         Promise.resolve()
@@ -130,7 +135,7 @@ class ConfigManager {
   }
 
   getConfigFromDatabase() {
-    console.log("getConfigFromDatabase() >> ");
+    console.log(`[${this.constructor.name}]`, `getConfigFromDatabase() >> `);
     return new Promise((resolve, reject) => {
       if (Database) {
         // console.log("{Database} found.");
@@ -154,12 +159,13 @@ class ConfigManager {
   }
 
   saveConfigToDatabase(config) {
-    console.log("saveConfigToDatabase() >> ");
+    console.log(`[${this.constructor.name}]`, `saveConfigToDatabase() >> `);
     return new Promise((resolve, reject) => {
       //  Validate config.
       const validateInfo = this.validate(config);
       if (validateInfo.errors.length)
-        throw new Errors.InvalidConfigSchema(validateInfo.errors);
+        // throw new Errors.InvalidConfigSchema(validateInfo.errors);
+        reject(new Errors.InvalidConfigSchema(validateInfo.errors));
       //  Save to Database
       else if (Database) {
         // console.log("{Database found.}");
@@ -179,7 +185,7 @@ class ConfigManager {
   }
 
   deleteConfigFromDatabase() {
-    console.log("deleteConfigFromDatabase() >> ");
+    console.log(`${this.constructor.name}`, `deleteConfigFromDatabase() >> `);
     return new Promise((resolve, reject) => {
       if (Database) {
         this.db = new Database(this.manifest.name);

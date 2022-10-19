@@ -20,7 +20,7 @@ class ServiceConfigTranslator {
   }
 
   generateConfigSchema(params) {
-    console.log(`ServiceConfigTranslator: generateConfigSchema() >> `);
+    console.log(`[${this.constructor.name}]`, `generateConfigSchema() >> `);
     console.log(`Params: ${JSON.stringify(params, null, 2)}`);
     return new Promise((resolve, reject) => {
       //  Copy config from ValidateConfigSchema.
@@ -29,14 +29,14 @@ class ServiceConfigTranslator {
       //  Assign 'alternate' attribute.
       AlternateList.forEach((index) => {
         // if (config.properties.hasOwnProperty(index))
-        if (Object.prototype.hasOwnProperty.call(config, index))
+        if (Object.prototype.hasOwnProperty.call(config.properties, index))
           config.properties[index].alternate = true;
       });
 
       //  Assign 'attrs' attribute.
       AttributeList.forEach((index) => {
         // if (config.properties.hasOwnProperty(index.target))
-        if (Object.prototype.hasOwnProperty.call(config, index.target))
+        if (Object.prototype.hasOwnProperty.call(config.properties, index.target))
           config.properties[index.target].attrs = index.attrs;
       });
 

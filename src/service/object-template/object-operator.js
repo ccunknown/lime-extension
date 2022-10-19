@@ -166,6 +166,7 @@ class ObjectOperator {
   }
 
   stop() {
+    console.log(`[${this.constructor.name}]`, `stop() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => this.objMon.log(`${this.id} stopping.`))
@@ -195,6 +196,7 @@ class ObjectOperator {
   }
 
   addChild(childId, templatePath, config) {
+    console.log(`[${this.constructor.name}]`, `addChild(${childId}) >> `);
     return new Promise((resolve, reject) => {
       let ChildObject;
       let child;
@@ -218,6 +220,7 @@ class ObjectOperator {
   }
 
   getChild(childId) {
+    console.log(`[${this.constructor.name}]`, `getChild(${childId}) >> `);
     if (this.parent.to.getChild) {
       const child = this.parent.to.getChild(childId);
       return childId
@@ -229,6 +232,7 @@ class ObjectOperator {
   }
 
   startChild(childId) {
+    console.log(`[${this.constructor.name}]`, `startChild(${childId}) >> `);
     return new Promise((resolve, reject) => {
       if (childId) {
         Promise.resolve()
@@ -259,6 +263,7 @@ class ObjectOperator {
   }
 
   stopChild(childId) {
+    console.log(`[${this.constructor.name}]`, `stopChild(${childId}) >> `);
     return new Promise((resolve, reject) => {
       if (childId) {
         Promise.resolve()

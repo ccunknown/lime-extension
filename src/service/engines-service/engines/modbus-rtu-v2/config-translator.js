@@ -36,6 +36,7 @@ class ServiceConfigTranslator {
       Promise.resolve()
         .then(() => this.sysportService.objects.get())
         .then((portList) => {
+          console.log(`[${this.constructor.name}]`, `portList`, portList);
           config.properties.port.enum = [];
           Object.keys(portList).forEach((i) => {
             config.properties.port.enum.push(i);

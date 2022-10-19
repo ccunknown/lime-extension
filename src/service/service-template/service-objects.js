@@ -23,7 +23,7 @@ class ServiceObjects {
   */
 
   getConfig(id) {
-    console.log(`[${this.constructor.name}]`, `getConfig(${id || ``})`);
+    console.log(`[${this.constructor.name}:${this.parent.id}]`, `getConfig(${id || ``})`);
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => this.parent.getConfig({ renew: true }))
@@ -43,7 +43,7 @@ class ServiceObjects {
 
   getConfigByAttribute(attr, val) {
     console.log(
-      `[${this.constructor.name}]`,
+      `[${this.constructor.name}:${this.parent.id}]`,
       `getConfigByAttribute(${attr}, ${val}) >> `
     );
     return new Promise((resolve, reject) => {
@@ -70,7 +70,7 @@ class ServiceObjects {
   */
 
   start(id) {
-    console.log(`[${this.constructor.name}]`, `startObject(${id})`);
+    console.log(`[${this.constructor.name}:${this.parent.id}]`, `startObject(${id})`);
     return new Promise((resolve, reject) => {
       const object = this.objects.get(id);
       if (!object) reject(new Errors.ObjectNotFound(`${id}`));
@@ -84,7 +84,7 @@ class ServiceObjects {
   }
 
   stop(id) {
-    console.log(`[${this.constructor.name}]`, `stop(${id})`);
+    console.log(`[${this.constructor.name}:${this.parent.id}]`, `stop(${id})`);
     return new Promise((resolve, reject) => {
       const object = this.objects.get(id);
       if (!object) reject(new Errors.ObjectNotFound(`${id}`));
@@ -98,7 +98,7 @@ class ServiceObjects {
   }
 
   add(config) {
-    console.log(`[${this.constructor.name}]`, `add() >> `);
+    console.log(`[${this.constructor.name}:${this.parent.id}]`, `add() >> `);
     return new Promise((resolve, reject) => {
       let id;
       Promise.resolve()
@@ -124,11 +124,11 @@ class ServiceObjects {
   addToService(id, configuration) {
     console.log(
       //
-      `[${this.constructor.name}]`,
+      `[${this.constructor.name}:${this.parent.id}]`,
       `addToService(${id}) >> `
     );
     console.log(
-      `[${this.constructor.name}]`,
+      `[${this.constructor.name}:${this.parent.id}]`,
       `[${id}] config: ${JSON.stringify(configuration, null, 2)}`
     );
     return new Promise((resolve, reject) => {
@@ -159,9 +159,7 @@ class ServiceObjects {
         })
         .then(() => object.oo.init())
         .then(() => object.oo.start())
-        .then(() => {
-          this.objects.set(id, object);
-        })
+        .then(() => this.objects.set(id, object))
         .then(() => object.getState())
         .then(() => object.oo.getSchema())
         .then((ret) => resolve(ret))
@@ -172,7 +170,7 @@ class ServiceObjects {
   }
 
   addToConfig(id, config) {
-    console.log(`[${this.constructor.name}]`, `addToConfig(id) >> `);
+    console.log(`[${this.constructor.name}:${this.parent.id}]`, `addToConfig(${id}) >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() =>
@@ -187,7 +185,7 @@ class ServiceObjects {
   }
 
   remove(id) {
-    console.log(`[${this.constructor.name}]`, `removeObject() >> `);
+    console.log(`[${this.constructor.name}:${this.parent.id}]`, `removeObject() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => this.removeFromConfig(id))
@@ -198,7 +196,7 @@ class ServiceObjects {
   }
 
   removeFromConfig(id) {
-    console.log(`[${this.constructor.name}]`, `removeFromConfig(${id}) >> `);
+    console.log(`[${this.constructor.name}:${this.parent.id}]`, `removeFromConfig(${id}) >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() =>
@@ -212,7 +210,7 @@ class ServiceObjects {
   }
 
   removeFromService(id) {
-    console.log(`[${this.constructor.name}]`, `removeFromService(${id}) >> `);
+    console.log(`[${this.constructor.name}:${this.parent.id}]`, `removeFromService(${id}) >> `);
     return new Promise((resolve, reject) => {
       const object = this.objects.get(id);
       if (object) {
@@ -229,10 +227,10 @@ class ServiceObjects {
   }
 
   update(id, config) {
-    console.log(`[${this.constructor.name}]`, `update(${id || ``}) >> `);
+    console.log(`[${this.constructor.name}:${this.parent.id}]`, `update(${id || ``}) >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
-        .then(() => this.configTranslator.validate(config))
+        .then(() => this.parent.configTranslator.validate(config))
         .then(() => this.remove(id))
         .then(() => this.add(config))
         .then(() => resolve({}))
@@ -241,25 +239,26 @@ class ServiceObjects {
   }
 
   get(id, options) {
-    console.log(`[${this.constructor.name}]`, `get(${id})`);
-    // console.log(`[${this.constructor.name}]`, Array.from(this.objects.keys()));
+    console.log(`[${this.constructor.name}:${this.parent.id}]`, `get(${id})`);
+    // console.log(`[${this.constructor.name}:${this.parent.id}]`, Array.from(this.objects.keys()));
     return new Promise((resolve, reject) => {
       try {
-        if (options && options.object)
+        if (options && options.object) {
           resolve(
             id ? this.objects.get(id) : this.parent.mapToObject(this.objects)
           );
-        else if (id) {
+        } else if (id) {
           const object = this.objects.get(id);
           const json = object.oo.getSchema();
           resolve(JSON.parse(JSON.stringify(json)));
         } else {
           const objectList = this.parent.mapToObject(this.objects);
-          const json = [];
-          Object.values(objectList).forEach((dev) =>
-            json.push(dev.oo.getSchema())
-          );
-          resolve(JSON.parse(JSON.stringify(json)));
+          resolve(objectList);
+          // const json = [];
+          // Object.values(objectList).forEach((dev) =>
+          //   json.push(dev.oo.getSchema())
+          // );
+          // resolve(JSON.parse(JSON.stringify(json)));
         }
       } catch (err) {
         reject(err);
@@ -268,7 +267,7 @@ class ServiceObjects {
   }
 
   getState(id) {
-    console.log(`[${this.constructor.name}]`, `getState(${id || ``})`);
+    console.log(`[${this.constructor.name}:${this.parent.id}]`, `getState(${id || ``})`);
     return new Promise((resolve, reject) => {
       if (id) {
         const object = this.objects.get(id) || undefined;
@@ -337,7 +336,7 @@ class ServiceObjects {
 
   getConfigWithState(id) {
     console.log(
-      `[${this.constructor.name}]`,
+      `[${this.constructor.name}:${this.parent.id}]`,
       `getConfigWithState(${id || ``})`
     );
     return new Promise((resolve, reject) => {
@@ -371,7 +370,7 @@ class ServiceObjects {
 
   getByConfigAttribute(attr, value) {
     console.log(
-      `[${this.constructor.name}]`,
+      `[${this.constructor.name}:${this.parent.id}]`,
       `getByConfigAttribute(${attr}, ${value})`
     );
     return new Promise((resolve, reject) => {
@@ -395,7 +394,7 @@ class ServiceObjects {
   }
 
   getTemplate(name, options) {
-    console.log(`[${this.constructor.name}]`, `getTemplate(${name || ``})`);
+    console.log(`[${this.constructor.name}:${this.parent.id}]`, `getTemplate(${name || ``})`);
     return new Promise((resolve, reject) => {
       const serviceConfig = this.parent.getConfig();
       if (name) {

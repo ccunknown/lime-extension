@@ -8,6 +8,14 @@ class ServiceDirectory {
     this.serviceDir = serviceDir;
   }
 
+  getRoot() {
+    const split = __dirname.split(`/`);
+    split.pop();
+    split.pop();
+    split.pop();
+    return split.join(`/`);
+  }
+
   /*
     options: {
       base64: boolean,
