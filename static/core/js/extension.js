@@ -27,9 +27,10 @@ export default class ExtensionMain extends window.Extension {
         this.config = config;
         this.console.log(`config`, this.config);
       })
-      .then(() => this.initRTCPeer())
+      // .then(() => this.initRTCPeer())
       .then(() => this.ui.render(this.config))
       .then(() => this.rtcpageController.init())
+      .then(() => this.initRTCPeer())
       // .then(() => this.rtcpeer.init(config[`service-config`][`rtcpeer-service`].config))
       .then(() => resolve())
       .catch((err) => reject(err));
