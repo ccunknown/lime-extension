@@ -36,6 +36,7 @@
                 "vue-toasted",
                 "popper",
                 "bootstrap",
+                "d3",
                 
                 "extension-script-collector",
                 "extension-script-api",
@@ -52,6 +53,7 @@
             {
               "type": "parallel",
               "load": [
+                "page-objects",
                 "page-devices",
                 "page-scripts",
                 "page-engines",
@@ -75,6 +77,7 @@
             "extension-view-resource",
             "extension-view-rtc-overlay",
             "custom-rest",
+            "script-objects",
             "script-devices",
             "script-scripts",
             "script-engines",
@@ -211,6 +214,24 @@
         "object-name": "jsonSchemaVue"
       },
 
+      "d3": {
+        "type": `script`,
+        "path": `/resource/js/d3.min.js`
+      },
+
+
+      "page-objects": {
+        "name": `objects`,
+        "type": `custom-view`,
+        "path": `/custom/views/objects.html`,
+        "icon": `fas fa-network-wired`,
+        "link-script": `script-objects`,
+      },
+      "script-objects": {
+        "type": "custom-script",
+        "path": `/custom/js/objects.js`,
+        "object-name": `LimeExtenisonPageObjects`
+      },
 
       "page-devices": {
         "name": "devices",

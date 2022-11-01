@@ -483,18 +483,6 @@ export default class PageDevices {
             ? state.objectState.level
             : state.inServiceList.level,
         };
-        // const enableKeyValue = {
-        //   value: state.inServiceList.value
-        //     ? state.objectState.value === `running`
-        //       ? `${state.serveQuality.value ? state.serveQuality.value : 0}%`
-        //       : state.objectState.value
-        //     : `not-in-list`,
-        //   level: state.inServiceList
-        //     ? state.objectState.value === `running`
-        //       ? state.serveQuality.level
-        //       : state.objectState.value
-        //     : state.inServiceList.level,
-        // };
         result[enableKey] = {
           keyLevel: enableKeyLevel,
           value: enableKeyValue.value,

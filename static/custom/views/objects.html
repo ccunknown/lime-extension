@@ -1,0 +1,384 @@
+<div class="miso-slide-container" id="extension-lime-content-objects-section">
+  
+  <div class="miso-slide-slide" :class="{hide: ui.slider.hide}">
+  </div>
+
+  <div class="miso-slide-base">
+    <div class="card text-dark border-warning w-100">
+      <!-- Base Card Header -->
+      <div class="card-header bg-warning border-warning">
+        <div class="d-flex justify-content-between">
+          <!-- Icon & Title -->
+          <div class="text-truncate">
+            <i class="fas fa-cogs mr-2"></i>
+            <b>Objects System</b>
+          </div>
+        </div>
+      </div>
+      <!-- Base Card Body -->
+      <div class="card-body bg-dark">
+        <!-- Base Body Loader -->
+        <div 
+          v-if="!ui.base.ready"
+          class=""
+        >
+          <div class="d-flex flex-column justify-content-center">
+            <br>
+            <div class="text-light">
+              <center>
+                Please wait, this process will take a while.
+              </center>
+            </div>
+            <br>
+            <div class="progress">
+              <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100">
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Base Body Item Container -->
+        <div 
+          v-if="ui.base.ready"
+          class="d-flex flex-column flex-sm-column flex-md-row"
+        >
+          <!-- Left panel -->
+          <div
+            class="
+              d-flex flex-column
+              miso-card-content-maxh mr-3
+            "
+          >
+            <!-- Filter bar -->
+            <div>
+              <div class="round-edge d-flex flex-row text-truncate m-2" style="font-size: 1rem;width: fit-content;">
+                <div
+                  class="
+                    miso-activable-secondary-bg
+                    horizontal-union
+                    border border-secondary
+                    bg-dark text-light p-2
+                    pointer-cursor
+                  "
+                  :class="{
+                    active: ui.base.quickFilter.includes(`device`)
+                  }"
+                  @click="fn.toggleQuickFilter('device')"
+                >
+                  Devices
+                </div>
+                <div
+                  class="
+                    miso-activable-secondary-bg
+                    horizontal-union
+                    border border-secondary
+                    bg-dark text-light p-2
+                    pointer-cursor
+                  "
+                  :class="{
+                    active: ui.base.quickFilter.includes(`engine`)
+                  }"
+                  @click="fn.toggleQuickFilter('engine')"
+                >
+                  Engines
+                </div>
+                <div
+                  class="
+                    miso-activable-secondary-bg
+                    horizontal-union
+                    border border-secondary
+                    bg-dark text-light p-2
+                    pointer-cursor
+                  "
+                  :class="{
+                    active: ui.base.quickFilter.includes(`ioport`)
+                  }"
+                  @click="fn.toggleQuickFilter('ioport')"
+                >
+                  IOPorts
+                </div>
+              </div>
+            </div>
+            <!-- Card container -->
+            <div
+              class="
+                miso-items-container
+                d-flex flex-column
+                overflow-auto p-2
+              "
+              style="
+                min-width: 250px;
+                max-width: 250px;
+              "
+            >
+              <!-- Items -->
+              <template v-for="(item, id) in resource.objects">
+                <div 
+                  class="
+                    miso-small-card card
+                    bg-dark text-light
+                  "
+                  :class="{
+                    hide: !ui.base.quickFilter.includes(item.objectLayer)
+                  }"
+                  @click="fn.clickObject(id, item.objectLayer)"
+                >
+                  <div
+                    class="
+                      round-edge
+                      miso-activable-yellow-border miso-hover-yellow-border
+                      border border-secondary
+                      d-flex flex-row
+                    "
+                    :class="{active: id === ui.base.activeId}"
+                  >
+                    <!-- type -->
+                    <div
+                      class="
+                        miso-active-indicator
+                        horizontal-union
+                        d-flex flex-column align-items-center justify-content-center
+                        p-1
+                      "
+                    >
+                      <span
+                        style="
+                          writing-mode: vertical-rl;
+                          -webkit-transform: rotate(-180deg);
+                          font-size: 1rem;
+                          font-weight: bold;
+                        "
+                      >
+                        {{item.objectLayer.toUpperCase()}}
+                      </span>
+                    </div>
+                    <div
+                      class="
+                        miso-items-container horizontal-union
+                        d-flex flex-column
+                        text-truncate font-weight-bold grow-1 p-1
+                      "
+                    >
+                      <span class="text-truncate">
+                        {{item.name}}
+                      </span>
+                      <div class="d-flex flex-row">
+                        <!-- status bullet -->
+                        <i
+                          class="
+                            fa-solid fa-circle
+                            mr-3
+                          "
+                          :class="[
+                            item.state.config.value === 'valid'
+                              ? item.state.enable.value
+                                ? item.state.inServiceList.value && item.state.objectState.value === 'running'
+                                  ? 'text-success'
+                                  : 'text-danger'
+                                : 'text-secondary'
+                              : 'text-danger'
+                          ]"
+                        >
+                        </i>
+                        <!-- template -->
+                        <span class="badge text-truncate bg-info text-light">{{item.template}}</span>
+                      </div>
+                    </div>
+                    <div
+                      class="
+                        miso-active-indicator
+                        horizontal-union miso-card-header-btn-box
+                        d-flex align-items-center
+                        p-2
+                      "
+                    >
+                      <i class="fa-solid fa-angles-right"></i>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+          <!-- Right panel -->
+          <div
+            class="
+              miso-v-container
+              grow-1
+              border rounded border-warning
+            "
+          >
+            <!-- Object info -->
+            <div
+              v-if="ui.base.selected.config"
+              class="
+                rounded
+                bg-secondary
+                p-2
+              "
+            >
+              <!-- Object status header -->
+              <div class="d-flex flex-row justify-content-between">
+                <!-- Object name -->
+                <div class="font-weight-bold">{{ui.base.selected.config.name}}</div>
+                <!-- Button box -->
+                <div class="miso-h-container p-0">
+                  <div class="miso-icon-box-24 rounded bg-warning">
+                    <i class="fas fa-edit fa-lg"></i>
+                  </div>
+                  <div class="miso-icon-box-24 rounded bg-danger text-light">
+                    <i class="fas fa-trash fa-lg"></i>
+                  </div>
+                </div>
+              </div>
+              <!-- Object info -->
+              <div class="miso-h-container justify-content-between">
+                <!-- Object status -->
+                <div>
+                  <table cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td>
+                        <div class="text-truncate d-flex justify-content-end mt-2">
+                          <span class="header-item text-truncate">
+                            <span class="bg-dark text-light">template</span>
+                            <span class="p-0"></span>
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="text-truncate d-flex mt-2">
+                          <span class="header-item text-truncate">
+                            <span class="p-0"></span>
+                            <span class="bg-info text-light">
+                              {{ui.base.selected.config.template}}
+                            </span>
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                    <template
+                      v-for="(statusValue, statusKey) in fn.craftObjectStatus(ui.base.selected.config.state)"
+                    >
+                      <tr>
+                        <td>
+                          <div class="text-truncate d-flex justify-content-end mt-2">
+                            <span class="header-item text-truncate">
+                              <span
+                                class=""
+                                :class="[
+                                  statusValue.keyLevel >= 90
+                                    ? 'bg-success text-light'
+                                    : statusValue.keyLevel >= 50
+                                    ? 'bg-warning text-dark'
+                                    : statusValue.keyLevel >= 0
+                                    ? 'bg-danger text-light'
+                                    : 'bg-dark text-light'
+                                ]"
+                              >
+                                {{statusKey}}
+                              </span>
+                              <span class="p-0"></span>
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="text-truncate d-flex mt-2">
+                            <span class="header-item text-truncate">
+                              <span class="p-0"></span>
+                              <span 
+                                class="" 
+                                :class="[
+                                  statusValue.level >= 90
+                                    ? 'bg-success text-light'
+                                    : statusValue.level >= 50
+                                    ? 'bg-warning text-dark'
+                                    : statusValue.level >= 0
+                                    ? 'bg-danger text-light'
+                                    : 'bg-dark text-light'
+                                ]"
+                              >
+                                {{Object.prototype.hasOwnProperty.call(statusValue, 'value') ? statusValue.value : statusValue}}
+                              </span>
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    </template>
+                  </table>
+                </div>
+                <!-- Object description -->
+                <div class="grow-1">
+                  {{ui.base.selected.config.description}}
+                </div>
+              </div>
+            </div>
+            <!-- Metric data -->
+            <div
+              v-if="ui.base.selected.metric"
+              class="
+                miso-v-container
+                rounded
+                bg-secondary
+                p-2
+              "
+            >
+              <!-- Object uptime -->
+              <div>
+                Data range: {{fn.metric.dataTimeRange()}}
+              </div>
+              <!-- Object Donut chart (success rate, serve quality) -->
+              <div class="miso-h-container justify-content-between">
+                <!-- Success rate -->
+                <div id="extension-lime-content-objects-basemain-chart-successrate">
+                  <!-- {{fn.metric.renderSuccessRate()}} -->
+                </div>
+                <!-- Average wait time -->
+                <div class="miso-h-container p-0">
+                  <div id="extension-lime-content-objects-basemain-chart-avgwaittime">
+                    <!-- {{fn.metric.renderServeQuality()}} -->
+                  </div>
+                  <div
+                    class="miso-v-container justify-content-center"
+                    style="
+                        font-size: 1.2rem;
+                        font-weight: bold;
+                    "
+                  >
+                    <table>
+                      <tr>
+                        <th colspan="2">Average Time (ms)</th>
+                      </tr>
+                      <tr>
+                        <td align="right">Waiting :</td>
+                        <td>{{Math.round(ui.base.selected.metric.jobs.averageWaitingTime*100)/100}}</td>
+                      </tr>
+                      <tr>
+                        <td align="right">Process :</td>
+                        <td>{{Math.round(ui.base.selected.metric.jobs.averageServiceTime*100)/100}}</td>
+                      </tr>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <!-- Jobs timeline -->
+              <div></div>
+              <!-- Metric calculate time -->
+              <div>
+                Metric calculate time: {{ui.base.selected.metric.calculateTime}}ms
+              </div>
+            </div>
+            <!-- Config detail -->
+            <div
+              class="
+                rounded
+                bg-secondary
+                p-2
+              "
+            >
+              detail
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

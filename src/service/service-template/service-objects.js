@@ -23,7 +23,10 @@ class ServiceObjects {
   */
 
   getConfig(id) {
-    console.log(`[${this.constructor.name}:${this.parent.id}]`, `getConfig(${id || ``})`);
+    console.log(
+      `[${this.constructor.name}:${this.parent.id}]`,
+      `getConfig(${id || ``})`
+    );
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => this.parent.getConfig({ renew: true }))
@@ -70,7 +73,10 @@ class ServiceObjects {
   */
 
   start(id) {
-    console.log(`[${this.constructor.name}:${this.parent.id}]`, `startObject(${id})`);
+    console.log(
+      `[${this.constructor.name}:${this.parent.id}]`,
+      `startObject(${id})`
+    );
     return new Promise((resolve, reject) => {
       const object = this.objects.get(id);
       if (!object) reject(new Errors.ObjectNotFound(`${id}`));
@@ -170,7 +176,10 @@ class ServiceObjects {
   }
 
   addToConfig(id, config) {
-    console.log(`[${this.constructor.name}:${this.parent.id}]`, `addToConfig(${id}) >> `);
+    console.log(
+      `[${this.constructor.name}:${this.parent.id}]`,
+      `addToConfig(${id}) >> `
+    );
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() =>
@@ -185,7 +194,10 @@ class ServiceObjects {
   }
 
   remove(id) {
-    console.log(`[${this.constructor.name}:${this.parent.id}]`, `removeObject() >> `);
+    console.log(
+      `[${this.constructor.name}:${this.parent.id}]`,
+      `removeObject() >> `
+    );
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => this.removeFromConfig(id))
@@ -196,7 +208,10 @@ class ServiceObjects {
   }
 
   removeFromConfig(id) {
-    console.log(`[${this.constructor.name}:${this.parent.id}]`, `removeFromConfig(${id}) >> `);
+    console.log(
+      `[${this.constructor.name}:${this.parent.id}]`,
+      `removeFromConfig(${id}) >> `
+    );
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() =>
@@ -210,7 +225,10 @@ class ServiceObjects {
   }
 
   removeFromService(id) {
-    console.log(`[${this.constructor.name}:${this.parent.id}]`, `removeFromService(${id}) >> `);
+    console.log(
+      `[${this.constructor.name}:${this.parent.id}]`,
+      `removeFromService(${id}) >> `
+    );
     return new Promise((resolve, reject) => {
       const object = this.objects.get(id);
       if (object) {
@@ -227,7 +245,10 @@ class ServiceObjects {
   }
 
   update(id, config) {
-    console.log(`[${this.constructor.name}:${this.parent.id}]`, `update(${id || ``}) >> `);
+    console.log(
+      `[${this.constructor.name}:${this.parent.id}]`,
+      `update(${id || ``}) >> `
+    );
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => this.parent.configTranslator.validate(config))
@@ -267,7 +288,10 @@ class ServiceObjects {
   }
 
   getState(id) {
-    console.log(`[${this.constructor.name}:${this.parent.id}]`, `getState(${id || ``})`);
+    console.log(
+      `[${this.constructor.name}:${this.parent.id}]`,
+      `getState(${id || ``})`
+    );
     return new Promise((resolve, reject) => {
       if (id) {
         const object = this.objects.get(id) || undefined;
@@ -394,7 +418,10 @@ class ServiceObjects {
   }
 
   getTemplate(name, options) {
-    console.log(`[${this.constructor.name}:${this.parent.id}]`, `getTemplate(${name || ``})`);
+    console.log(
+      `[${this.constructor.name}:${this.parent.id}]`,
+      `getTemplate(${name || ``})`
+    );
     return new Promise((resolve, reject) => {
       const serviceConfig = this.parent.getConfig();
       if (name) {

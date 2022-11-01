@@ -688,6 +688,32 @@ class RoutesManager extends APIHandler {
         },
       },
 
+      //  Resource : /service/engines-service/system-engine/{engine-id}/metrics
+      {
+        resource: /\/service\/engines-service\/service-engine\/[^/]+\/metrics/,
+        method: {
+          GET: (req) => {
+            return new Promise((resolve) => {
+              const pathArr = req.path.split(`/`);
+              pathArr.pop();
+              const id = pathArr.pop();
+
+              Promise.resolve()
+                .then(() =>
+                  this.laborsManager
+                    .getService(`engines-service`)
+                    .obj.objects.get(id, { object: true })
+                )
+                .then((engine) => engine.generateMetric())
+                .then((res) =>
+                  resolve(this.makeJsonRespond(JSON.stringify(res)))
+                )
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
       //  Resource : /service/engines-service/system-engine/{id}/{cmd}
       {
         resource: /\/service\/engines-service\/service-engine\/[^/]+\/[^/]+/,
@@ -850,6 +876,28 @@ class RoutesManager extends APIHandler {
                 .then((json) => {
                   resolve(this.makeJsonRespond(JSON.stringify(json)));
                 })
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
+      //  Resource : /service/ioports-service/service-ioport
+      {
+        resource: /\/service\/ioports-service\/service-ioport/,
+        method: {
+          GET: () => {
+            return new Promise((resolve) => {
+              Promise.resolve()
+                .then(() =>
+                  this.laborsManager
+                    .getService(`sysport-service`)
+                    // .obj.getServiceEngine()
+                    .obj.objects.getConfigWithState()
+                )
+                .then((engines) =>
+                  resolve(this.makeJsonRespond(JSON.stringify(engines)))
+                )
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
