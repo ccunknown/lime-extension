@@ -34,6 +34,7 @@ export default class ExtensionUi {
   }
 
   initView() {
+    console.log(`initView()`);
     const mainView = this.extension.loader.getCoreObject(`page-main`);
     const resourceView = this.extension.loader.getCoreObject(`page-resource`);
     const resource = new DOMParser().parseFromString(resourceView, "text/html");
@@ -193,7 +194,10 @@ export default class ExtensionUi {
   }
 
   initScript() {
+    console.log(`initScript()`);
+    console.log(`this.page:`, this.page);
     for(let i in this.page) {
+      console.log(`page init:`, i, this.page[i]);
       let page = this.page[i];
       if(page.object && page.object.init)
         page.object.init();

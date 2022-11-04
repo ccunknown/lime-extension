@@ -263,7 +263,10 @@ class ObjectOperator {
   }
 
   stopChild(childId) {
-    console.log(`[${this.constructor.name}]`, `stopChild(${childId}) >> `);
+    console.log(
+      `[${this.constructor.name}]`,
+      `stopChild(${childId || ``}) >> `
+    );
     return new Promise((resolve, reject) => {
       if (childId) {
         Promise.resolve()
@@ -278,6 +281,7 @@ class ObjectOperator {
               ? this.parent.to.stopChild(childId)
               : this.parent.stopChild(childId)
           )
+          .then(() => resolve())
           .catch((err) => reject(err));
       } else {
         Promise.resolve()

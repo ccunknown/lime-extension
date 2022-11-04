@@ -7,13 +7,10 @@
 // const MAX_CONTINUOUS_FAIL_CHANGE_STATE = 3;
 
 const Path = require(`path`);
-// const { Device } = require(`gateway-addon`);
 
 const ConfigTranslator = require(`./config-translator.js`);
 const ScriptBuilder = require(`./script-builder.js`);
-// const { resolvePtr } = require("dns");
 
-// const DefaultConfig = require(`./defalt-config`);
 const DeviceTemplate = require(`../../device-template/period-queue-style/device-template.js`);
 
 class ModbusDevice extends DeviceTemplate {
@@ -35,10 +32,8 @@ class ModbusDevice extends DeviceTemplate {
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => this.configTranslator.translate(config))
-        // .then((schema) => this.initAttr(schema))
         .then(() => this.initEngine(config.engine))
         .then(() => this.initScript(config.script))
-        // .then((script) => this.initProperty())
         .then(() => this.initProperty())
         .then(() => resolve())
         .catch((err) => reject(err));
@@ -60,12 +55,9 @@ class ModbusDevice extends DeviceTemplate {
                     __dirname,
                     `/property/${propertiesConfig[id].template}/property.js`
                   ),
-                  // `./property/${propertiesConfig[id].template}/property.js`,
                   propertiesConfig[id]
                 )
               )
-              // .then(() => {})
-              // .then(() => this.oo.startChild(id))
               .catch((err) => this.om.obj.error(err)),
           Promise.resolve()
         )
@@ -127,21 +119,11 @@ class ModbusDevice extends DeviceTemplate {
     return this.devicesService.enginesService.objects.get(this.config.engine, {
       object: true,
     });
-    // return state === `running` ? engine : null;
   }
 
   getScript() {
     return this.script;
   }
-
-  // getState() {
-  //   console.log(`[${this.constructor.name}]`, `getState() >> `);
-  //   const state = this._getState();
-  //   if (state !== this.state.last)
-  //     this.devicesService.onDeviceStateChange(this.id, state);
-  //   this.state.last = state;
-  //   return state;
-  // }
 
   // eslint-disable-next-line class-methods-use-this
   getState() {

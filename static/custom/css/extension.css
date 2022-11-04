@@ -129,10 +129,22 @@
 }
 
 #extension-lime-contents .miso-content-maxh {
-  height: calc(100vh - var(--lime-miso-section-clearance-top) - var(--lime-miso-section-clearance-bottom) - var(--lime-miso-section-content-padding)*2) !important;
+  max-height: calc(100vh - var(--lime-miso-section-clearance-top) - var(--lime-miso-section-clearance-bottom) - var(--lime-miso-section-content-padding)*2) !important;
 }
 
 #extension-lime-contents .miso-card-content-maxh {
+  max-height: calc(
+    100vh - 
+    var(--lime-miso-section-clearance-top) - 
+    var(--lime-miso-section-clearance-bottom) - 
+    var(--lime-miso-section-content-padding)*2 -
+    var(--lime-miso-content-cardbody-padding)*2 -
+    var(--lime-miso-content-cardheader-height) -
+    2px /* border 1px x 2 */
+  ) !important;
+}
+
+#extension-lime-contents .miso-card-content-hmax {
   height: calc(
     100vh - 
     var(--lime-miso-section-clearance-top) - 

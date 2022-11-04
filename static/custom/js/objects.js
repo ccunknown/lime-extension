@@ -395,6 +395,7 @@ export default class LimeExtenisonPageObjects {
           );
         })
         .then(() => this.rest[`${objectLayer}s`].getObjectMetric(objectId))
+        .catch((err) => console.error(err))
         .then((metric) => {
           this.console.log(metric);
           selected.metric = metric;

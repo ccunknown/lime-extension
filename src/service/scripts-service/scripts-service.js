@@ -59,7 +59,7 @@ class ScriptsService extends Service {
         schema.children.push({
           name: "metadata.js",
           type: "file",
-          base64: this.base64Encode(this.initialMeta(schema.meta)),
+          base64: this.directory.base64Encode(this.initialMeta(schema.meta)),
         });
       }
       Object.keys(schema.children).reduce((prevProm, i) => {
@@ -102,10 +102,10 @@ class ScriptsService extends Service {
       let data;
       Promise.resolve()
         .then(() => {
-          data = this.base64Decode(raw);
+          data = this.directory.base64Decode(raw);
           console.log(`create file : ${path}`);
         })
-        .then(() => this.writeFile(path, data))
+        .then(() => this.directory.writeFile(path, data))
         .then(() => resolve())
         .catch((err) => reject(err));
     });

@@ -81,21 +81,21 @@ class DevicesService extends Service {
     });
   }
 
-  onDeviceStateChange(id, state) {
-    console.log(
-      `[${this.constructor.name}]`,
-      `onDeviceStateChange(${id}, ${state}) >> `
-    );
-    Promise.resolve()
-      .then(() => this.getServiceDevice(id))
-      .then((schema) =>
-        this.rtcpeerService.publish(
-          `/service/devices-service/service-device/${id}`,
-          schema
-        )
-      )
-      .catch((err) => console.error(err));
-  }
+  // onDeviceStateChange(id, state) {
+  //   console.log(
+  //     `[${this.constructor.name}]`,
+  //     `onDeviceStateChange(${id}, ${state}) >> `
+  //   );
+  //   Promise.resolve()
+  //     .then(() => this.getServiceDevice(id))
+  //     .then((schema) =>
+  //       this.rtcpeerService.publish(
+  //         `/service/devices-service/service-device/${id}`,
+  //         schema
+  //       )
+  //     )
+  //     .catch((err) => console.error(err));
+  // }
 
   start() {
     console.log(`[${this.constructor.name}]`, `start() >> `);
@@ -116,12 +116,16 @@ class DevicesService extends Service {
     console.log(`[${this.constructor.name}]`, `stop() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
-        .then(() => this.getServiceDevice())
+        // .then(() => this.getServiceDevice())
+        .then(() => this.objects.get(null, { object: true }))
         .then((services) => {
           const redArr = Object.keys(services);
-          return redArr.reduce((prev, next) => {
+          return redArr.reduce((prev, id) => {
             return prev
-              .then(() => this.stopDevice(next))
+              .then(() =>
+                console.log(`[${this.constructor.name}]`, `stop id:`, id)
+              )
+              .then(() => this.objects.removeFromService(id))
               .catch((err) => reject(err));
           }, Promise.resolve());
         })

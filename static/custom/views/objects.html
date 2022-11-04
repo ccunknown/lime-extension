@@ -202,43 +202,90 @@
           <div
             class="
               miso-v-container
+              miso-card-content-maxh
               grow-1
               border rounded border-warning
             "
+            style="
+              overflow-y: auto;
+            "
           >
+            <!-- Object header -->
+            <div
+              v-if="ui.base.selected.config"
+              class="
+                miso-h-container justify-content-between
+                rounded bg-secondary
+              "
+            >
+              <!-- Name -->
+              <div class="text-dark text-light font-weight-bold">
+                {{ui.base.selected.config.name}}
+              </div>
+              <!-- Button box -->
+              <div class="miso-h-container p-0">
+                <div class="miso-icon-box-24 rounded bg-warning">
+                  <i class="fas fa-edit fa-lg"></i>
+                </div>
+                <div class="miso-icon-box-24 rounded bg-danger text-light">
+                  <i class="fas fa-trash fa-lg"></i>
+                </div>
+              </div>
+            </div>
             <!-- Object info -->
             <div
               v-if="ui.base.selected.config"
               class="
+                miso-h-container justify-content-between
                 rounded
                 bg-secondary
                 p-2
               "
             >
-              <!-- Object status header -->
-              <div class="d-flex flex-row justify-content-between">
-                <!-- Object name -->
-                <div class="font-weight-bold">{{ui.base.selected.config.name}}</div>
-                <!-- Button box -->
-                <div class="miso-h-container p-0">
-                  <div class="miso-icon-box-24 rounded bg-warning">
-                    <i class="fas fa-edit fa-lg"></i>
-                  </div>
-                  <div class="miso-icon-box-24 rounded bg-danger text-light">
-                    <i class="fas fa-trash fa-lg"></i>
-                  </div>
-                </div>
-              </div>
-              <!-- Object info -->
-              <div class="miso-h-container justify-content-between">
-                <!-- Object status -->
-                <div>
-                  <table cellspacing="0" cellpadding="0">
+              <!-- Object status -->
+              <div>
+                <table cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td>
+                      <div class="text-truncate d-flex justify-content-end mt-2">
+                        <span class="header-item text-truncate">
+                          <span class="bg-dark text-light">template</span>
+                          <span class="p-0"></span>
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="text-truncate d-flex mt-2">
+                        <span class="header-item text-truncate">
+                          <span class="p-0"></span>
+                          <span class="bg-info text-light">
+                            {{ui.base.selected.config.template}}
+                          </span>
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                  <template
+                    v-for="(statusValue, statusKey) in fn.craftObjectStatus(ui.base.selected.config.state)"
+                  >
                     <tr>
                       <td>
                         <div class="text-truncate d-flex justify-content-end mt-2">
                           <span class="header-item text-truncate">
-                            <span class="bg-dark text-light">template</span>
+                            <span
+                              class=""
+                              :class="[
+                                statusValue.keyLevel >= 90
+                                  ? 'bg-success text-light'
+                                  : statusValue.keyLevel >= 50
+                                  ? 'bg-warning text-dark'
+                                  : statusValue.keyLevel >= 0
+                                  ? 'bg-danger text-light'
+                                  : 'bg-dark text-light'
+                              ]"
+                            >
+                              {{statusKey}}
+                            </span>
                             <span class="p-0"></span>
                           </span>
                         </div>
@@ -247,67 +294,30 @@
                         <div class="text-truncate d-flex mt-2">
                           <span class="header-item text-truncate">
                             <span class="p-0"></span>
-                            <span class="bg-info text-light">
-                              {{ui.base.selected.config.template}}
+                            <span 
+                              class="" 
+                              :class="[
+                                statusValue.level >= 90
+                                  ? 'bg-success text-light'
+                                  : statusValue.level >= 50
+                                  ? 'bg-warning text-dark'
+                                  : statusValue.level >= 0
+                                  ? 'bg-danger text-light'
+                                  : 'bg-dark text-light'
+                              ]"
+                            >
+                              {{Object.prototype.hasOwnProperty.call(statusValue, 'value') ? statusValue.value : statusValue}}
                             </span>
                           </span>
                         </div>
                       </td>
                     </tr>
-                    <template
-                      v-for="(statusValue, statusKey) in fn.craftObjectStatus(ui.base.selected.config.state)"
-                    >
-                      <tr>
-                        <td>
-                          <div class="text-truncate d-flex justify-content-end mt-2">
-                            <span class="header-item text-truncate">
-                              <span
-                                class=""
-                                :class="[
-                                  statusValue.keyLevel >= 90
-                                    ? 'bg-success text-light'
-                                    : statusValue.keyLevel >= 50
-                                    ? 'bg-warning text-dark'
-                                    : statusValue.keyLevel >= 0
-                                    ? 'bg-danger text-light'
-                                    : 'bg-dark text-light'
-                                ]"
-                              >
-                                {{statusKey}}
-                              </span>
-                              <span class="p-0"></span>
-                            </span>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="text-truncate d-flex mt-2">
-                            <span class="header-item text-truncate">
-                              <span class="p-0"></span>
-                              <span 
-                                class="" 
-                                :class="[
-                                  statusValue.level >= 90
-                                    ? 'bg-success text-light'
-                                    : statusValue.level >= 50
-                                    ? 'bg-warning text-dark'
-                                    : statusValue.level >= 0
-                                    ? 'bg-danger text-light'
-                                    : 'bg-dark text-light'
-                                ]"
-                              >
-                                {{Object.prototype.hasOwnProperty.call(statusValue, 'value') ? statusValue.value : statusValue}}
-                              </span>
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    </template>
-                  </table>
-                </div>
-                <!-- Object description -->
-                <div class="grow-1">
-                  {{ui.base.selected.config.description}}
-                </div>
+                  </template>
+                </table>
+              </div>
+              <!-- Object description -->
+              <div class="grow-1" style="max-height: 70px; overflow: auto">
+                {{ui.base.selected.config.description}}
               </div>
             </div>
             <!-- Metric data -->
