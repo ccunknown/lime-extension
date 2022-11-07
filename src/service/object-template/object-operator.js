@@ -301,9 +301,12 @@ class ObjectOperator {
       Promise.resolve()
         .then(() => this.taskMon.start(job.data.jobId))
         .then(() => this.processor(job.data.jobId, job.data.cmd))
-        .then((ret) => done(null, ret))
+        .then((ret) => {
+          this.taskMon.end(job.data.jobId);
+          done(null, ret);
+        })
         .catch((err) => {
-          this.taskMon.error(job.data.jobId, err);
+          this.taskMon.reject(job.data.jobId, err);
           done(err);
         });
     });

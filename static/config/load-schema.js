@@ -37,7 +37,8 @@
                 "popper",
                 "bootstrap",
                 "d3",
-                
+
+                `extension-script-chart-render`,
                 "extension-script-collector",
                 "extension-script-api",
                 "extension-script-raid",
@@ -90,6 +91,11 @@
 
     "define": {
 
+      "extension-script-chart-render": {
+        "type": `global-script`,
+        "path": `/core/js/chart-render/chart-render.js`,
+        "object-name": `LimeExtensionChartRender`,
+      },
       "extension-script-collector": {
         "type": "core-script",
         "path": "/core/js/collector.js",

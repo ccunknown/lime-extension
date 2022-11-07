@@ -17,6 +17,8 @@ class ObjectMetricBuilder {
       let jobs;
       let jobsMetric;
       let completeJobsMetric;
+      let successJobMetric;
+      let failJobMetric;
       let serviceTime;
       let waitingTime;
       Promise.resolve()
@@ -28,10 +30,14 @@ class ObjectMetricBuilder {
           logs = this.logFormat(logParagraph);
           jobs = this.jobsTrim(this.logsToJobs(logs));
           // jobs.forEach((e) => console.log(e.jid));
+          // console.log(`jobs:`, JSON.stringify(jobs, null, 2));
           jobsMetric = jobs.map((job) => this.jobEvaluate(job));
+          // console.log(`jobsMetric:`, jobsMetric);
           completeJobsMetric = jobsMetric.filter(
-            (j) => j.addTime && j.stopTime
+            (j) => j.addTime && (j.stopTime || j.rejectTime)
           );
+          successJobMetric = completeJobsMetric.filter((j) => j.stopTime);
+          failJobMetric = completeJobsMetric.filter((j) => j.rejectTime);
           serviceTime = completeJobsMetric.reduce(
             (partialSum, j) => partialSum + j.serviceTime,
             0
@@ -47,8 +53,8 @@ class ObjectMetricBuilder {
               list: jobsMetric,
             },
             jobs: {
-              success: completeJobsMetric.length,
-              fail: jobsMetric.length - completeJobsMetric.length,
+              success: successJobMetric.length,
+              fail: failJobMetric.length,
               averageWaitingTime: waitingTime / completeJobsMetric.length,
               averageServiceTime: serviceTime / completeJobsMetric.length,
             },
@@ -126,37 +132,30 @@ class ObjectMetricBuilder {
   jobEvaluate(job) {
     const result = {
       addTime: this.getJobActTime(job.logList, `ADD`),
-      startTime: this.getJobActTime(job.logList, `JOBSTART`),
-      stopTime: this.getJobActTime(job.logList, `JOBEND`),
+      startTime: this.getJobActTime(job.logList, `START`),
     };
+    const stopTime = this.getJobActTime(job.logList, `END`);
+    if (stopTime) result.stopTime = stopTime;
+    const rejectTime = this.getJobActTime(job.logList, `REJECT`);
+    if (rejectTime) result.rejectTime = rejectTime;
+
     result.waitingTime =
       result.startTime && result.addTime
         ? new Date(result.startTime).getTime() -
           new Date(result.addTime).getTime()
         : null;
     result.serviceTime =
-      result.stopTime && result.startTime
-        ? new Date(result.stopTime).getTime() -
+      (result.stopTime || result.rejectTime) && result.startTime
+        ? new Date(result.stopTime || result.rejectTime).getTime() -
           new Date(result.startTime).getTime()
         : null;
     return result;
   }
 
-  calJobRange(logList) {
-    let start = new Date(8640000000000000);
-    let stop = new Date(-8640000000000000);
-    logList.forEach((log) => {
-      const timestamp = new Date(log.timestamp);
-      start = timestamp < start ? timestamp : start;
-      stop = timestamp > stop ? timestamp : stop;
-    });
-    return { start, stop };
-  }
-
   getJobActTime(logList, act) {
     // const re = new RegExp(`\\[ACT:${act}\\]`);
     // const log = logList.find((e) => e.message.match(re));
-    const word = `[ACT:${act}]`;
+    const word = `[ACT:${act}`;
     const log = logList.find((e) => e.message.startsWith(word));
     if (log) {
       return log.timestamp;
@@ -170,6 +169,17 @@ class ObjectMetricBuilder {
     return jobs.filter((job) => {
       return !!job.logList.find((log) => log.message.match(re));
     });
+  }
+
+  calJobRange(logList) {
+    let start = new Date(8640000000000000);
+    let stop = new Date(-8640000000000000);
+    logList.forEach((log) => {
+      const timestamp = new Date(log.timestamp);
+      start = timestamp < start ? timestamp : start;
+      stop = timestamp > stop ? timestamp : stop;
+    });
+    return { start, stop };
   }
 
   calJobsRange(jobs) {

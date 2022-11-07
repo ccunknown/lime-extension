@@ -53,10 +53,11 @@ class ObjectTemplate {
         )
         .then((job) => job.finished())
         .then((ret) => {
-          this.om.task.end(jobId, this.resultToString(ret));
+          // this.om.task.end(jobId, this.resultToString(ret));
           resolve(ret);
         })
         .catch((err) => {
+          // console.error(err);
           resolve({ error: err });
         });
     });

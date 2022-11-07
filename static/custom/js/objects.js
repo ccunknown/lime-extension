@@ -404,7 +404,19 @@ export default class LimeExtenisonPageObjects {
           this.console.log(selected);
           this.vue.ui.base.selected = selected;
         })
-        .then(() => this.renderGraph.renderSuccessRate())
+        // .then(() => this.renderGraph.renderSuccessRate())
+        .then(() =>
+          LimeExtensionChartRender.singleDonut(
+            `extension-lime-content-objects-basemain-chart-successrate`,
+            [
+              { key: `Success Rate`, value: selected.metric.jobs.success },
+              { key: `Fail Rate`, value: selected.metric.jobs.fail },
+            ],
+            {
+              colors: [`#3CC692`, `#D95F02`],
+            }
+          )
+        )
         .then(() => this.renderGraph.renderAvgWaitTime())
         .catch((err) => this.console.error(err))
         .finally(() => resolve());

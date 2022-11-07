@@ -77,15 +77,25 @@ class ObjectMonitor {
         return id;
       },
       start: (id = uuid()) => {
-        this.obj.log(`[JID:${id}]`, `[ACT:JOBSTART]`);
+        this.obj.log(`[JID:${id}]`, `[ACT:START]`);
         return id;
       },
       log: (id = uuid(), ...message) => {
         this.obj.log(`[JID:${id}]`, `[LOG:${[...message].join(` `)}]`);
       },
       end: (id = uuid(), result = null) => {
-        this.obj.log(`[JID:${id}]`, `[ACT:JOBEND]`, `[RES:${result}]`);
+        this.obj.log(`[JID:${id}]`, `[ACT:END]`, `[RES:${result}]`);
         return id;
+      },
+      reject: (id, err = new Error(`Undefine error`)) => {
+        const msg = [
+          `[JID:${id}]`,
+          `[ACT:REJECT: <${err.name}:${err.message}> <stack:[${err.stack
+            .split(`\n`)
+            .join(`, `)}]>]`,
+        ].join(` `);
+        this.logger.error(msg);
+        this.publish(msg, `log`, `error`);
       },
       error: (id, err = new Error(`Undefine error`)) => {
         const msg = [
