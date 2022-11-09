@@ -1,5 +1,8 @@
 /* eslint-disable no-alert */
 /* eslint-disable no-restricted-globals */
+
+import LimeExtensionChartRender from "../../core/js/chart-render/chart-render.js";
+
 /* eslint-disable no-nested-ternary */
 export default class LimeExtenisonPageObjects {
   constructor(extension) {
@@ -35,9 +38,9 @@ export default class LimeExtenisonPageObjects {
       Promise.resolve()
         .then(() => this.initCustomRest())
         .then(() => this.initVue())
-        .then(() => {
-          this.renderGraph = this.getRenderGraphFunction();
-        })
+        // .then(() => {
+        //   this.renderGraph = this.getRenderGraphFunction();
+        // })
         .then(() => resolve())
         .catch((err) => reject(err));
     });
@@ -405,19 +408,8 @@ export default class LimeExtenisonPageObjects {
           this.vue.ui.base.selected = selected;
         })
         // .then(() => this.renderGraph.renderSuccessRate())
-        .then(() =>
-          LimeExtensionChartRender.singleDonut(
-            `extension-lime-content-objects-basemain-chart-successrate`,
-            [
-              { key: `Success Rate`, value: selected.metric.jobs.success },
-              { key: `Fail Rate`, value: selected.metric.jobs.fail },
-            ],
-            {
-              colors: [`#3CC692`, `#D95F02`],
-            }
-          )
-        )
-        .then(() => this.renderGraph.renderAvgWaitTime())
+        // .then(() => this.renderGraph.renderAvgWaitTime())
+        .then(() => this.renderMetricChart(selected.metric))
         .catch((err) => this.console.error(err))
         .finally(() => resolve());
     });
@@ -466,243 +458,320 @@ export default class LimeExtenisonPageObjects {
     });
   }
 
-  getRenderGraphFunction() {
-    return {
-      renderSuccessRate: () => {
-        this.console.log(`renderSuccessRate()`);
-        const { metric } = this.vue.ui.base.selected;
-        const id = this.ui.said(`content.objects.basemain.chart.successrate`);
-        this.console.log(`id:`, id);
-        // eslint-disable-next-line no-undef
-        const dom = document.getElementById(id);
-        dom.style.width = "150px";
-        dom.style.height = "150px";
-        this.console.log(dom);
-        const margin = 10;
-        const width = dom.offsetWidth;
-        const height = dom.offsetHeight;
-        const radius = Math.min(width, height) / 2 - margin;
-        // const thickness = Math.floor(radius * 0.2);
-
-        const calcPercent = (percent) => {
-          return [percent, 100 - percent];
-        };
-        const duration = 1500;
-        // const transition = 200;
-        const percent =
-          (metric.jobs.success / (metric.jobs.success + metric.jobs.fail)) *
-          100;
-
-        const dataset = {
-          lower: calcPercent(0),
-          upper: calcPercent(percent),
-        };
-        const pie = d3.pie().sort(null);
-        const format = d3.format(".0%");
-
-        const arc = d3
-          .arc()
-          .innerRadius(radius * 0.8)
-          .outerRadius(radius);
-
-        d3.select("#extension-lime-content-objects-basemain-chart-successrate")
-          .selectAll("*")
-          .remove();
-
-        const svg = d3
-          .select("#extension-lime-content-objects-basemain-chart-successrate")
-          .append("svg")
-          .attr("width", width)
-          .attr("height", height)
-          .append("g")
-          .attr("transform", `translate(${width / 2}, ${height / 2})`);
-
-        const color = d3.scaleOrdinal().range([`#3CC692`, `#D95F02`]);
-
-        this.chartAnimate = this.chartAnimate || {};
-        this.chartAnimate.successRate = this.chartAnimate.successRate || {};
-        let path = svg
-          .selectAll("path")
-          .data(pie(dataset.lower))
-          .enter()
-          .append(`path`)
-          .attr(`fill`, function(d, i) {
-            return color(i);
-          })
-          .attr("d", arc)
-          .each(function (d) {
-            // this.chartAnimate.successRate.current = d;
-            this._current = d;
-          });
-
-        const text = svg
-          .append("text")
-          .attr("text-anchor", "middle")
-          .attr("dy", "1.0em")
-          .attr("fill", `#343a40`)
-          .attr(`stroke`, `#343a40`);
-
-        const text2 = svg
-          .append("text")
-          .attr("text-anchor", "middle")
-          .attr("dy", "0em")
-          .attr("fill", `#343a40`)
-          .attr(`stroke`, `#343a40`)
-          .style(`font-size`, `1.2rem`);
-        text2.text(`Success Rate`);
-
-        const progress = 0;
-
-        const timeout = setTimeout(function () {
-          clearTimeout(timeout);
-          path
-            .transition()
-            .duration(duration)
-            .attrTween("d", function (a) {
-              const i = d3.interpolate(
-                // this.chartAnimate.successRate.current,
-                this._current,
-                a
-              );
-              const i2 = d3.interpolate(progress, percent);
-              // this.chartAnimate.successRate.current = i(0);
-              this._current = i(0);
-              return function (t) {
-                text.text(format(i2(t) / 100));
-                return arc(i(t));
-              };
-            });
-          path = path.data(pie(dataset.upper));
-        }, 200);
-      },
-
-      renderAvgWaitTime: () => {
-        this.console.log(`renderAvgWaitTime()`);
-        const { metric } = this.vue.ui.base.selected;
-        const id = this.ui.said(`content.objects.basemain.chart.successrate`);
-        this.console.log(`id:`, id);
-        // eslint-disable-next-line no-undef
-        const dom = document.getElementById(id);
-        dom.style.width = "150px";
-        dom.style.height = "150px";
-        this.console.log(dom);
-        const margin = 10;
-        const width = dom.offsetWidth;
-        const height = dom.offsetHeight;
-        const radius = Math.min(width, height) / 2 - margin;
-        // const thickness = Math.floor(radius * 0.2);
-
-        const calcPercent = (percent) => {
-          return [percent, 100 - percent];
-        };
-        const duration = 1500;
-        // const transition = 200;
-        const percent =
-          (metric.jobs.averageWaitingTime /
-            (metric.jobs.averageWaitingTime + metric.jobs.averageServiceTime)) *
-          100;
-
-        const dataset = {
-          lower: calcPercent(0),
-          upper: calcPercent(percent),
-        };
-        const pie = d3.pie().sort(null);
-        const format = d3.format(".0%");
-
-        const arc = d3
-          .arc()
-          .innerRadius(radius * 0.8)
-          .outerRadius(radius);
-
-        d3.select("#extension-lime-content-objects-basemain-chart-avgwaittime")
-          .selectAll("*")
-          .remove();
-
-        const svg = d3
-          .select("#extension-lime-content-objects-basemain-chart-avgwaittime")
-          .append("svg")
-          .attr("width", width)
-          .attr("height", height)
-          .append("g")
-          .attr("transform", `translate(${width / 2}, ${height / 2})`);
-
-        const color = d3.scaleOrdinal().range([`#566573`, `#3CC692`]);
-
-        // this.chartAnimate = this.chartAnimate || {};
-        // this.chartAnimate.successRate = this.chartAnimate.successRate || {};
-        let path = svg
-          .selectAll("path")
-          .data(pie(dataset.lower))
-          .enter()
-          .append(`path`)
-          .attr(`fill`, function(d, i) {
-            return color(i);
-          })
-          .attr("d", arc)
-          .each(function (d) {
-            // this.chartAnimate.successRate.current = d;
-            this._current = d;
-          });
-
-        const textWaitLabel = svg
-          .append("text")
-          .attr("text-anchor", "middle")
-          .attr("dy", "-2em")
-          .attr("fill", `#343a40`)
-          .attr(`stroke`, `#343a40`)
-          .style(`font-size`, `1.2rem`);
-        textWaitLabel.text(`Wait Time`);
-
-        const textWait = svg
-          .append("text")
-          .attr("text-anchor", "middle")
-          .attr("dy", "-0.5em")
-          .attr("fill", `#343a40`)
-          .attr(`stroke`, `#343a40`);
-
-        const textServeLabel = svg
-          .append("text")
-          .attr("text-anchor", "middle")
-          .attr("dy", "1.2em")
-          .attr("fill", `#343a40`)
-          .attr(`stroke`, `#343a40`)
-          .style(`font-size`, `1.2rem`);
-        textServeLabel.text(`Process Time`);
-
-        const textServe = svg
-          .append("text")
-          .attr("text-anchor", "middle")
-          .attr("dy", "2em")
-          .attr("fill", `#343a40`)
-          .attr(`stroke`, `#343a40`);
-
-        const progress = 0;
-
-        const timeout = setTimeout(function () {
-          clearTimeout(timeout);
-          path
-            .transition()
-            .duration(duration)
-            .attrTween("d", function (a) {
-              const i = d3.interpolate(
-                // this.chartAnimate.successRate.current,
-                this._current,
-                a
-              );
-              const i2 = d3.interpolate(progress, percent);
-              // this.chartAnimate.successRate.current = i(0);
-              this._current = i(0);
-              return function (t) {
-                textWait.text(format(i2(t) / 100));
-                textServe.text(format((100 - i2(t)) / 100));
-                return arc(i(t));
-              };
-            });
-          path = path.data(pie(dataset.upper));
-        }, 200);
-      },
-    };
+  // eslint-disable-next-line class-methods-use-this
+  renderMetricChart(metric) {
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        // Render job's success rate.
+        .then(() =>
+          LimeExtensionChartRender.singleDonut(
+            `extension-lime-content-objects-basemain-chart-successrate`,
+            [
+              { key: `Success Rate`, value: metric.jobs.success },
+              { key: `Fail Rate`, value: metric.jobs.fail },
+            ],
+            {
+              colors: [`#3CC692`, `#D95F02`],
+            }
+          )
+        )
+        // Render job's average wait time.
+        .then(() =>
+          LimeExtensionChartRender.singleDonut(
+            `extension-lime-content-objects-basemain-chart-avgwaittime`,
+            [
+              {
+                key: `Wait time`,
+                value: metric.jobs.averageWaitingTime,
+              },
+              {
+                key: `Service time`,
+                value: metric.jobs.averageServiceTime,
+              },
+            ],
+            {
+              colors: [`#566573`, `#3CC692`],
+            }
+          )
+        )
+        // Render job timeline density.
+        .then(() =>
+          LimeExtensionChartRender.heatTimeline(
+            `extension-lime-content-objects-basemain-chart-job-heat-timeline`,
+            metric.activeTime.list
+              .map((e) => {
+                return {
+                  // start: Math.floor(new Date(e.startTime).getTime() / 1000),
+                  // end: Math.floor(new Date(e.stopTime || e.rejectTime).getTime() / 1000),
+                  start: new Date(e.startTime).getTime(),
+                  end: new Date(e.stopTime || e.rejectTime).getTime(),
+                };
+                // return {
+                //   times: [
+                //     {
+                //       starting_time: Math.floor(
+                //         new Date(e.addTime).getTime() / 1000
+                //       ),
+                //       ending_time: Math.floor(
+                //         new Date(e.startTime).getTime() / 1000
+                //       ),
+                //     },
+                //     {
+                //       starting_time: Math.floor(
+                //         new Date(e.startTime).getTime() / 1000
+                //       ),
+                //       ending_time: Math.floor(
+                //         new Date(e.stopTime || e.rejectTime).getTime() / 1000
+                //       ),
+                //     },
+                //   ],
+                // };
+              })
+              // .filter((e, i) => i < 5)
+          )
+        )
+        .then(() => resolve())
+        .catch((err) => reject(err));
+    });
   }
+
+  // getRenderGraphFunction() {
+  //   return {
+  //     renderSuccessRate: () => {
+  //       this.console.log(`renderSuccessRate()`);
+  //       const { metric } = this.vue.ui.base.selected;
+  //       const id = this.ui.said(`content.objects.basemain.chart.successrate`);
+  //       this.console.log(`id:`, id);
+  //       // eslint-disable-next-line no-undef
+  //       const dom = document.getElementById(id);
+  //       dom.style.width = "150px";
+  //       dom.style.height = "150px";
+  //       this.console.log(dom);
+  //       const margin = 10;
+  //       const width = dom.offsetWidth;
+  //       const height = dom.offsetHeight;
+  //       const radius = Math.min(width, height) / 2 - margin;
+  //       // const thickness = Math.floor(radius * 0.2);
+
+  //       const calcPercent = (percent) => {
+  //         return [percent, 100 - percent];
+  //       };
+  //       const duration = 1500;
+  //       // const transition = 200;
+  //       const percent =
+  //         (metric.jobs.success / (metric.jobs.success + metric.jobs.fail)) *
+  //         100;
+
+  //       const dataset = {
+  //         lower: calcPercent(0),
+  //         upper: calcPercent(percent),
+  //       };
+  //       const pie = d3.pie().sort(null);
+  //       const format = d3.format(".0%");
+
+  //       const arc = d3
+  //         .arc()
+  //         .innerRadius(radius * 0.8)
+  //         .outerRadius(radius);
+
+  //       d3.select("#extension-lime-content-objects-basemain-chart-successrate")
+  //         .selectAll("*")
+  //         .remove();
+
+  //       const svg = d3
+  //         .select("#extension-lime-content-objects-basemain-chart-successrate")
+  //         .append("svg")
+  //         .attr("width", width)
+  //         .attr("height", height)
+  //         .append("g")
+  //         .attr("transform", `translate(${width / 2}, ${height / 2})`);
+
+  //       const color = d3.scaleOrdinal().range([`#3CC692`, `#D95F02`]);
+
+  //       this.chartAnimate = this.chartAnimate || {};
+  //       this.chartAnimate.successRate = this.chartAnimate.successRate || {};
+  //       let path = svg
+  //         .selectAll("path")
+  //         .data(pie(dataset.lower))
+  //         .enter()
+  //         .append(`path`)
+  //         .attr(`fill`, function(d, i) {
+  //           return color(i);
+  //         })
+  //         .attr("d", arc)
+  //         .each(function (d) {
+  //           // this.chartAnimate.successRate.current = d;
+  //           this._current = d;
+  //         });
+
+  //       const text = svg
+  //         .append("text")
+  //         .attr("text-anchor", "middle")
+  //         .attr("dy", "1.0em")
+  //         .attr("fill", `#343a40`)
+  //         .attr(`stroke`, `#343a40`);
+
+  //       const text2 = svg
+  //         .append("text")
+  //         .attr("text-anchor", "middle")
+  //         .attr("dy", "0em")
+  //         .attr("fill", `#343a40`)
+  //         .attr(`stroke`, `#343a40`)
+  //         .style(`font-size`, `1.2rem`);
+  //       text2.text(`Success Rate`);
+
+  //       const progress = 0;
+
+  //       const timeout = setTimeout(function () {
+  //         clearTimeout(timeout);
+  //         path
+  //           .transition()
+  //           .duration(duration)
+  //           .attrTween("d", function (a) {
+  //             const i = d3.interpolate(
+  //               // this.chartAnimate.successRate.current,
+  //               this._current,
+  //               a
+  //             );
+  //             const i2 = d3.interpolate(progress, percent);
+  //             // this.chartAnimate.successRate.current = i(0);
+  //             this._current = i(0);
+  //             return function (t) {
+  //               text.text(format(i2(t) / 100));
+  //               return arc(i(t));
+  //             };
+  //           });
+  //         path = path.data(pie(dataset.upper));
+  //       }, 200);
+  //     },
+
+  //     renderAvgWaitTime: () => {
+  //       this.console.log(`renderAvgWaitTime()`);
+  //       const { metric } = this.vue.ui.base.selected;
+  //       const id = this.ui.said(`content.objects.basemain.chart.successrate`);
+  //       this.console.log(`id:`, id);
+  //       // eslint-disable-next-line no-undef
+  //       const dom = document.getElementById(id);
+  //       dom.style.width = "150px";
+  //       dom.style.height = "150px";
+  //       this.console.log(dom);
+  //       const margin = 10;
+  //       const width = dom.offsetWidth;
+  //       const height = dom.offsetHeight;
+  //       const radius = Math.min(width, height) / 2 - margin;
+  //       // const thickness = Math.floor(radius * 0.2);
+
+  //       const calcPercent = (percent) => {
+  //         return [percent, 100 - percent];
+  //       };
+  //       const duration = 1500;
+  //       // const transition = 200;
+  //       const percent =
+  //         (metric.jobs.averageWaitingTime /
+  //           (metric.jobs.averageWaitingTime + metric.jobs.averageServiceTime)) *
+  //         100;
+
+  //       const dataset = {
+  //         lower: calcPercent(0),
+  //         upper: calcPercent(percent),
+  //       };
+  //       const pie = d3.pie().sort(null);
+  //       const format = d3.format(".0%");
+
+  //       const arc = d3
+  //         .arc()
+  //         .innerRadius(radius * 0.8)
+  //         .outerRadius(radius);
+
+  //       d3.select("#extension-lime-content-objects-basemain-chart-avgwaittime")
+  //         .selectAll("*")
+  //         .remove();
+
+  //       const svg = d3
+  //         .select("#extension-lime-content-objects-basemain-chart-avgwaittime")
+  //         .append("svg")
+  //         .attr("width", width)
+  //         .attr("height", height)
+  //         .append("g")
+  //         .attr("transform", `translate(${width / 2}, ${height / 2})`);
+
+  //       const color = d3.scaleOrdinal().range([`#566573`, `#3CC692`]);
+
+  //       // this.chartAnimate = this.chartAnimate || {};
+  //       // this.chartAnimate.successRate = this.chartAnimate.successRate || {};
+  //       let path = svg
+  //         .selectAll("path")
+  //         .data(pie(dataset.lower))
+  //         .enter()
+  //         .append(`path`)
+  //         .attr(`fill`, function(d, i) {
+  //           return color(i);
+  //         })
+  //         .attr("d", arc)
+  //         .each(function (d) {
+  //           // this.chartAnimate.successRate.current = d;
+  //           this._current = d;
+  //         });
+
+  //       const textWaitLabel = svg
+  //         .append("text")
+  //         .attr("text-anchor", "middle")
+  //         .attr("dy", "-2em")
+  //         .attr("fill", `#343a40`)
+  //         .attr(`stroke`, `#343a40`)
+  //         .style(`font-size`, `1.2rem`);
+  //       textWaitLabel.text(`Wait Time`);
+
+  //       const textWait = svg
+  //         .append("text")
+  //         .attr("text-anchor", "middle")
+  //         .attr("dy", "-0.5em")
+  //         .attr("fill", `#343a40`)
+  //         .attr(`stroke`, `#343a40`);
+
+  //       const textServeLabel = svg
+  //         .append("text")
+  //         .attr("text-anchor", "middle")
+  //         .attr("dy", "1.2em")
+  //         .attr("fill", `#343a40`)
+  //         .attr(`stroke`, `#343a40`)
+  //         .style(`font-size`, `1.2rem`);
+  //       textServeLabel.text(`Process Time`);
+
+  //       const textServe = svg
+  //         .append("text")
+  //         .attr("text-anchor", "middle")
+  //         .attr("dy", "2em")
+  //         .attr("fill", `#343a40`)
+  //         .attr(`stroke`, `#343a40`);
+
+  //       const progress = 0;
+
+  //       const timeout = setTimeout(function () {
+  //         clearTimeout(timeout);
+  //         path
+  //           .transition()
+  //           .duration(duration)
+  //           .attrTween("d", function (a) {
+  //             const i = d3.interpolate(
+  //               // this.chartAnimate.successRate.current,
+  //               this._current,
+  //               a
+  //             );
+  //             const i2 = d3.interpolate(progress, percent);
+  //             // this.chartAnimate.successRate.current = i(0);
+  //             this._current = i(0);
+  //             return function (t) {
+  //               textWait.text(format(i2(t) / 100));
+  //               textServe.text(format((100 - i2(t)) / 100));
+  //               return arc(i(t));
+  //             };
+  //           });
+  //         path = path.data(pie(dataset.upper));
+  //       }, 200);
+  //     },
+  //   };
+  // }
 
   onAlternateChange() {
     this.console.log(`PageEngines: onAlternateChange() >> `);

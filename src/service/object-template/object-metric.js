@@ -50,7 +50,7 @@ class ObjectMetricBuilder {
             timeRange: this.calJobsRange(jobs),
             activeTime: {
               millisecond: serviceTime,
-              list: jobsMetric,
+              list: completeJobsMetric,
             },
             jobs: {
               success: successJobMetric.length,

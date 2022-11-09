@@ -37,6 +37,7 @@
                 "popper",
                 "bootstrap",
                 "d3",
+                "jiahuang-d3-timeline",
 
                 `extension-script-chart-render`,
                 "extension-script-collector",
@@ -223,6 +224,11 @@
       "d3": {
         "type": `script`,
         "path": `/resource/js/d3.min.js`
+      },
+
+      "jiahuang-d3-timeline": {
+        "type": `script`,
+        "path": `/resource/js/jiahuang-d3-timeline.js`
       },
 
 

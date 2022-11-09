@@ -112,6 +112,10 @@
   margin-right: 5px;
 }
 
+#extension-lime-contents .miso-balance-grow > * {
+  flex: 1 1 0px;
+}
+
 #extension-lime-contents .miso-h-container > *:last-child {
   margin-right: 0px;
 }
@@ -989,3 +993,41 @@
   }
 }
 
+#extension-lime-contents .miso-responsive-container {
+  container-type: inline-size;
+  container-name: miso-responsive-container;
+}
+
+#extension-lime-contents .miso-custom-metric-chart-layout-donut {
+  /* background-color: white; */
+}
+
+#extension-lime-contents .miso-chart {
+
+}
+
+#extension-lime-contents .miso-chart-legends {
+
+}
+
+@container miso-responsive-container (width < 500px) {
+  .miso-custom-metric-chart-layout-donut {
+    /* background-color: black !important; */
+    flex-direction: column !important;
+    flex-wrap: wrap !important;
+    height: calc(150px + 70px) !important;
+    align-items: center !important;
+  }
+  .miso-custom-metric-chart-layout-donut > * {
+    /* background: yellow !important; */
+    margin: 0 !important;
+  }
+  .miso-custom-metric-chart-layout-donut > .miso-chart {
+    width: 50% !important;
+    /* min-width: 50% !important; */
+  }
+  .miso-custom-metric-chart-layout-donut > .miso-chart-legends {
+    height: 60px !important;
+    /* min-width: 50% !important; */
+  }
+}

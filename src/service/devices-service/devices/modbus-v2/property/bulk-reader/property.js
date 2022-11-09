@@ -258,7 +258,8 @@ class BulkReader extends PropertyTemplate {
   chunkProcess(jobId, opt, engine) {
     return new Promise((resolve, reject) => {
       Promise.resolve()
-        .then(() => engine.act(opt.engineOpt, jobId))
+        // .then(() => engine.act(opt.engineOpt, jobId))
+        .then(() => engine.act(opt.engineOpt))
         .then((raw) => {
           opt.calculate.forEach((e) => {
             const addressOffset = opt.engineOpt.address;

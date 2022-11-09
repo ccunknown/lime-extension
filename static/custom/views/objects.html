@@ -335,38 +335,100 @@
                 Data range: {{fn.metric.dataTimeRange()}}
               </div>
               <!-- Object Donut chart (success rate, serve quality) -->
-              <div class="miso-h-container justify-content-between">
-                <!-- Success rate -->
-                <div id="extension-lime-content-objects-basemain-chart-successrate">
-                  <!-- {{fn.metric.renderSuccessRate()}} -->
-                </div>
-                <!-- Average wait time -->
-                <div class="miso-h-container p-0">
-                  <div id="extension-lime-content-objects-basemain-chart-avgwaittime">
-                    <!-- {{fn.metric.renderServeQuality()}} -->
+              <div class="miso-responsive-container">
+                <div
+                  class="
+                    miso-h-container
+                    miso-custom-metric-chart-layout-donut
+                    miso-balance-grow
+                    justify-content-between
+                    align-items-center
+                  "
+                >
+                  <!-- Success rate -->
+                  <div
+                    id="extension-lime-content-objects-basemain-chart-successrate"
+                    class="miso-chart w-100 grow-1"
+                    style="
+                      min-width: 100px;
+                      max-width: 150px;
+                    "
+                  >
+                    <!-- {{fn.metric.renderSuccessRate()}} -->
                   </div>
                   <div
-                    class="miso-v-container justify-content-center"
+                    class="
+                      miso-v-container
+                      miso-chart-legends
+                      justify-content-center
+                    "
                     style="
-                        font-size: 1.2rem;
-                        font-weight: bold;
+                      font-size: 1.2rem;
+                      font-weight: bold;
+                      width: fit-content;
+                      min-width: 140px;
+                      max-width: 140px;
                     "
                   >
                     <table>
                       <tr>
-                        <th colspan="2">Average Time (ms)</th>
+                        <td colspan="2" align="center" nowrap>Job detail</td>
                       </tr>
                       <tr>
-                        <td align="right">Waiting :</td>
+                        <td align="right" style="width: 50%" nowrap>Success :</td>
+                        <td nowrap>{{ui.base.selected.metric.jobs.success}}</td>
+                      </tr>
+                      <tr>
+                        <td align="right" style="width: 50%" nowrap>Fail :</td>
+                        <td nowrap>{{ui.base.selected.metric.jobs.fail}}</td>
+                      </tr>
+                    </table>
+                  </div>
+                  <!-- Average wait time -->
+                  <div
+                    id="extension-lime-content-objects-basemain-chart-avgwaittime"
+                    class="miso-chart w-100 grow-1"
+                    style="
+                      min-width: 100px;
+                      max-width: 150px;
+                    "
+                  >
+                    <!-- {{fn.metric.renderServeQuality()}} -->
+                  </div>
+                  <div
+                    class="
+                      miso-v-container
+                      miso-chart-legends
+                      justify-content-center
+                    "
+                    style="
+                      font-size: 1.2rem;
+                      font-weight: bold;
+                      width: fit-content;
+                      min-width: 140px;
+                      max-width: 140px;
+                    "
+                  >
+                    <table>
+                      <tr>
+                        <td colspan="2" align="center" nowrap>Average Time (ms)</td>
+                      </tr>
+                      <tr>
+                        <td align="right" style="width: 50%" nowrap>Waiting :</td>
                         <td>{{Math.round(ui.base.selected.metric.jobs.averageWaitingTime*100)/100}}</td>
                       </tr>
                       <tr>
-                        <td align="right">Process :</td>
+                        <td align="right" style="width: 50%" nowrap>Process :</td>
                         <td>{{Math.round(ui.base.selected.metric.jobs.averageServiceTime*100)/100}}</td>
                       </tr>
                     </table>
                   </div>
                 </div>
+              </div>
+              <!-- Jobs heat timeline -->
+              <div
+                id="extension-lime-content-objects-basemain-chart-job-heat-timeline"
+              >
               </div>
               <!-- Jobs timeline -->
               <div></div>

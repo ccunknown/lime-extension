@@ -41,7 +41,7 @@ function renderSingleDonut(domId, dataArr, opt) {
   // eslint-disable-next-line no-use-before-define
   // const d3 = d3;
   const id = domId.replace(/^#/i, ``);
-  console.log(`renderSingleDonut(${domId || ``})`);
+  console.log(`renderSingleDonut(id: ${id})`);
   const options = Object.assign(defaultOptions, opt);
 
   let data = dataArr;
@@ -72,8 +72,9 @@ function renderSingleDonut(domId, dataArr, opt) {
   const svg = d3
     .select(`#${id}`)
     .append("svg")
-    .attr("width", width)
-    .attr("height", height)
+    .attr(`viewBox`, `0 0 ${width} ${height}`)
+    // .attr("width", width)
+    // .attr("height", height)
     .append("g")
     .attr("transform", `translate(${width / 2}, ${height / 2})`);
 
