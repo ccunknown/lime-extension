@@ -633,31 +633,31 @@
 }
 
 #extension-lime-contents .horizontal-union:not(:first-child):not(:last-child) {
-  border-radius: 0 0 0 0;
+  border-radius: 0 0 0 0 !important;
 }
 
 #extension-lime-contents .horizontal-union:first-child {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
 }
 
 #extension-lime-contents .horizontal-union:last-child {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
 }
 
 #extension-lime-contents .vertical-union:not(:first-child):not(:last-child) {
-  border-radius: 0 0 0 0;
+  border-radius: 0 0 0 0 !important;
 }
 
 #extension-lime-contents .vertical-union:first-child {
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
 }
 
 #extension-lime-contents .vertical-union:last-child {
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
 }
 
 #extension-lime-contents .topleft-union {
@@ -1029,5 +1029,17 @@
   .miso-custom-metric-chart-layout-donut > .miso-chart-legends {
     height: 60px !important;
     /* min-width: 50% !important; */
+  }
+}
+
+@container miso-responsive-container (width > 450px) {
+  .miso-hide-gt-450 {
+    display: none;
+  }
+}
+
+@container miso-responsive-container (width <= 450px) {
+  .miso-hide-lte-450 {
+    display: none;
   }
 }

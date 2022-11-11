@@ -238,54 +238,57 @@
               class="
                 miso-h-container justify-content-between
                 rounded
-                bg-secondary
-                p-2
+                p-0
               "
             >
               <!-- Object status -->
-              <div>
-                <table cellspacing="0" cellpadding="0">
-                  <tr>
-                    <td>
-                      <div class="text-truncate d-flex justify-content-end mt-2">
-                        <span class="header-item text-truncate">
-                          <span class="bg-dark text-light">template</span>
-                          <span class="p-0"></span>
-                        </span>
-                      </div>
-                    </td>
-                    <td>
-                      <div class="text-truncate d-flex mt-2">
-                        <span class="header-item text-truncate">
-                          <span class="p-0"></span>
-                          <span class="bg-info text-light">
-                            {{ui.base.selected.config.template}}
-                          </span>
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                  <template
-                    v-for="(statusValue, statusKey) in fn.craftObjectStatus(ui.base.selected.config.state)"
+              <div
+                class="
+                  miso-h-container
+                  rounded
+                  bg-secondary
+                  p-0
+                "
+              >
+                <!-- Vertical badge -->
+                <div
+                  class="
+                    miso-h-container
+                    horizontal-union
+                    align-items-center
+                    rounded
+                    bg-dark text-light
+                    border border-secondary
+                    p-1
+                  "
+                >
+                  <span
+                    style="
+                      writing-mode: vertical-rl;
+                      transform: rotate(-180deg);
+                      font-size: 1rem;
+                      font-weight: bold;
+                    "
                   >
+                    Status
+                  </span>
+                </div>
+                <!-- Content -->
+                <div
+                  class="
+                    miso-v-container
+                    rounded
+                    bg-secondary
+                    grow-1
+                    p-2
+                  "
+                >
+                  <table cellspacing="0" cellpadding="0">
                     <tr>
                       <td>
                         <div class="text-truncate d-flex justify-content-end mt-2">
                           <span class="header-item text-truncate">
-                            <span
-                              class=""
-                              :class="[
-                                statusValue.keyLevel >= 90
-                                  ? 'bg-success text-light'
-                                  : statusValue.keyLevel >= 50
-                                  ? 'bg-warning text-dark'
-                                  : statusValue.keyLevel >= 0
-                                  ? 'bg-danger text-light'
-                                  : 'bg-dark text-light'
-                              ]"
-                            >
-                              {{statusKey}}
-                            </span>
+                            <span class="bg-dark text-light">template</span>
                             <span class="p-0"></span>
                           </span>
                         </div>
@@ -294,158 +297,426 @@
                         <div class="text-truncate d-flex mt-2">
                           <span class="header-item text-truncate">
                             <span class="p-0"></span>
-                            <span 
-                              class="" 
-                              :class="[
-                                statusValue.level >= 90
-                                  ? 'bg-success text-light'
-                                  : statusValue.level >= 50
-                                  ? 'bg-warning text-dark'
-                                  : statusValue.level >= 0
-                                  ? 'bg-danger text-light'
-                                  : 'bg-dark text-light'
-                              ]"
-                            >
-                              {{Object.prototype.hasOwnProperty.call(statusValue, 'value') ? statusValue.value : statusValue}}
+                            <span class="bg-info text-light">
+                              {{ui.base.selected.config.template}}
                             </span>
                           </span>
                         </div>
                       </td>
                     </tr>
-                  </template>
-                </table>
+                    <template
+                      v-for="(statusValue, statusKey) in fn.craftObjectStatus(ui.base.selected.config.state)"
+                    >
+                      <tr>
+                        <td>
+                          <div class="text-truncate d-flex justify-content-end mt-2">
+                            <span class="header-item text-truncate">
+                              <span
+                                class=""
+                                :class="[
+                                  statusValue.keyLevel >= 90
+                                    ? 'bg-success text-light'
+                                    : statusValue.keyLevel >= 50
+                                    ? 'bg-warning text-dark'
+                                    : statusValue.keyLevel >= 0
+                                    ? 'bg-danger text-light'
+                                    : 'bg-dark text-light'
+                                ]"
+                              >
+                                {{statusKey}}
+                              </span>
+                              <span class="p-0"></span>
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="text-truncate d-flex mt-2">
+                            <span class="header-item text-truncate">
+                              <span class="p-0"></span>
+                              <span 
+                                class="" 
+                                :class="[
+                                  statusValue.level >= 90
+                                    ? 'bg-success text-light'
+                                    : statusValue.level >= 50
+                                    ? 'bg-warning text-dark'
+                                    : statusValue.level >= 0
+                                    ? 'bg-danger text-light'
+                                    : 'bg-dark text-light'
+                                ]"
+                              >
+                                {{Object.prototype.hasOwnProperty.call(statusValue, 'value') ? statusValue.value : statusValue}}
+                              </span>
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    </template>
+                  </table>
+                </div>
               </div>
               <!-- Object description -->
-              <div class="grow-1" style="max-height: 70px; overflow: auto">
-                {{ui.base.selected.config.description}}
+              <div
+                class="
+                  miso-h-container
+                  rounded
+                  bg-secondary
+                  grow-1
+                  h-100
+                  p-0
+                "
+              >
+                <!-- Content -->
+                <div
+                  class="
+                    grow-1
+                    p-2
+                  "
+                  style="
+                    font-size: 1.2rem;
+                    max-height: 70px;
+                    overflow: auto
+                  "
+                >
+                  {{ui.base.selected.config.description}}
+                </div>
+                <!-- Vertical badge -->
+              <div
+                class="
+                  miso-h-container
+                  horizontal-union
+                  align-items-center
+                  rounded
+                  bg-dark text-light
+                  border border-secondary
+                  p-1
+                "
+              >
+                <span
+                  style="
+                    writing-mode: vertical-rl;
+                    font-size: 1rem;
+                    font-weight: bold;
+                  "
+                >
+                  Description
+                </span>
+              </div>
               </div>
             </div>
             <!-- Metric data -->
             <div
-              v-if="ui.base.selected.metric"
               class="
-                miso-v-container
+                miso-h-container
                 rounded
                 bg-secondary
-                p-2
+                p-0
+              "
+              style="
+                font-size: 1.2rem;
               "
             >
-              <!-- Object uptime -->
-              <div>
-                Data range: {{fn.metric.dataTimeRange()}}
-              </div>
-              <!-- Object Donut chart (success rate, serve quality) -->
-              <div class="miso-responsive-container">
-                <div
-                  class="
-                    miso-h-container
-                    miso-custom-metric-chart-layout-donut
-                    miso-balance-grow
-                    justify-content-between
-                    align-items-center
-                  "
-                >
-                  <!-- Success rate -->
-                  <div
-                    id="extension-lime-content-objects-basemain-chart-successrate"
-                    class="miso-chart w-100 grow-1"
-                    style="
-                      min-width: 100px;
-                      max-width: 150px;
-                    "
-                  >
-                    <!-- {{fn.metric.renderSuccessRate()}} -->
-                  </div>
+              <!-- Metric -->
+              <div
+                v-if="ui.base.selected.metric"
+                class="
+                  miso-v-container
+                  rounded
+                  bg-secondary
+                  grow-1
+                  p-2
+                "
+              >
+                <!-- Object uptime -->
+                <div>
+                  Data range: {{fn.metric.dataTimeRange()}}
+                </div>
+                <!-- Object Donut chart (success rate, serve quality) -->
+                <div class="miso-responsive-container">
                   <div
                     class="
-                      miso-v-container
-                      miso-chart-legends
-                      justify-content-center
-                    "
-                    style="
-                      font-size: 1.2rem;
-                      font-weight: bold;
-                      width: fit-content;
-                      min-width: 140px;
-                      max-width: 140px;
+                      miso-h-container
+                      miso-custom-metric-chart-layout-donut
+                      miso-balance-grow
+                      justify-content-between
+                      align-items-center
                     "
                   >
-                    <table>
-                      <tr>
-                        <td colspan="2" align="center" nowrap>Job detail</td>
-                      </tr>
-                      <tr>
-                        <td align="right" style="width: 50%" nowrap>Success :</td>
-                        <td nowrap>{{ui.base.selected.metric.jobs.success}}</td>
-                      </tr>
-                      <tr>
-                        <td align="right" style="width: 50%" nowrap>Fail :</td>
-                        <td nowrap>{{ui.base.selected.metric.jobs.fail}}</td>
-                      </tr>
-                    </table>
-                  </div>
-                  <!-- Average wait time -->
-                  <div
-                    id="extension-lime-content-objects-basemain-chart-avgwaittime"
-                    class="miso-chart w-100 grow-1"
-                    style="
-                      min-width: 100px;
-                      max-width: 150px;
-                    "
-                  >
-                    <!-- {{fn.metric.renderServeQuality()}} -->
-                  </div>
-                  <div
-                    class="
-                      miso-v-container
-                      miso-chart-legends
-                      justify-content-center
-                    "
-                    style="
-                      font-size: 1.2rem;
-                      font-weight: bold;
-                      width: fit-content;
-                      min-width: 140px;
-                      max-width: 140px;
-                    "
-                  >
-                    <table>
-                      <tr>
-                        <td colspan="2" align="center" nowrap>Average Time (ms)</td>
-                      </tr>
-                      <tr>
-                        <td align="right" style="width: 50%" nowrap>Waiting :</td>
-                        <td>{{Math.round(ui.base.selected.metric.jobs.averageWaitingTime*100)/100}}</td>
-                      </tr>
-                      <tr>
-                        <td align="right" style="width: 50%" nowrap>Process :</td>
-                        <td>{{Math.round(ui.base.selected.metric.jobs.averageServiceTime*100)/100}}</td>
-                      </tr>
-                    </table>
+                    <!-- Success rate -->
+                    <div
+                      id="extension-lime-content-objects-basemain-chart-successrate"
+                      class="miso-chart w-100 grow-1"
+                      style="
+                        min-width: 100px;
+                        max-width: 150px;
+                      "
+                    >
+                      <!-- {{fn.metric.renderSuccessRate()}} -->
+                    </div>
+                    <div
+                      class="
+                        miso-v-container
+                        miso-chart-legends
+                        justify-content-center
+                      "
+                      style="
+                        font-size: 1.2rem;
+                        font-weight: bold;
+                        width: fit-content;
+                        min-width: 140px;
+                        max-width: 140px;
+                      "
+                    >
+                      <table>
+                        <tr>
+                          <td colspan="2" align="center" nowrap>Job detail</td>
+                        </tr>
+                        <tr>
+                          <td align="right" style="width: 50%" nowrap>Success :</td>
+                          <td nowrap>{{ui.base.selected.metric.jobs.success}}</td>
+                        </tr>
+                        <tr>
+                          <td align="right" style="width: 50%" nowrap>Fail :</td>
+                          <td nowrap>{{ui.base.selected.metric.jobs.fail}}</td>
+                        </tr>
+                      </table>
+                    </div>
+                    <!-- Average wait time -->
+                    <div
+                      id="extension-lime-content-objects-basemain-chart-avgwaittime"
+                      class="miso-chart w-100 grow-1"
+                      style="
+                        min-width: 100px;
+                        max-width: 150px;
+                      "
+                    >
+                      <!-- {{fn.metric.renderServeQuality()}} -->
+                    </div>
+                    <div
+                      class="
+                        miso-v-container
+                        miso-chart-legends
+                        justify-content-center
+                      "
+                      style="
+                        font-size: 1.2rem;
+                        font-weight: bold;
+                        width: fit-content;
+                        min-width: 140px;
+                        max-width: 140px;
+                      "
+                    >
+                      <table>
+                        <tr>
+                          <td colspan="2" align="center" nowrap>Average Time (ms)</td>
+                        </tr>
+                        <tr>
+                          <td align="right" style="width: 50%" nowrap>Waiting :</td>
+                          <td>{{Math.round(ui.base.selected.metric.jobs.averageWaitingTime*100)/100}}</td>
+                        </tr>
+                        <tr>
+                          <td align="right" style="width: 50%" nowrap>Process :</td>
+                          <td>{{Math.round(ui.base.selected.metric.jobs.averageServiceTime*100)/100}}</td>
+                        </tr>
+                      </table>
+                    </div>
                   </div>
                 </div>
+                <!-- Jobs heat timeline -->
+                <div
+                  id="extension-lime-content-objects-basemain-chart-job-heat-timeline"
+                >
+                </div>
+                <!-- Jobs timeline -->
+                <div></div>
+                <!-- Metric calculate time -->
+                <div>
+                  Metric calculate time: {{ui.base.selected.metric.calculateTime}}ms
+                </div>
               </div>
-              <!-- Jobs heat timeline -->
+              <!-- Vertical badge -->
               <div
-                id="extension-lime-content-objects-basemain-chart-job-heat-timeline"
+                class="
+                  miso-h-container
+                  horizontal-union
+                  align-items-center
+                  rounded
+                  bg-dark text-light
+                  border border-secondary
+                  p-1
+                "
               >
-              </div>
-              <!-- Jobs timeline -->
-              <div></div>
-              <!-- Metric calculate time -->
-              <div>
-                Metric calculate time: {{ui.base.selected.metric.calculateTime}}ms
+                <!-- <span
+                  style="
+                    writing-mode: vertical-rl;
+                    transform: rotate(-180deg);
+                    font-size: 1rem;
+                    font-weight: bold;
+                  "
+                > -->
+                <span
+                  style="
+                    writing-mode: vertical-rl;
+                    font-size: 1rem;
+                    font-weight: bold;
+                  "
+                >
+                  Data Metric
+                </span>
               </div>
             </div>
             <!-- Config detail -->
             <div
               class="
+                miso-h-container
                 rounded
                 bg-secondary
-                p-2
+                p-0
               "
             >
-              detail
+              <!-- Content -->
+              <div
+                class="
+                  miso-h-container
+                  miso-responsive-container
+                  horizontal-union grow-1
+                "
+                style="
+                  font-size: 1.2rem;
+                "
+              >
+                <!-- All details -->
+                <table class="miso-hide-gt-450 w-100">
+                  <template
+                    v-for="(value, key) in ui.base.selected.config"
+                  >
+                    <tr
+                      v-if="[
+                        `name`, 
+                        `description`,
+                        `template`
+                      ].includes(key)"
+                    >
+                      <td
+                        align="right"
+                        style="
+                          width: 50%;
+                          font-weight: bold;
+                        "
+                      >
+                        {{key}} :
+                      </td>
+                      <td>{{value}}</td>
+                    </tr>
+                    <tr
+                      v-if="![
+                        `name`, 
+                        `description`,
+                        `template`,
+                        `_config`, 
+                        `objectLayer`,
+                        `state`,
+                        `properties`
+                      ].includes(key)"
+                    >
+                      <td
+                        align="right"
+                        style="
+                          width: 50%;
+                          font-weight: bold;
+                        "
+                      >
+                        {{key}} :
+                      </td>
+                      <td>{{value}}</td>
+                    </tr>
+                  </template>
+                </table>
+                <!-- Standard details -->
+                <table class="miso-hide-lte-450 w-50">
+                  <template
+                    v-for="(value, key) in ui.base.selected.config"
+                  >
+                    <tr
+                      v-if="[
+                        `name`, 
+                        `description`,
+                        `template`
+                      ].includes(key)"
+                    >
+                      <td
+                        align="right"
+                        style="
+                          width: 50%;
+                          font-weight: bold;
+                        "
+                      >
+                        {{key}} :
+                      </td>
+                      <td>{{value}}</td>
+                    </tr>
+                  </template>
+                </table>
+                <!-- Other details -->
+                <table class="miso-hide-lte-450 w-50">
+                  <template
+                    v-for="(value, key) in ui.base.selected.config"
+                  >
+                    <tr
+                      v-if="![
+                        `name`, 
+                        `description`,
+                        `template`,
+                        `_config`, 
+                        `objectLayer`,
+                        `state`,
+                        `properties`
+                      ].includes(key)"
+                    >
+                      <td
+                        align="right"
+                        style="
+                          width: 50%;
+                          font-weight: bold;
+                        "
+                      >
+                        {{key}} :
+                      </td>
+                      <td>{{value}}</td>
+                    </tr>
+                  </template>
+                </table>
+              </div>
+              <!-- Vertical badge -->
+              <div
+                class="
+                  miso-h-container
+                  horizontal-union
+                  align-items-center
+                  rounded
+                  bg-dark text-light
+                  border border-secondary
+                  p-1
+                "
+              >
+                <!-- <span
+                  style="
+                    writing-mode: vertical-rl;
+                    transform: rotate(-180deg);
+                    font-size: 1rem;
+                    font-weight: bold;
+                  "
+                > -->
+                <span
+                  style="
+                    writing-mode: vertical-rl;
+                    font-size: 1rem;
+                    font-weight: bold;
+                  "
+                >
+                  Details
+                </span>
+              </div>
             </div>
           </div>
         </div>
