@@ -1043,3 +1043,79 @@
     display: none;
   }
 }
+
+@media (width > 768px) {
+  .miso-hide-gt-768 {
+    display: none !important;
+  }
+
+  .miso-position-relative-gt768 {
+    position: relative;
+  }
+
+  .miso-w-auto-gt-768 {
+    width: auto;
+  }
+}
+
+@media (width <= 768px) {
+  #extension-lime-contents .miso-hide-lte-768 {
+    display: none !important;
+  }
+
+  #extension-lime-contents .miso-position-absolute-lte-768 {
+    position: absolute;
+  }
+  
+  #extension-lime-contents .miso-position-fixed-lte-768 {
+    position: fixed;
+  }
+
+  #extension-lime-contents .miso-w-0-lte-768 {
+    width: 0;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  #extension-lime-contents .miso-hide-lte-768 {
+    display: none;
+  }
+
+  #extension-lime-contents .miso-extend-left-255-lte-768 {
+    position: relative;
+    min-width: calc(100% + 255px) !important;
+    left: -255px;
+  }
+
+  #extension-lime-contents .miso-translate-x-255-lte-768 {
+    transform: translateX(255px);
+  }
+}
+
+#extension-lime-contents .miso-translate-x-265 {
+  transform: translateX(265px);
+}
+
+#extension-lime-contents .miso-rotate-180 {
+  transform: rotate(180deg);
+}
+
+#extension-lime-contents .miso-transition-200 {
+  transition: 0.2s;
+}
+
+#extension-lime-contents .miso-zindex-100 {
+  z-index: 100;
+}
+
+/* @container miso-responsive-container (width > 768px) {
+  .miso-hide-gt-768 {
+    display: none;
+  }
+}
+
+@container miso-responsive-container (width <= 768px) {
+  .miso-hide-lte-768 {
+    display: none;
+  }
+} */

@@ -39,9 +39,24 @@ const ValidateConfigSchema = {
           required: ["template"],
           additionalProperties: false,
           properties: {
+            name: {
+              type: "string",
+              title: "Name",
+              pattern: "^[a-zA-Z0-9 -_]+$",
+              minLength: 4,
+              maxLength: 50,
+            },
+            description: {
+              type: "string",
+              title: "Description",
+            },
             template: {
               type: "string",
-              title: "Property template",
+              title: "Property Template",
+            },
+            enable: {
+              type: "boolean",
+              default: true,
             },
           },
         },

@@ -1,10 +1,13 @@
-const Validator = require('jsonschema').Validator;
-const MAX_ADDRESS_PER_REQUEST = 125;
+/* eslint-disable no-nested-ternary */
+/* eslint-disable global-require */
+/* eslint-disable import/no-dynamic-require */
+const { Validator } = require(`jsonschema`);
+// const MAX_ADDRESS_PER_REQUEST = 125;
 
 const {
-  ValidateConfigSchema, 
+  ValidateConfigSchema,
   AlternateList,
-  AttributeList
+  AttributeList,
 } = require(`./define.js`);
 
 class PropertyConfigTranslator {
@@ -14,78 +17,92 @@ class PropertyConfigTranslator {
 
     this.validator = new Validator();
 
-    let rootDir = this.devicesService.getRootDirectory();
+    const rootDir = this.devicesService.getRootDirectory();
     // console.log(`>> Root Directory: ${rootDir}`);
     this.Errors = require(`${rootDir}/constants/errors.js`);
   }
 
   generateConfigSchema(params) {
     console.log(`PropertyConfigTranslator: generateConfigSchema() >> `);
-    return new Promise(async (resolve, reject) => {
-
+    return new Promise((resolve, reject) => {
       //  Copy config from ValidateConfigSchema.
-      let config = JSON.parse(JSON.stringify(ValidateConfigSchema));
+      const config = JSON.parse(JSON.stringify(ValidateConfigSchema));
 
       //  Assign 'alternate' attribute.
       AlternateList.forEach((index) => {
-        if(config.properties.hasOwnProperty(index))
+        if (Object.prototype.hasOwnProperty.call(config.properties, index))
           config.properties[index].alternate = true;
       });
 
       //  Assign 'attrs' attribute.
       AttributeList.forEach((index) => {
-        if(config.properties.hasOwnProperty(index.target))
+        if (
+          Object.prototype.hasOwnProperty.call(config.properties, index.target)
+        )
           config.properties[index.target].attrs = index.attrs;
       });
 
       //  Initial 'enum' attribute.
-      if(params 
-        && params.script 
-        && params.script != ``
-        && params.properties
-        && params.properties.table
-        && params.properties.table != ``) 
-      {
-        // let addrList = (await this.device.initScript(params.script)).map[params.properties.table];
-        // let addrList = this.device.exConf.script.map[params.properties.table];
-        let script = await this.scriptsService.get(params.script, {"object": true, "deep": true});
-        let readMap = script.children.find((elem) => elem.name == `readMap.js`).object.map;
-        let addrList = readMap[params.properties.table];
-        config.properties.address.items.enum = [];
-        config.properties.address.items.enumDisplay = {};
-        for(let i in addrList) {
-          //config.properties.address.enum.push(`${addrList[i].name} [Addr:${Number(i).toString(16)}]`);
-          config.properties.address.items.enum.push(Number(i));
-          config.properties.address.items.enumDisplay[Number(i)] = {
-            "title": `${addrList[i].name} [Addr:${Number(i).toString(16)}] ${(addrList[i].unit) ? `(${addrList[i].unit})` : ``}`
-          };
-          // if(params.properties.hasOwnProperty(`address`) && params.properties.address.length) {
-          //   params.properties.address.sort((a, b) => a - b);
-          //   let maxAddr = Number(params.properties.address[0]) + MAX_ADDRESS_PER_REQUEST - 1;
-          //   let minAddr = Number(params.properties.address[params.properties.address.length - 1]) - MAX_ADDRESS_PER_REQUEST + 1;
-          //   console.log(`>>> range ${minAddr} -> ${maxAddr}`);
-          //   if(Number(i) > maxAddr || Number(i) < minAddr)
-          //     config.properties.address.items.enumDisplay[Number(i)].disabled = true;
-          // }
-        }
+      if (
+        params &&
+        params.script &&
+        params.script !== `` &&
+        params.properties &&
+        params.properties.table &&
+        params.properties.table !== ``
+      ) {
+        Promise.resolve()
+          .then(() =>
+            this.scriptsService.get(params.script, { object: true, deep: true })
+          )
+          .then((script) => {
+            const readMap = script.children.find(
+              (elem) => elem.name === `readMap.js`
+            ).object.map;
+            const addrList = readMap[params.properties.table];
+            config.properties.address.items.enum = [];
+            config.properties.address.items.enumDisplay = {};
+            Object.keys(addrList).forEach((i) => {
+              config.properties.address.items.enum.push(Number(i));
+              config.properties.address.items.enumDisplay[Number(i)] = {
+                title: `${addrList[i].name} [Addr:${Number(i).toString(16)}] ${(addrList[i].unit) ? `(${addrList[i].unit})` : ``}`
+              };
+            });
 
-        //  Initial 'title' property.
-        console.log(`address: ${params.properties.address}`);
-        if(params.properties.hasOwnProperty(`address`) && params.properties.address.length) {
-          params.properties.address.sort((a, b) => a - b);
-          let first = params.properties.address[0];
-          let last = params.properties.address[params.properties.address.length - 1];
-          console.log(`>> address: ${params.properties.address}`);
-          // console.log(`readmap: ${JSON.stringify(readMap[params.properties.table], null, 2)}`);
-          if(readMap[params.properties.table][first] && readMap[params.properties.table][last]) {
-            let firstName = readMap[params.properties.table][first].name;
-            let lastName = readMap[params.properties.table][last].name;
-            config.properties.title.const = `${firstName}->${lastName}`;
-          }
-        }
+            //  Initial 'name' property.
+            console.log(`address: ${params.properties.address}`);
+            if (
+              Object.prototype.hasOwnProperty.call(
+                params.properties,
+                `address`
+              ) &&
+              params.properties.address.length
+            ) {
+              params.properties.address.sort((a, b) => a - b);
+              const first = params.properties.address[0];
+              const last =
+                params.properties.address[params.properties.address.length - 1];
+              console.log(`>> address: ${params.properties.address}`);
+              // console.log(`readmap: ${JSON.stringify(readMap[params.properties.table], null, 2)}`);
+              if (
+                Object.prototype.hasOwnProperty.call(
+                  params.properties,
+                  `name`
+                ) &&
+                readMap[params.properties.table][first] &&
+                readMap[params.properties.table][last]
+              ) {
+                const firstName = readMap[params.properties.table][first].name;
+                const lastName = readMap[params.properties.table][last].name;
+                config.properties.name.const = `${firstName}->${lastName}`;
+              }
+            }
+          })
+          .then(() => resolve(config))
+          .catch((err) => reject(err));
+      } else {
+        resolve(config);
       }
-
-      resolve(config);
     });
   }
 
@@ -93,49 +110,67 @@ class PropertyConfigTranslator {
     console.log(`PropertyConfigTranslator: generateId() >> `);
     return new Promise((resolve, reject) => {
       params.properties.address.sort((a, b) => a-b);
-      let first = params.properties.address[0];
-      let last = params.properties.address[params.properties.address.length - 1];
-      let id = `bulk-reader-${params.properties.table}-${Number(first).toString(16)}-${Number(last).toString(16)}`;
-      this.scriptsService.get(params.script, {"object": true, "deep": true})
-      .then((script) => script.children.find((elem) => elem.name == `readMap.js`).object.map)
-      .then((readMap) => [
-        readMap[params.properties.table][first],
-        readMap[params.properties.table][last]
-      ])
-      .then((prop) => {
-        let result = {
-          "id": id,
-          "title": `${prop[0].name}->${prop[1].name}`
-        }
-        console.log(`>> prop id gen result: ${JSON.stringify(result, null, 2)}`);
-        resolve(result);
-      })
-      .catch((err) => reject(err));
+      const first = params.properties.address[0];
+      const last =
+        params.properties.address[params.properties.address.length - 1];
+      const id = `bulk-reader-${params.properties.table}-${Number(first).toString(16)}-${Number(last).toString(16)}`;
+      Promise.resolve()
+        .then(() =>
+          this.scriptsService.get(params.script, { object: true, deep: true })
+        )
+        .then(
+          (script) =>
+            script.children.find((elem) => elem.name === `readMap.js`).object
+              .map
+        )
+        .then((readMap) => [
+          readMap[params.properties.table][first],
+          readMap[params.properties.table][last],
+        ])
+        .then((prop) => {
+          const result = {
+            id,
+            name: `${prop[0].name}->${prop[1].name}`,
+          };
+          console.log(
+            `>> prop id gen result: ${JSON.stringify(result, null, 2)}`
+          );
+          resolve(result);
+        })
+        .catch((err) => reject(err));
     });
   }
 
   translate(config, fullMap) {
     console.log(`PropertyConfigTranslator: translate() >> `);
     return new Promise((resolve, reject) => {
-      let validateInfo = this.validator.validate(config, ValidateConfigSchema);
-      if(validateInfo.errors.length)
+      const validateInfo = this.validator.validate(
+        config,
+        ValidateConfigSchema
+      );
+      if (validateInfo.errors.length)
         reject(new this.Errors.InvalidConfigSchema(validateInfo.errors));
 
-      let modbusRegister = fullMap.map[config.table][`${config.address[0]}`];
+      const modbusRegister = fullMap.map[config.table][`${config.address[0]}`];
       // console.log(`>> FullMap: ${JSON.stringify(fullMap.map[config.table], null, 2)}`);
       try {
-        let schema = {
-          "title": modbusRegister.name,
-          "type": modbusRegister.type,
-          "value": (modbusRegister.type == `string`) ? `` : 
-          (modbusRegister.type == `number`) ? 0 : 
-          (modbusRegister.type == `boolean`) ? false : undefined,
-          "unit": modbusRegister.unit,
-          "readOnly": true
+        const schema = {
+          name: modbusRegister.name,
+          type: modbusRegister.type,
+          value:
+            modbusRegister.type === `string`
+              ? ``
+              : modbusRegister.type === `number`
+              ? 0
+              : modbusRegister.type === `boolean`
+              ? false
+              : undefined,
+          unit: modbusRegister.unit,
+          readOnly: true,
         };
 
         resolve(schema);
-      } catch(err) {
+      } catch (err) {
         reject(err);
       }
     });

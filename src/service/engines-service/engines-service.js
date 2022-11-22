@@ -56,14 +56,7 @@ class EnginesService extends Service {
         .then((list) =>
           Object.keys(list).reduce((prevProm, id) => {
             return prevProm.then(() => {
-              if (
-                Object.prototype.hasOwnProperty.call(list[id], `_config`) &&
-                Object.prototype.hasOwnProperty.call(
-                  list[id]._config,
-                  `enable`
-                ) &&
-                list[id]._config.enable
-              )
+              if (list[id].enable)
                 return this.objects
                   .addToService(id, list[id])
                   .catch((err) => console.error(err));

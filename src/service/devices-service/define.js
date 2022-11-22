@@ -18,6 +18,10 @@ const ValidateConfigSchema = {
       type: "string",
       title: "Device Template",
     },
+    enable: {
+      type: "boolean",
+      default: true,
+    },
 
     retry: {
       type: "boolean",
@@ -34,17 +38,6 @@ const ValidateConfigSchema = {
       title: "Retryment delay",
       default: 30000,
       minimum: 1000,
-    },
-
-    _config: {
-      type: "object",
-      required: [`enable`],
-      properties: {
-        enable: {
-          type: "boolean",
-          default: true,
-        },
-      },
     },
   },
 };

@@ -2,17 +2,24 @@ const defaultOptions = {
   width: 400,
   height: 35,
   margin: { top: 0, right: 10, bottom: 20, left: 10 },
+  tooltip: {
+    offsetX: 15,
+    offsetY: 0,
+  },
 };
 
 /*
   data = [
     {
-      name?: name,
+      name?: {string},
+      tag?: {string},
+      errors? : [{string}],
       start: unixTimeStamp,
       end: unixTimeStamp,
     }
   ]
   options? = {
+    tags: [{string}],
     colors: [`#FFFFFF`, `#000000`],
   }
 */
@@ -50,13 +57,13 @@ function renderHeatTimeline(domId, dataArr, opt) {
       .domain(d3.extent(dataArr, () => 1))
       .range([options.height - options.margin.bottom, 0]);
 
-    // Prepare for tooltip
-    const div = d3
-      .select("#timeline")
-      .append("div")
-      .attr(`class`, `tooltip`)
-      .style(`opacity`, 0.7)
-      .style(`visibility`, `hidden`);
+    // // Prepare for tooltip
+    // const div = d3
+    //   .select("#timeline")
+    //   .append("div")
+    //   .attr(`class`, `tooltip`)
+    //   .style(`opacity`, 0.7)
+    //   .style(`visibility`, `hidden`);
 
     // Time axis
     const timeAxis = svg
@@ -69,9 +76,52 @@ function renderHeatTimeline(domId, dataArr, opt) {
       .style(`font-weight`, `bold`)
       .style(`color`, `#343a40`);
 
+    // Tooltips definition
+    const tooltip = d3
+      .select(`#${id}`)
+      .append(`div`)
+      .attr(`class`, `tooltip`)
+      .style(`opacity`, 0)
+      .style(`background-color`, `white`)
+      .style(`border`, `solid`)
+      .style(`border-width`, `2px`)
+      .style(`border-radius`, `5px`)
+      .style(`padding`, `5px`);
+
+    const onMouseOver = function (d) {
+      tooltip.style(`opacity`, 1);
+      d3.select(this).style(`stroke`, `black`).style(`opacity`, 1);
+    };
+
+    const onMouseMove = function (e, d) {
+      console.log(`e:`, e);
+      console.log(`d:`, d);
+      tooltip
+        .html(
+          `
+            ${d.name ? `${d.name}<br>` : ``}
+            ${d.tag ? `${d.tag}<br>` : ``}
+            ${d.errors ? `${d.errors.join(`<br>`)}<br>` : ``}
+            Start: ${new Date(d.start).toISOString()}<br>
+            End: ${new Date(d.end).toISOString()}
+          `
+        )
+        // .style(`left`, `${d3.mouse(this)[0] + 70}px`)
+        // .style(`top`, `${d3.mouse(this)[1]}px`);
+        // .style(`left`, `${e.x + 70}px`)
+        // .style(`top`, `${e.y}px`);
+        .style(`left`, `${e.layerX + options.tooltip.offsetX}px`)
+        .style(`top`, `${e.layerY + options.tooltip.offsetY}px`);
+    };
+
+    const onMouseLeave = function (d) {
+      tooltip.style(`opacity`, 0);
+      d3.select(this).style(`stroke`, `none`).style(`opacity`, 0.8);
+    };
+
     // Data drawer
     const dataAxis = svg.append(`g`);
-    const drawRect = function() {
+    const drawRect = function () {
       dataAxis
         .selectAll()
         .data(data)
@@ -85,8 +135,25 @@ function renderHeatTimeline(domId, dataArr, opt) {
           return w;
         })
         .attr(`height`, () => yScale(1))
-        .attr(`fill`, `#3CC692`)
-        .attr(`opacity`, 0.8);
+        // .attr(`fill`, `#3CC692`)
+        .attr(`fill`, (d) => {
+          // console.log(`tag:`, d.tag);
+          return options.colors[options.tags.indexOf(d.tag)];
+        })
+        .attr(`opacity`, 0.8)
+        .append(`title`)
+        .html((d) => {
+          let result = ``;
+          result = `${result}Job ID: ${d.name ? `${d.name}\n` : ``}`;
+          result = `${result}Tag: ${d.tag ? `${d.tag}\n` : ``}`;
+          result = `${result}${d.errors ? `${d.errors.join(`\n`)}\n` : ``}`;
+          result = `${result}Start: ${new Date(d.start).toISOString()}\n`;
+          result = `${result}End: ${new Date(d.end).toISOString()}`;
+          return result;
+        });
+        // .on(`mouseover`, onMouseOver)
+        // .on(`mousemove`, onMouseMove)
+        // .on(`mouseleave`, onMouseLeave);
     };
 
     const redraw = () => {

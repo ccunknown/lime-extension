@@ -78,8 +78,8 @@ class ObjectOperator {
         .then(() => this.objMon.log(`enabling`))
         .then(() =>
           this.configManager.updateConfig(
-            { addToService: true },
-            `service-config.${this.parentService.id}.list.${this.id}._config`
+            true,
+            `service-config.${this.parentService.id}.list.${this.id}.enable`
           )
         )
         // .then(() => ![`running`].includes(this.getState()) && this.start())
@@ -97,8 +97,8 @@ class ObjectOperator {
         .then(() => this.objMon.log(`disabling`))
         .then(() =>
           this.configManager.updateConfig(
-            { addToService: false },
-            `service-config.${this.parentService.id}.list.${this.id}._config`
+            false,
+            `service-config.${this.parentService.id}.list.${this.id}.enable`
           )
         )
         .then(
@@ -222,7 +222,8 @@ class ObjectOperator {
   getChild(childId) {
     console.log(`[${this.constructor.name}]`, `getChild(${childId}) >> `);
     if (this.parent.to.getChild) {
-      const child = this.parent.to.getChild(childId);
+      // const child = this.parent.to.getChild(childId);
+      const child = this.children.get(childId);
       return childId
         ? child.master || child
         : child.map((kid) => kid.master || kid);

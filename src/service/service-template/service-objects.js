@@ -296,10 +296,11 @@ class ServiceObjects {
       if (id) {
         const object = this.objects.get(id) || undefined;
         let config = null;
+        // Default state.
         const subCondition = {
-          config: `unavailable`,
-          enable: false,
-          inServiceList: false,
+          config: ObjectServiceState.config.UNAVAILABLE,
+          enable: ObjectServiceState.enable.DISABLE,
+          inServiceList: ObjectServiceState.inServiceList.NOTINSERVICE,
           objectState: `undefined`,
         };
         Promise.resolve()
@@ -319,12 +320,11 @@ class ServiceObjects {
           })
           //  Enable ?
           .then(() => {
-            subCondition.enable =
-              config && config._config
-                ? config._config.enable
-                  ? ObjectServiceState.enable.ENABLE
-                  : ObjectServiceState.enable.DISABLE
-                : subCondition.enable;
+            subCondition.enable = config
+              ? config.enable
+                ? ObjectServiceState.enable.ENABLE
+                : ObjectServiceState.enable.DISABLE
+              : subCondition.enable;
           })
           //  In service list ?
           .then(() => {

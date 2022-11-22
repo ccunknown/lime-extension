@@ -20,15 +20,9 @@ const ValidateConfigSchema = {
       title: "Engine Template",
       type: "string",
     },
-    _config: {
-      type: "object",
-      required: [`enable`],
-      properties: {
-        enable: {
-          type: "boolean",
-          default: true,
-        },
-      },
+    enable: {
+      type: "boolean",
+      default: true,
     },
   },
 };

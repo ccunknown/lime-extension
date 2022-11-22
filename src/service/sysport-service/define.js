@@ -20,15 +20,9 @@ const ValidateConfigSchema = {
       title: "Port Template",
       type: "string",
     },
-    _config: {
-      type: "object",
-      required: [`addToService`],
-      properties: {
-        addToService: {
-          type: "boolean",
-          default: true,
-        },
-      },
+    enable: {
+      type: "boolean",
+      default: true,
     },
   },
 };

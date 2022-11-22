@@ -1,3 +1,4 @@
+/* eslint-disable import/extensions */
 /* eslint-disable no-alert */
 /* eslint-disable no-restricted-globals */
 
@@ -113,6 +114,7 @@ export default class LimeExtenisonPageObjects {
             form: {},
           },
           base: {
+            leftPanel: false,
             ready: false,
             activeId: null,
             quickFilter: [`device`, `engine`, `ioport`],
@@ -243,7 +245,16 @@ export default class LimeExtenisonPageObjects {
         this.console.log(`onAlternateChange() >> `);
         this.onAlternateChange();
       },
-      craftObjectStatus: (state) => {
+      craftObjectStatus: (config) => {
+        const state = config.state
+          ? config.state
+          : {
+              config: { value: `unrecognize`, level: 0 },
+              // eslint-disable-next-line no-underscore-dangle
+              enable: { value: config.enable, level: 0 },
+              inServiceList: { value: `unrecognize`, level: 0 },
+              objectState: { value: `unrecognize`, level: 0 },
+            };
         const result = {
           config: state.config,
         };
@@ -264,10 +275,23 @@ export default class LimeExtenisonPageObjects {
         };
         return result;
       },
-      clickObject: (id, objectLayer) => {
+      clickObject: (
+        id,
+        objectLayer = this.vue.ui.base.selected.objectLayer
+      ) => {
+        this.console.log(`clickObject:`, id, objectLayer);
         this.vue.ui.base.activeId = id;
-        this.console.log(`click object '${id}' layer '${objectLayer}'`);
-        this.console.log(`info:`, this.vue.resource[`${objectLayer}s`][id]);
+        if (objectLayer) this.vue.ui.base.selected.objectLayer = objectLayer;
+        this.vue.fn.toggleLeftPanel(false);
+        this.console.log(`click object '`, id, `' layer '${objectLayer}'`);
+        // this.console.log(`info:`, this.vue.resource[`${objectLayer}s`][id]);
+        this.console.log(
+          `info:`,
+          this.getJsonElement(
+            Array.isArray(id) ? id.join(`.`) : id,
+            this.vue.resource[`${objectLayer}s`]
+          )
+        );
         return this.renderBaseMain(id, objectLayer);
       },
       toggleQuickFilter: (id) => {
@@ -277,12 +301,23 @@ export default class LimeExtenisonPageObjects {
           );
         else this.vue.ui.base.quickFilter.push(id);
       },
+      toggleLeftPanel: (show = !this.vue.ui.base.leftPanel) => {
+        this.vue.ui.base.leftPanel = show;
+      },
+      addToArray: (arr, elem) => {
+        return [...arr, elem];
+      },
+      getJsonElement: (...args) => {
+        return this.getJsonElement(...args);
+      },
       metric: {
         dataTimeRange: () => {
           this.console.log(`uptimeString()`);
           const { metric } = this.vue.ui.base.selected;
           const s = Math.floor(
-            (new Date(metric.timeRange.stop) - new Date(metric.timeRange.start)) / 1000
+            (new Date(metric.timeRange.stop) -
+              new Date(metric.timeRange.start)) /
+              1000
           );
           const days = Math.floor(s / 86400);
           const hours = Math.floor((s % 86400) / 3600);
@@ -299,12 +334,12 @@ export default class LimeExtenisonPageObjects {
           this.console.log(`uptime:`, `${s} ms`, `/`, resultString);
           return resultString;
         },
-        renderServeQuality: () => {
-          // eslint-disable-next-line no-undef
-          const svg = d3.select(
-            this.ui.said(`content.objects.basemain.chart.servequality`)
-          );
-        },
+        // renderServeQuality: () => {
+        //   // eslint-disable-next-line no-undef
+        //   const svg = d3.select(
+        //     this.ui.said(`content.objects.basemain.chart.servequality`)
+        //   );
+        // },
       },
     };
 
@@ -341,7 +376,7 @@ export default class LimeExtenisonPageObjects {
           Object.entries(devices).forEach(([key, value]) => {
             this.vue.resource.devices[key] = {
               ...value,
-              ...{ objectLayer: `device` },
+              // ...{ objectLayer: `device` },
             };
           });
         })
@@ -352,7 +387,7 @@ export default class LimeExtenisonPageObjects {
           Object.entries(engines).forEach(([key, value]) => {
             this.vue.resource.engines[key] = {
               ...value,
-              ...{ objectLayer: `engine` },
+              // ...{ objectLayer: `engine` },
             };
           });
         })
@@ -363,18 +398,18 @@ export default class LimeExtenisonPageObjects {
           Object.entries(ioports).forEach(([key, value]) => {
             this.vue.resource.ioports[key] = {
               ...value,
-              ...{ objectLayer: `ioport` },
+              // ...{ objectLayer: `ioport` },
             };
           });
         })
         // Combine devices, engines and sysport to objects.
         .then(() => {
-          this.vue.resource.objects = {
-            ...this.vue.resource.devices,
-            ...this.vue.resource.engines,
-            ...this.vue.resource.ioports,
-          };
-          this.console.log(`objects`, this.vue.resource.objects);
+          // this.vue.resource.objects = {
+          //   ...this.vue.resource.devices,
+          //   ...this.vue.resource.engines,
+          //   ...this.vue.resource.ioports,
+          // };
+          // this.console.log(`objects`, this.vue.resource.objects);
         })
         .catch((err) => this.console.error(err))
         .finally(() => {
@@ -384,20 +419,38 @@ export default class LimeExtenisonPageObjects {
     });
   }
 
-  renderBaseMain(objectId, objectLayer) {
+  renderBaseMain(
+    objectId,
+    objectLayer = this.vue.ui.base.selected.objectLayer
+  ) {
     this.console.log(
       `[${this.constructor.name}]`,
-      `renderBaseMain(${objectId})`
+      `renderBaseMain(${objectLayer}:`,
+      objectId,
+      `)`
     );
+    this.console.log(`resource:`, this.vue.resource);
     return new Promise((resolve) => {
-      const selected = { config: {}, metric: {} };
+      const selected = { config: {}, metric: {}, objectLayer };
       Promise.resolve()
         .then(() => {
           selected.config = JSON.parse(
-            JSON.stringify(this.vue.resource[`${objectLayer}s`][objectId])
+            JSON.stringify(
+              this.getJsonElement(
+                Array.isArray(objectId)
+                  ? objectId.join(`.properties.`)
+                  : objectId,
+                this.vue.resource[`${objectLayer}s`]
+              )
+            )
           );
         })
-        .then(() => this.rest[`${objectLayer}s`].getObjectMetric(objectId))
+        .then(() => {
+          const craftedObjectId = Array.isArray(objectId)
+            ? objectId.join(`/properties/`)
+            : objectId;
+          return this.rest[`${objectLayer}s`].getObjectMetric(craftedObjectId);
+        })
         .catch((err) => console.error(err))
         .then((metric) => {
           this.console.log(metric);
@@ -498,280 +551,48 @@ export default class LimeExtenisonPageObjects {
         .then(() =>
           LimeExtensionChartRender.heatTimeline(
             `extension-lime-content-objects-basemain-chart-job-heat-timeline`,
-            metric.activeTime.list
-              .map((e) => {
-                return {
-                  // start: Math.floor(new Date(e.startTime).getTime() / 1000),
-                  // end: Math.floor(new Date(e.stopTime || e.rejectTime).getTime() / 1000),
-                  start: new Date(e.startTime).getTime(),
-                  end: new Date(e.stopTime || e.rejectTime).getTime(),
-                };
-                // return {
-                //   times: [
-                //     {
-                //       starting_time: Math.floor(
-                //         new Date(e.addTime).getTime() / 1000
-                //       ),
-                //       ending_time: Math.floor(
-                //         new Date(e.startTime).getTime() / 1000
-                //       ),
-                //     },
-                //     {
-                //       starting_time: Math.floor(
-                //         new Date(e.startTime).getTime() / 1000
-                //       ),
-                //       ending_time: Math.floor(
-                //         new Date(e.stopTime || e.rejectTime).getTime() / 1000
-                //       ),
-                //     },
-                //   ],
-                // };
-              })
-              // .filter((e, i) => i < 5)
+            metric.activeTime.list.map((e) => {
+              return {
+                // start: Math.floor(new Date(e.startTime).getTime() / 1000),
+                // end: Math.floor(new Date(e.stopTime || e.rejectTime).getTime() / 1000),
+                name: e.jid,
+                start: new Date(e.startTime).getTime(),
+                end: new Date(e.stopTime || e.rejectTime).getTime(),
+                errors: e.errors,
+                tag: e.stopTime ? `success` : `reject`,
+              };
+              // return {
+              //   times: [
+              //     {
+              //       starting_time: Math.floor(
+              //         new Date(e.addTime).getTime() / 1000
+              //       ),
+              //       ending_time: Math.floor(
+              //         new Date(e.startTime).getTime() / 1000
+              //       ),
+              //     },
+              //     {
+              //       starting_time: Math.floor(
+              //         new Date(e.startTime).getTime() / 1000
+              //       ),
+              //       ending_time: Math.floor(
+              //         new Date(e.stopTime || e.rejectTime).getTime() / 1000
+              //       ),
+              //     },
+              //   ],
+              // };
+            }),
+            {
+              tags: [`success`, `reject`],
+              colors: [`#3CC692`, `#D95F02`],
+            }
+            // .filter((e, i) => i < 5)
           )
         )
         .then(() => resolve())
         .catch((err) => reject(err));
     });
   }
-
-  // getRenderGraphFunction() {
-  //   return {
-  //     renderSuccessRate: () => {
-  //       this.console.log(`renderSuccessRate()`);
-  //       const { metric } = this.vue.ui.base.selected;
-  //       const id = this.ui.said(`content.objects.basemain.chart.successrate`);
-  //       this.console.log(`id:`, id);
-  //       // eslint-disable-next-line no-undef
-  //       const dom = document.getElementById(id);
-  //       dom.style.width = "150px";
-  //       dom.style.height = "150px";
-  //       this.console.log(dom);
-  //       const margin = 10;
-  //       const width = dom.offsetWidth;
-  //       const height = dom.offsetHeight;
-  //       const radius = Math.min(width, height) / 2 - margin;
-  //       // const thickness = Math.floor(radius * 0.2);
-
-  //       const calcPercent = (percent) => {
-  //         return [percent, 100 - percent];
-  //       };
-  //       const duration = 1500;
-  //       // const transition = 200;
-  //       const percent =
-  //         (metric.jobs.success / (metric.jobs.success + metric.jobs.fail)) *
-  //         100;
-
-  //       const dataset = {
-  //         lower: calcPercent(0),
-  //         upper: calcPercent(percent),
-  //       };
-  //       const pie = d3.pie().sort(null);
-  //       const format = d3.format(".0%");
-
-  //       const arc = d3
-  //         .arc()
-  //         .innerRadius(radius * 0.8)
-  //         .outerRadius(radius);
-
-  //       d3.select("#extension-lime-content-objects-basemain-chart-successrate")
-  //         .selectAll("*")
-  //         .remove();
-
-  //       const svg = d3
-  //         .select("#extension-lime-content-objects-basemain-chart-successrate")
-  //         .append("svg")
-  //         .attr("width", width)
-  //         .attr("height", height)
-  //         .append("g")
-  //         .attr("transform", `translate(${width / 2}, ${height / 2})`);
-
-  //       const color = d3.scaleOrdinal().range([`#3CC692`, `#D95F02`]);
-
-  //       this.chartAnimate = this.chartAnimate || {};
-  //       this.chartAnimate.successRate = this.chartAnimate.successRate || {};
-  //       let path = svg
-  //         .selectAll("path")
-  //         .data(pie(dataset.lower))
-  //         .enter()
-  //         .append(`path`)
-  //         .attr(`fill`, function(d, i) {
-  //           return color(i);
-  //         })
-  //         .attr("d", arc)
-  //         .each(function (d) {
-  //           // this.chartAnimate.successRate.current = d;
-  //           this._current = d;
-  //         });
-
-  //       const text = svg
-  //         .append("text")
-  //         .attr("text-anchor", "middle")
-  //         .attr("dy", "1.0em")
-  //         .attr("fill", `#343a40`)
-  //         .attr(`stroke`, `#343a40`);
-
-  //       const text2 = svg
-  //         .append("text")
-  //         .attr("text-anchor", "middle")
-  //         .attr("dy", "0em")
-  //         .attr("fill", `#343a40`)
-  //         .attr(`stroke`, `#343a40`)
-  //         .style(`font-size`, `1.2rem`);
-  //       text2.text(`Success Rate`);
-
-  //       const progress = 0;
-
-  //       const timeout = setTimeout(function () {
-  //         clearTimeout(timeout);
-  //         path
-  //           .transition()
-  //           .duration(duration)
-  //           .attrTween("d", function (a) {
-  //             const i = d3.interpolate(
-  //               // this.chartAnimate.successRate.current,
-  //               this._current,
-  //               a
-  //             );
-  //             const i2 = d3.interpolate(progress, percent);
-  //             // this.chartAnimate.successRate.current = i(0);
-  //             this._current = i(0);
-  //             return function (t) {
-  //               text.text(format(i2(t) / 100));
-  //               return arc(i(t));
-  //             };
-  //           });
-  //         path = path.data(pie(dataset.upper));
-  //       }, 200);
-  //     },
-
-  //     renderAvgWaitTime: () => {
-  //       this.console.log(`renderAvgWaitTime()`);
-  //       const { metric } = this.vue.ui.base.selected;
-  //       const id = this.ui.said(`content.objects.basemain.chart.successrate`);
-  //       this.console.log(`id:`, id);
-  //       // eslint-disable-next-line no-undef
-  //       const dom = document.getElementById(id);
-  //       dom.style.width = "150px";
-  //       dom.style.height = "150px";
-  //       this.console.log(dom);
-  //       const margin = 10;
-  //       const width = dom.offsetWidth;
-  //       const height = dom.offsetHeight;
-  //       const radius = Math.min(width, height) / 2 - margin;
-  //       // const thickness = Math.floor(radius * 0.2);
-
-  //       const calcPercent = (percent) => {
-  //         return [percent, 100 - percent];
-  //       };
-  //       const duration = 1500;
-  //       // const transition = 200;
-  //       const percent =
-  //         (metric.jobs.averageWaitingTime /
-  //           (metric.jobs.averageWaitingTime + metric.jobs.averageServiceTime)) *
-  //         100;
-
-  //       const dataset = {
-  //         lower: calcPercent(0),
-  //         upper: calcPercent(percent),
-  //       };
-  //       const pie = d3.pie().sort(null);
-  //       const format = d3.format(".0%");
-
-  //       const arc = d3
-  //         .arc()
-  //         .innerRadius(radius * 0.8)
-  //         .outerRadius(radius);
-
-  //       d3.select("#extension-lime-content-objects-basemain-chart-avgwaittime")
-  //         .selectAll("*")
-  //         .remove();
-
-  //       const svg = d3
-  //         .select("#extension-lime-content-objects-basemain-chart-avgwaittime")
-  //         .append("svg")
-  //         .attr("width", width)
-  //         .attr("height", height)
-  //         .append("g")
-  //         .attr("transform", `translate(${width / 2}, ${height / 2})`);
-
-  //       const color = d3.scaleOrdinal().range([`#566573`, `#3CC692`]);
-
-  //       // this.chartAnimate = this.chartAnimate || {};
-  //       // this.chartAnimate.successRate = this.chartAnimate.successRate || {};
-  //       let path = svg
-  //         .selectAll("path")
-  //         .data(pie(dataset.lower))
-  //         .enter()
-  //         .append(`path`)
-  //         .attr(`fill`, function(d, i) {
-  //           return color(i);
-  //         })
-  //         .attr("d", arc)
-  //         .each(function (d) {
-  //           // this.chartAnimate.successRate.current = d;
-  //           this._current = d;
-  //         });
-
-  //       const textWaitLabel = svg
-  //         .append("text")
-  //         .attr("text-anchor", "middle")
-  //         .attr("dy", "-2em")
-  //         .attr("fill", `#343a40`)
-  //         .attr(`stroke`, `#343a40`)
-  //         .style(`font-size`, `1.2rem`);
-  //       textWaitLabel.text(`Wait Time`);
-
-  //       const textWait = svg
-  //         .append("text")
-  //         .attr("text-anchor", "middle")
-  //         .attr("dy", "-0.5em")
-  //         .attr("fill", `#343a40`)
-  //         .attr(`stroke`, `#343a40`);
-
-  //       const textServeLabel = svg
-  //         .append("text")
-  //         .attr("text-anchor", "middle")
-  //         .attr("dy", "1.2em")
-  //         .attr("fill", `#343a40`)
-  //         .attr(`stroke`, `#343a40`)
-  //         .style(`font-size`, `1.2rem`);
-  //       textServeLabel.text(`Process Time`);
-
-  //       const textServe = svg
-  //         .append("text")
-  //         .attr("text-anchor", "middle")
-  //         .attr("dy", "2em")
-  //         .attr("fill", `#343a40`)
-  //         .attr(`stroke`, `#343a40`);
-
-  //       const progress = 0;
-
-  //       const timeout = setTimeout(function () {
-  //         clearTimeout(timeout);
-  //         path
-  //           .transition()
-  //           .duration(duration)
-  //           .attrTween("d", function (a) {
-  //             const i = d3.interpolate(
-  //               // this.chartAnimate.successRate.current,
-  //               this._current,
-  //               a
-  //             );
-  //             const i2 = d3.interpolate(progress, percent);
-  //             // this.chartAnimate.successRate.current = i(0);
-  //             this._current = i(0);
-  //             return function (t) {
-  //               textWait.text(format(i2(t) / 100));
-  //               textServe.text(format((100 - i2(t)) / 100));
-  //               return arc(i(t));
-  //             };
-  //           });
-  //         path = path.data(pie(dataset.upper));
-  //       }, 200);
-  //     },
-  //   };
-  // }
 
   onAlternateChange() {
     this.console.log(`PageEngines: onAlternateChange() >> `);
@@ -866,6 +687,19 @@ export default class LimeExtenisonPageObjects {
     Object.keys(src).forEach((i) => {
       if (!Object.prototype.hasOwnProperty.call(dst, i)) result[i] = true;
     });
+    return result;
+  }
+
+  getJsonElement(path, obj) {
+    console.log(`getJsonElement(${path}):`, obj);
+    const pathArr = path.split(`.`);
+    if (!obj || !pathArr.length || !obj[pathArr[0]]) return undefined;
+    const result = obj[pathArr[0]];
+    if (pathArr.slice(1).length) {
+      this.console.log(`result:`, result);
+      return this.getJsonElement(pathArr.slice(1).join(`.`), result);
+    }
+    this.console.log(`final result:`, result);
     return result;
   }
 }

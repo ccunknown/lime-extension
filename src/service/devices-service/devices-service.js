@@ -70,7 +70,7 @@ class DevicesService extends Service {
         .reduce((prevProm, id) => {
           return prevProm
             .then(() =>
-              list[id]._config && list[id]._config.enable
+              list[id].enable
                 ? this.objects.addToService(id, list[id])
                 : Promise.resolve()
             )

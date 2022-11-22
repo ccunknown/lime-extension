@@ -131,13 +131,17 @@ class ObjectMetricBuilder {
 
   jobEvaluate(job) {
     const result = {
+      jid: job.jid,
       addTime: this.getJobActTime(job.logList, `ADD`),
       startTime: this.getJobActTime(job.logList, `START`),
     };
     const stopTime = this.getJobActTime(job.logList, `END`);
     if (stopTime) result.stopTime = stopTime;
     const rejectTime = this.getJobActTime(job.logList, `REJECT`);
-    if (rejectTime) result.rejectTime = rejectTime;
+    if (rejectTime) {
+      result.rejectTime = rejectTime;
+      result.errors = this.getRejectMessage(job.logList);
+    }
 
     result.waitingTime =
       result.startTime && result.addTime
@@ -161,6 +165,17 @@ class ObjectMetricBuilder {
       return log.timestamp;
     }
     return null;
+  }
+
+  getRejectMessage(logList) {
+    const word = `[ACT:REJECT`;
+    const log = logList.find((e) => e.message.startsWith(word));
+    if (!log) return null;
+    const stackReg = /<stack:\[([^>]+)\]>/i;
+    const stackMessage = log.message.match(stackReg);
+    if (!stackMessage || stackMessage.length < 2) return null;
+    const stackArray = stackMessage[1].split(`, `);
+    return stackArray;
   }
 
   // Remove jobs which not have [ACT: START].
