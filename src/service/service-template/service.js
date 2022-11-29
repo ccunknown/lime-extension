@@ -5,7 +5,7 @@
 const SERVICE_OBJECT_NAME_PAIR = {
   "devices-service": `device`,
   "engines-service": `engine`,
-  "sysport-service": `sysport`,
+  "ioports-service": `ioports`,
 };
 
 const Path = require(`path`);
@@ -142,12 +142,12 @@ class Service extends EventEmitter {
     return this.getObjectFromService(`engines-service`, objectId);
   }
 
-  getSysport(objectId, options = { object: true }) {
-    return this.getObjectFromService(`sysport-service`, objectId, options);
+  getIoport(objectId, options = { object: true }) {
+    return this.getObjectFromService(`ioports-service`, objectId, options);
   }
 
-  getSysportConfig(objectId) {
-    return this.getObjectFromService(`sysport-service`, objectId);
+  getIoportConfig(objectId) {
+    return this.getObjectFromService(`ioports-service`, objectId);
   }
 
   getObjectFromService(serviceId, objectId, options) {

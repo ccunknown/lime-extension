@@ -4,10 +4,10 @@
 const Mustache = require(`mustache`);
 
 const {
-  ValidateConfigSchema, 
-  CompatibleList, 
+  ValidateConfigSchema,
+  CompatibleList,
   AlternateList,
-  AttributeList
+  AttributeList,
 } = require(`./define.js`);
 
 const ScriptBuilder = require(`./script-builder.js`);

@@ -35,7 +35,7 @@ class RoutesManager extends APIHandler {
                 .then(() => this.configManager.getConfig())
                 .then((conf) => {
                   // console.log(`conf : ${JSON.stringify(conf, null, 2)}`);
-                  resolve(this.makeJsonRespond(JSON.stringify(conf)));
+                  resolve(this.makeJsonRespond(conf));
                 })
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -47,9 +47,7 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.configManager.addToConfig(req.body, params.path)
                 )
-                .then((res) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(res)))
-                )
+                .then((res) => resolve(this.makeJsonRespond(res)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -57,9 +55,7 @@ class RoutesManager extends APIHandler {
             return new Promise((resolve) => {
               Promise.resolve()
                 .then(() => this.configManager.saveConfig(req.body))
-                .then((conf) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(conf)))
-                )
+                .then((conf) => resolve(this.makeJsonRespond(conf)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -70,27 +66,13 @@ class RoutesManager extends APIHandler {
                 .then(() =>
                   this.configManager.updateConfig(req.body, params.path)
                 )
-                .then((res) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(res)))
-                )
+                .then((res) => resolve(this.makeJsonRespond(res)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
           DELETE: (req) => {
             return new Promise((resolve) => {
               const params = this.getParameters(req);
-              // if(this.configManager.isEmptyObject(params)) {
-              //   Promise.resolve()
-              //   .then(() => this.configManager.deleteConfig())
-              //   .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
-              //   .catch((err) => resolve(this.catchErrorRespond(err)));
-              // }
-              // else {
-              //   Promise.resolve()
-              //   .then(() => this.configManager.deleteConfig(params.path))
-              //   .then((res) => resolve(this.makeJsonRespond(JSON.stringify(res))))
-              //   .catch((err) => resolve(this.catchErrorRespond(err)));
-              // }
               Promise.resolve()
                 .then(() =>
                   this.configManager.deleteConfig(
@@ -99,9 +81,7 @@ class RoutesManager extends APIHandler {
                       : params.path
                   )
                 )
-                .then((res) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(res)))
-                )
+                .then((res) => resolve(this.makeJsonRespond(res)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -125,9 +105,7 @@ class RoutesManager extends APIHandler {
                       .digest(`hex`),
                   };
                 })
-                .then((res) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(res)))
-                )
+                .then((res) => resolve(this.makeJsonRespond(res)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -142,7 +120,7 @@ class RoutesManager extends APIHandler {
             return new Promise((resolve) => {
               try {
                 const schema = this.configManager.getSchema();
-                resolve(this.makeJsonRespond(JSON.stringify(schema)));
+                resolve(this.makeJsonRespond(schema));
               } catch (err) {
                 resolve(this.catchErrorRespond(err));
               }
@@ -170,14 +148,166 @@ class RoutesManager extends APIHandler {
                     };
                   })
                 )
-                .then((servList) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(servList)))
-                )
+                .then((servList) => resolve(this.makeJsonRespond(servList)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
         },
       },
+
+      //  Resource : /service/['device', 'engine', 'ioport']/objects-config
+      {
+        resource: /\/service\/(device|engine|ioport)\/objects-config\/?/,
+        method: {
+          GET: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.objects.getConfig())
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
+      //  Resource : /service/['device', 'engine', 'ioport']/objects-config/{object-id}
+      {
+        resource: /\/service\/(device|engine|ioport)\/objects-config\/[^/]+\/?/,
+        method: {
+          GET: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const id = this.getPathElement(req.path, 3);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.objects.getConfig(id))
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
+      //  Resource : /service/['device', 'engine', 'ioport']/objects
+      {
+        resource: /\/service\/(device|engine|ioport)\/objects\/?/,
+        method: {
+          GET: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.objects.getConfigWithState())
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
+      //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}
+      {
+        resource: /\/service\/(device|engine|ioport)\/objects\/[^/]+\/?/,
+        method: {
+          GET: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const id = this.getPathElement(req.path, 3);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.objects.getConfigWithState(id))
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
+      //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}/metric
+      {
+        resource:
+          /\/service\/(device|engine|ioport)\/objects\/[^/]+\/metric\/?/,
+        method: {
+          GET: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const id = this.getPathElement(req.path, 3);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.objects.get(id, { object: true }))
+                .then((device) => device.generateMetric())
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
+      //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}/properties/{child-id}
+      {
+        resource:
+          /\/service\/(device|engine|ioport)\/objects\/[^/]+\/properties\/[^/]+\/metric\/?/,
+        method: {
+          GET: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const id = this.getPathElement(req.path, 3);
+              const childId = this.getPathElement(req.path, 5);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.objects.get(id, { object: true }))
+                .then((object) => {
+                  if (!object) throw new Errors.ObjectNotFound(id);
+                  return object.oo.getChild(childId);
+                })
+                .then((child) => {
+                  if (!child) throw new Errors.ObjectNotFound(childId);
+                  console.log(`Child constructor:`, child.constructor.name);
+                  return child.generateMetric();
+                })
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
+      //  Resource : /service/['device', 'engine', 'ioport']/generate-schema
+      {
+        resource: /\/service\/(device|engine|ioport)\/generate-schema\/?/,
+        method: {
+          POST: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.objects.generateConfigSchema(req.body))
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
+
+
+
 
       //  Resource : /service/devices-service/devicesConfigSchema
       {
@@ -193,7 +323,7 @@ class RoutesManager extends APIHandler {
                 )
                 .then((json) => {
                   // console.log(`device list : ${JSON.stringify(json, null, 2)}`);
-                  resolve(this.makeJsonRespond(JSON.stringify(json)));
+                  resolve(this.makeJsonRespond(json));
                 })
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -215,7 +345,7 @@ class RoutesManager extends APIHandler {
                 )
                 .then((res) => {
                   console.log(`propId: ${JSON.stringify(res, null, 2)}`);
-                  resolve(this.makeJsonRespond(JSON.stringify(res)));
+                  resolve(this.makeJsonRespond(res));
                 })
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -237,7 +367,7 @@ class RoutesManager extends APIHandler {
                 )
                 .then((json) => {
                   // console.log(`device list : ${JSON.stringify(json, null, 2)}`);
-                  resolve(this.makeJsonRespond(JSON.stringify(json)));
+                  resolve(this.makeJsonRespond(json));
                 })
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -257,9 +387,7 @@ class RoutesManager extends APIHandler {
                     .getService(`devices-service`)
                     .obj.configTranslator.validate(req.body)
                 )
-                .then((json) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(json)))
-                )
+                .then((json) => resolve(this.makeJsonRespond(json)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -278,9 +406,7 @@ class RoutesManager extends APIHandler {
                     .getService(`devices-service`)
                     .obj.objects.getConfigWithState()
                 )
-                .then((devices) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(devices)))
-                )
+                .then((devices) => resolve(this.makeJsonRespond(devices)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -300,9 +426,7 @@ class RoutesManager extends APIHandler {
                     .getService(`devices-service`)
                     .obj.objects.getConfigWithState(id)
                 )
-                .then((devices) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(devices)))
-                )
+                .then((devices) => resolve(this.makeJsonRespond(devices)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -327,9 +451,7 @@ class RoutesManager extends APIHandler {
                 )
                 // .then((device) => device.getMetrics())
                 .then((device) => device.generateMetric())
-                .then((res) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(res)))
-                )
+                .then((res) => resolve(this.makeJsonRespond(res)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -369,9 +491,7 @@ class RoutesManager extends APIHandler {
                   return property.mb.buildMetric();
                 })
 
-                .then((res) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(res)))
-                )
+                .then((res) => resolve(this.makeJsonRespond(res)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -396,7 +516,7 @@ class RoutesManager extends APIHandler {
                       .getService(`devices-service`)
                       .obj.objects.start(id)
                   )
-                  .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
+                  .then(() => resolve(this.makeJsonRespond({})))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
               } else if (cmd === `stop`) {
                 Promise.resolve()
@@ -405,7 +525,7 @@ class RoutesManager extends APIHandler {
                       .getService(`devices-service`)
                       .obj.objects.stop(id)
                   )
-                  .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
+                  .then(() => resolve(this.makeJsonRespond({})))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
               } else if (cmd === `add-to-service`) {
                 Promise.resolve()
@@ -417,9 +537,7 @@ class RoutesManager extends APIHandler {
                   .then(() =>
                     devicesService.addToService(id, null, { chain: true })
                   )
-                  .then((res) =>
-                    resolve(this.makeJsonRespond(JSON.stringify(res)))
-                  )
+                  .then((res) => resolve(this.makeJsonRespond(res)))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
               } else if (cmd === `add-to-service-chain`) {
                 Promise.resolve()
@@ -429,9 +547,7 @@ class RoutesManager extends APIHandler {
                     })
                   )
                   .then(() => devicesService.addToService(id))
-                  .then((res) =>
-                    resolve(this.makeJsonRespond(JSON.stringify(res)))
-                  )
+                  .then((res) => resolve(this.makeJsonRespond(res)))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
               } else if (cmd === `remove-from-service`) {
                 Promise.resolve()
@@ -441,9 +557,7 @@ class RoutesManager extends APIHandler {
                     })
                   )
                   .then(() => devicesService.removeFromService(id))
-                  .then((res) =>
-                    resolve(this.makeJsonRespond(JSON.stringify(res)))
-                  )
+                  .then((res) => resolve(this.makeJsonRespond(res)))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
               } else
                 resolve(this.catchErrorRespond(new Errors.PathInvalid(cmd)));
@@ -464,9 +578,7 @@ class RoutesManager extends APIHandler {
                     .getService(`devices-service`)
                     .obj.objects.getConfig()
                 )
-                .then((devices) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(devices)))
-                )
+                .then((devices) => resolve(this.makeJsonRespond(devices)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -478,9 +590,7 @@ class RoutesManager extends APIHandler {
                     .getService(`devices-service`)
                     .obj.objects.add(req.body)
                 )
-                .then((json) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(json)))
-                )
+                .then((json) => resolve(this.makeJsonRespond(json)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -497,9 +607,7 @@ class RoutesManager extends APIHandler {
               this.laborsManager
                 .getService(`devices-service`)
                 .obj.objects.getConfig(id)
-                .then((device) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(device)))
-                )
+                .then((device) => resolve(this.makeJsonRespond(device)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -512,9 +620,7 @@ class RoutesManager extends APIHandler {
                     .getService(`devices-service`)
                     .obj.objects.update(id, req.body)
                 )
-                .then((json) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(json)))
-                )
+                .then((json) => resolve(this.makeJsonRespond(json)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -529,93 +635,8 @@ class RoutesManager extends APIHandler {
                 )
                 .then((json) => {
                   // console.log(`device list : ${JSON.stringify(json, null, 2)}`);
-                  resolve(this.makeJsonRespond(JSON.stringify(json)));
+                  resolve(this.makeJsonRespond(json));
                 })
-                .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          },
-        },
-      },
-
-      //  Resource : /service/scripts
-      {
-        resource: /\/service\/scripts/,
-        method: {
-          GET: () => {
-            return new Promise((resolve) => {
-              Promise.resolve()
-                .then(() =>
-                  this.laborsManager
-                    .getService(`scripts-service`)
-                    .obj.get(null, { deep: true })
-                )
-                .then((json) => {
-                  // console.log(`script list : ${JSON.stringify(json, null, 2)}`);
-                  resolve(this.makeJsonRespond(JSON.stringify(json)));
-                })
-                .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          },
-          PUT: (req) => {
-            return new Promise((resolve) => {
-              Promise.resolve()
-                .then(() =>
-                  this.laborsManager
-                    .getService(`scripts-service`)
-                    .obj.create(req.body, `scripts`)
-                )
-                .then((conf) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(conf)))
-                )
-                .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          },
-          DELETE: () => {
-            return new Promise((resolve) => {
-              Promise.resolve()
-                .then(() => this.configManager.saveConfig({}))
-                .then((conf) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(conf)))
-                )
-                .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          },
-        },
-      },
-
-      //  Resource : /service/scripts/{name}
-      {
-        resource: /\/service\/scripts\/[^/]+/,
-        method: {
-          GET: (req) => {
-            return new Promise((resolve) => {
-              Promise.resolve()
-                .then(() =>
-                  this.laborsManager
-                    .getService(`scripts-service`)
-                    .obj.get(req.path.split(`/`).pop(), {
-                      base64: true,
-                      deep: true,
-                    })
-                )
-                .then((json) => {
-                  // console.log(`script list : ${JSON.stringify(json, null, 2)}`);
-                  resolve(this.makeJsonRespond(JSON.stringify(json)));
-                })
-                .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          },
-          DELETE: (req) => {
-            return new Promise((resolve) => {
-              Promise.resolve()
-                .then(() =>
-                  this.laborsManager
-                    .getService(`scripts-service`)
-                    .obj.delete(req.path.split(`/`).pop())
-                )
-                .then((res) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(res)))
-                )
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -634,9 +655,7 @@ class RoutesManager extends APIHandler {
                     .getService(`engines-service`)
                     .obj.generateConfigSchema(req.body)
                 )
-                .then((json) => {
-                  resolve(this.makeJsonRespond(JSON.stringify(json)));
-                })
+                .then((json) => resolve(this.makeJsonRespond(json)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -656,9 +675,7 @@ class RoutesManager extends APIHandler {
                     // .obj.getServiceEngine()
                     .obj.objects.getConfigWithState()
                 )
-                .then((engines) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(engines)))
-                )
+                .then((engines) => resolve(this.makeJsonRespond(engines)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -679,9 +696,7 @@ class RoutesManager extends APIHandler {
                     .getService(`engines-service`)
                     .obj.objects.getConfigWithState(id)
                 )
-                .then((engines) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(engines)))
-                )
+                .then((engines) => resolve(this.makeJsonRespond(engines)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -705,9 +720,7 @@ class RoutesManager extends APIHandler {
                     .obj.objects.get(id, { object: true })
                 )
                 .then((engine) => engine.generateMetric())
-                .then((res) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(res)))
-                )
+                .then((res) => resolve(this.makeJsonRespond(res)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -732,7 +745,7 @@ class RoutesManager extends APIHandler {
                       .getService(`engines-service`)
                       .obj.objects.start(id)
                   )
-                  .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
+                  .then(() => resolve(this.makeJsonRespond({})))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
               } else if (cmd === `stop`) {
                 Promise.resolve()
@@ -741,7 +754,7 @@ class RoutesManager extends APIHandler {
                       .getService(`engines-service`)
                       .obj.objects.stop(id)
                   )
-                  .then(() => resolve(this.makeJsonRespond(JSON.stringify({}))))
+                  .then(() => resolve(this.makeJsonRespond({})))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
               } else if (cmd === `add-to-service`) {
                 Promise.resolve()
@@ -751,9 +764,7 @@ class RoutesManager extends APIHandler {
                     })
                   )
                   .then(() => enginesService.addToService(id))
-                  .then((res) =>
-                    resolve(this.makeJsonRespond(JSON.stringify(res)))
-                  )
+                  .then((res) => resolve(this.makeJsonRespond(res)))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
               } else if (cmd === `remove-from-service`) {
                 Promise.resolve()
@@ -763,9 +774,7 @@ class RoutesManager extends APIHandler {
                     })
                   )
                   .then(() => enginesService.removeFromService(id))
-                  .then((res) =>
-                    resolve(this.makeJsonRespond(JSON.stringify(res)))
-                  )
+                  .then((res) => resolve(this.makeJsonRespond(res)))
                   .catch((err) => resolve(this.catchErrorRespond(err)));
               } else
                 resolve(this.catchErrorRespond(new Errors.PathInvalid(cmd)));
@@ -786,9 +795,7 @@ class RoutesManager extends APIHandler {
                     .getService(`engines-service`)
                     .obj.objects.get()
                 )
-                .then((engines) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(engines)))
-                )
+                .then((engines) => resolve(this.makeJsonRespond(engines)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -800,9 +807,7 @@ class RoutesManager extends APIHandler {
                     .getService(`engines-service`)
                     .obj.objects.add(req.body)
                 )
-                .then((engine) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(engine)))
-                )
+                .then((engine) => resolve(this.makeJsonRespond(engine)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -822,9 +827,7 @@ class RoutesManager extends APIHandler {
                     .getService(`engines-service`)
                     .obj.objects.get(id)
                 )
-                .then((engine) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(engine)))
-                )
+                .then((engine) => resolve(this.makeJsonRespond(engine)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -837,9 +840,7 @@ class RoutesManager extends APIHandler {
                     .getService(`engines-service`)
                     .obj.objects.update(id, req.body)
                 )
-                .then((engine) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(engine)))
-                )
+                .then((engine) => resolve(this.makeJsonRespond(engine)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -852,9 +853,7 @@ class RoutesManager extends APIHandler {
                     .getService(`engines-service`)
                     .obj.objects.remove(id)
                 )
-                .then((engine) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(engine)))
-                )
+                .then((engine) => resolve(this.makeJsonRespond(engine)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -874,7 +873,7 @@ class RoutesManager extends APIHandler {
                     .obj.generateConfigSchema(req.body)
                 )
                 .then((json) => {
-                  resolve(this.makeJsonRespond(JSON.stringify(json)));
+                  resolve(this.makeJsonRespond(json));
                 })
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -895,9 +894,7 @@ class RoutesManager extends APIHandler {
                     // .obj.getServiceEngine()
                     .obj.objects.getConfigWithState()
                 )
-                .then((engines) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(engines)))
-                )
+                .then((engines) => resolve(this.makeJsonRespond(engines)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -916,9 +913,7 @@ class RoutesManager extends APIHandler {
                     .getService(`sysport-service`)
                     .obj.getSerialPortList()
                 )
-                .then((ports) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(ports)))
-                )
+                .then((ports) => resolve(this.makeJsonRespond(ports)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -942,9 +937,7 @@ class RoutesManager extends APIHandler {
                     .getService(`sysport-service`)
                     .obj.objects.getConfigWithState()
                 )
-                .then((ports) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(ports)))
-                )
+                .then((ports) => resolve(this.makeJsonRespond(ports)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -956,9 +949,7 @@ class RoutesManager extends APIHandler {
                     .getService(`sysport-service`)
                     .obj.objects.add(req.body)
                 )
-                .then((ports) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(ports)))
-                )
+                .then((ports) => resolve(this.makeJsonRespond(ports)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -983,9 +974,7 @@ class RoutesManager extends APIHandler {
                   console.log(`ports: `, port.config);
                   return port;
                 })
-                .then((port) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(port.config)))
-                )
+                .then((port) => resolve(this.makeJsonRespond(port.config)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -998,9 +987,7 @@ class RoutesManager extends APIHandler {
                     .getService(`sysport-service`)
                     .obj.objects.update(id, req.body)
                 )
-                .then((ports) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(ports)))
-                )
+                .then((ports) => resolve(this.makeJsonRespond(ports)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -1013,9 +1000,86 @@ class RoutesManager extends APIHandler {
                     .getService(`sysport-service`)
                     .obj.objects.remove(id)
                 )
-                .then((ports) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(ports)))
+                .then((ports) => resolve(this.makeJsonRespond(ports)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
+      //  Resource : /service/scripts
+      {
+        resource: /\/service\/scripts/,
+        method: {
+          GET: () => {
+            return new Promise((resolve) => {
+              Promise.resolve()
+                .then(() =>
+                  this.laborsManager
+                    .getService(`scripts-service`)
+                    .obj.get(null, { deep: true })
                 )
+                .then((json) => {
+                  // console.log(`script list : ${JSON.stringify(json, null, 2)}`);
+                  resolve(this.makeJsonRespond(json));
+                })
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          PUT: (req) => {
+            return new Promise((resolve) => {
+              Promise.resolve()
+                .then(() =>
+                  this.laborsManager
+                    .getService(`scripts-service`)
+                    .obj.create(req.body, `scripts`)
+                )
+                .then((conf) => resolve(this.makeJsonRespond(conf)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          DELETE: () => {
+            return new Promise((resolve) => {
+              Promise.resolve()
+                .then(() => this.configManager.saveConfig({}))
+                .then((conf) => resolve(this.makeJsonRespond(conf)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
+      //  Resource : /service/scripts/{name}
+      {
+        resource: /\/service\/scripts\/[^/]+/,
+        method: {
+          GET: (req) => {
+            return new Promise((resolve) => {
+              Promise.resolve()
+                .then(() =>
+                  this.laborsManager
+                    .getService(`scripts-service`)
+                    .obj.get(req.path.split(`/`).pop(), {
+                      base64: true,
+                      deep: true,
+                    })
+                )
+                .then((json) => {
+                  // console.log(`script list : ${JSON.stringify(json, null, 2)}`);
+                  resolve(this.makeJsonRespond(json));
+                })
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          DELETE: (req) => {
+            return new Promise((resolve) => {
+              Promise.resolve()
+                .then(() =>
+                  this.laborsManager
+                    .getService(`scripts-service`)
+                    .obj.delete(req.path.split(`/`).pop())
+                )
+                .then((res) => resolve(this.makeJsonRespond(res)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -1032,9 +1096,7 @@ class RoutesManager extends APIHandler {
                 this.laborsManager.getService(`rtcpeer-service`).obj;
               Promise.resolve()
                 .then(() => rtcpeerService.getSession())
-                .then((ret) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(ret)))
-                )
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -1047,9 +1109,7 @@ class RoutesManager extends APIHandler {
                 .then((session) => {
                   return { id: session.id };
                 })
-                .then((ret) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(ret)))
-                )
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -1060,9 +1120,7 @@ class RoutesManager extends APIHandler {
               Promise.resolve()
                 .then(() => rtcpeerService.deleteSession())
                 .then(() => rtcpeerService.getSession())
-                .then((ret) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(ret)))
-                )
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -1080,9 +1138,7 @@ class RoutesManager extends APIHandler {
               const id = this.getPathElement(req.path);
               Promise.resolve()
                 .then(() => rtcpeerService.getSession(id))
-                .then((ret) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(ret)))
-                )
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -1093,9 +1149,7 @@ class RoutesManager extends APIHandler {
               const id = this.getPathElement(req.path);
               Promise.resolve()
                 .then(() => rtcpeerService.deleteSession(id))
-                .then((ret) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(ret)))
-                )
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -1113,9 +1167,7 @@ class RoutesManager extends APIHandler {
               const id = this.getPathElement(req.path, 2);
               Promise.resolve()
                 .then(() => rtcpeerService.getOffer(id))
-                .then((ret) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(ret)))
-                )
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -1133,9 +1185,7 @@ class RoutesManager extends APIHandler {
               const id = this.getPathElement(req.path, 2);
               Promise.resolve()
                 .then(() => rtcpeerService.getOfferCandidate(id))
-                .then((ret) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(ret)))
-                )
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -1154,9 +1204,7 @@ class RoutesManager extends APIHandler {
               console.log(`req body:`, JSON.stringify(req.body));
               Promise.resolve()
                 .then(() => rtcpeerService.addAnswer(id, req.body))
-                .then((ret) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(ret)))
-                )
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -1174,9 +1222,7 @@ class RoutesManager extends APIHandler {
               const id = this.getPathElement(req.path, 2);
               Promise.resolve()
                 .then(() => rtcpeerService.addAnswerCandidate(id, req.body))
-                .then((ret) =>
-                  resolve(this.makeJsonRespond(JSON.stringify(ret)))
-                )
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -1265,7 +1311,7 @@ class RoutesManager extends APIHandler {
     return new APIResponse({
       status: 200,
       contentType: `application/json`,
-      content: data,
+      content: JSON.stringify(data),
     });
   }
 

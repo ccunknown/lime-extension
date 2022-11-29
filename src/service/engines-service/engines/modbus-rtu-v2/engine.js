@@ -15,7 +15,7 @@ class ModbusRtu extends EngineTemplate {
   constructor(enginesService, id, config) {
     super(enginesService, id, config);
     this.enginesService = enginesService;
-    this.sysportService = enginesService.sysportService;
+    this.ioportsService = enginesService.ioportsService;
     this.config = config;
     this.lastProcessTimestamp = new Date();
     this.event = new EventEmitter();
@@ -35,10 +35,10 @@ class ModbusRtu extends EngineTemplate {
       let port;
       Promise.resolve()
         .then(() =>
-          this.sysportService.objects.get(this.config.port, { object: true })
+          this.ioportsService.objects.get(this.config.port, { object: true })
         )
-        .then((sysport) => {
-          port = sysport;
+        .then((ioport) => {
+          port = ioport;
         })
         .then(() => this.initMod())
         .then(() => require(`./rtubufferedport`))

@@ -11,14 +11,17 @@ const {
 
 class ServiceConfigTranslator {
   constructor(enginesService) {
-    console.log(`[${this.constructor.name}]`, `constructor() >> `);
     this.enginesService = enginesService;
+    console.log(
+      `[${this.constructor.name}]`,
+      this.enginesService.constructor.name
+    );
     this.validator = new Validator();
   }
 
   generateConfigSchema(params) {
     console.log(`[${this.constructor.name}]: generateConfigSchema() >> `);
-    console.log(`Params: ${JSON.stringify(params, null, 2)}`);
+    console.log(`>> params: ${JSON.stringify(params, null, 2)}`);
     return new Promise((resolve, reject) => {
       //  Copy config from ValidateConfigSchema.
       const config = JSON.parse(JSON.stringify(ValidateConfigSchema));
@@ -38,16 +41,16 @@ class ServiceConfigTranslator {
       });
 
       //  Initial 'enum' attribute.
-      let engineTemplate;
+      let engineTemplates;
       Promise.resolve()
         .then(() =>
           this.enginesService.objects.getTemplate(null, { deep: true })
         )
         .then((templates) => {
-          engineTemplate = templates;
+          engineTemplates = templates;
         })
         .then(() => {
-          config.properties.template.enum = engineTemplate.map((e) => e.name);
+          config.properties.template.enum = engineTemplates.map((e) => e.name);
           if (params && params.template && params.template.length) {
             const dir = this.enginesService.config.directory;
             const EngineConfigTranslator = require(Path.join(

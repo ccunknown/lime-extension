@@ -107,6 +107,7 @@ export default class LimeExtenisonPageObjects {
         },
         // UI
         ui: {
+          mode: `view`, // [view, edit, add]
           slider: {
             hide: true,
             ready: false,
@@ -119,6 +120,8 @@ export default class LimeExtenisonPageObjects {
             activeId: null,
             quickFilter: [`device`, `engine`, `ioport`],
             selected: {},
+            form: {},
+            formSchema: {},
           },
         },
         // Function
@@ -133,10 +136,16 @@ export default class LimeExtenisonPageObjects {
         this.vue.ui.slider[`edit-id`] = null;
         this.renderSlider();
       },
-      edit: (id) => {
+      edit: (id = this.vue.ui.base.activeId) => {
         this.console.log(`edit(${id})`);
-        this.vue.ui.slider[`edit-id`] = id;
-        this.renderSlider(id);
+        this.renderForm(id);
+        this.vue.ui.mode = `edit`;
+      },
+      view: (id = this.vue.ui.base.activeId) => {
+        this.console.log(`view(${id})`);
+        this.vue.ui.base.activeId = id;
+        this.vue.ui.mode = `view`;
+        return this.renderBaseMain(id);
       },
       remove: (id) => {
         this.console.log(`delete(${id})`);
@@ -156,21 +165,21 @@ export default class LimeExtenisonPageObjects {
         this.console.log(`save()`);
         this.console.log(
           `save data:`,
-          `${JSON.stringify(this.vue.ui.slider.form, null, 2)}`
+          `${JSON.stringify(this.vue.ui.base.form, null, 2)}`
         );
-        return new Promise((resolve, reject) => {
-          const id = this.vue.ui.slider[`edit-id`];
-          const config = this.vue.ui.slider.form;
-          Promise.resolve()
-            .then(() =>
-              id
-                ? this.rest.editConfig(id, config)
-                : this.rest.addConfig(config)
-            )
-            .then((/* res */) => this.render())
-            .then(() => resolve())
-            .catch((err) => reject(err));
-        });
+        // return new Promise((resolve, reject) => {
+        //   const id = this.vue.ui.slider[`edit-id`];
+        //   const config = this.vue.ui.slider.form;
+        //   Promise.resolve()
+        //     .then(() =>
+        //       id
+        //         ? this.rest.editConfig(id, config)
+        //         : this.rest.addConfig(config)
+        //     )
+        //     .then((/* res */) => this.render())
+        //     .then(() => resolve())
+        //     .catch((err) => reject(err));
+        // });
       },
       addSubscribe: (id) => {
         this.console.log(`addSubscribe(${id})`);
@@ -277,10 +286,12 @@ export default class LimeExtenisonPageObjects {
       },
       clickObject: (
         id,
-        objectLayer = this.vue.ui.base.selected.objectLayer
+        objectLayer = this.vue.ui.base.selected.objectLayer,
+        mode = `view`
       ) => {
         this.console.log(`clickObject:`, id, objectLayer);
         this.vue.ui.base.activeId = id;
+        this.vue.ui.mode = mode;
         if (objectLayer) this.vue.ui.base.selected.objectLayer = objectLayer;
         this.vue.fn.toggleLeftPanel(false);
         this.console.log(`click object '`, id, `' layer '${objectLayer}'`);
@@ -334,12 +345,6 @@ export default class LimeExtenisonPageObjects {
           this.console.log(`uptime:`, `${s} ms`, `/`, resultString);
           return resultString;
         },
-        // renderServeQuality: () => {
-        //   // eslint-disable-next-line no-undef
-        //   const svg = d3.select(
-        //     this.ui.said(`content.objects.basemain.chart.servequality`)
-        //   );
-        // },
       },
     };
 
@@ -370,7 +375,7 @@ export default class LimeExtenisonPageObjects {
           this.vue.ui.slider.hide = true;
         })
         // Get serviced devices.
-        .then(() => this.rest.devices.getServicedItem())
+        .then(() => this.rest.devices.getObjectConfigWithState())
         .then((devices) => {
           this.vue.resource.devices = {};
           Object.entries(devices).forEach(([key, value]) => {
@@ -381,7 +386,7 @@ export default class LimeExtenisonPageObjects {
           });
         })
         // Get serviced engines.
-        .then(() => this.rest.engines.getServicedItem())
+        .then(() => this.rest.engines.getObjectConfigWithState())
         .then((engines) => {
           this.vue.resource.engines = {};
           Object.entries(engines).forEach(([key, value]) => {
@@ -392,7 +397,7 @@ export default class LimeExtenisonPageObjects {
           });
         })
         // Get serviced sysport
-        .then(() => this.rest.ioports.getServicedItem())
+        .then(() => this.rest.ioports.getObjectConfigWithState())
         .then((ioports) => {
           this.vue.resource.ioports = {};
           Object.entries(ioports).forEach(([key, value]) => {
@@ -401,15 +406,6 @@ export default class LimeExtenisonPageObjects {
               // ...{ objectLayer: `ioport` },
             };
           });
-        })
-        // Combine devices, engines and sysport to objects.
-        .then(() => {
-          // this.vue.resource.objects = {
-          //   ...this.vue.resource.devices,
-          //   ...this.vue.resource.engines,
-          //   ...this.vue.resource.ioports,
-          // };
-          // this.console.log(`objects`, this.vue.resource.objects);
         })
         .catch((err) => this.console.error(err))
         .finally(() => {
@@ -485,24 +481,30 @@ export default class LimeExtenisonPageObjects {
     });
   }
 
-  renderForm(id) {
-    this.console.log(`PageEngines: renderForm(${id || ``}) >> `);
+  renderForm(objectId, objectLayer = this.vue.ui.base.selected.objectLayer) {
+    this.console.log(`PageEngines: renderForm(${objectId || ``}) >> `);
+    this.console.log(
+      `[${this.constructor.name}]`,
+      `renderBaseMain(${objectLayer}:`,
+      objectId,
+      `)`
+    );
     return new Promise((resolve, reject) => {
-      if (id) {
+      if (objectId) {
         Promise.resolve()
-          .then(() => this.rest.getItemConfig(id))
+          .then(() => this.rest[`${objectLayer}s`].getObjectConfig(objectId))
           .then((conf) => {
-            this.vue.ui.slider.form = conf;
-            return this.rest.generateConfigSchema(conf);
+            this.vue.ui.base.form = conf;
+            return this.rest[`${objectLayer}s`].generateConfigSchema(conf);
           })
           .then((schema) => {
-            this.vue.resource.configSchema = schema;
+            this.vue.ui.base.formSchema = schema;
           })
           .then(() => resolve())
           .catch((err) => reject(err));
       } else {
         this.vue.resource.configSchema = {};
-        this.vue.ui.slider.form = {};
+        this.vue.ui.base.form = {};
         Promise.resolve()
           .then(() => this.onAlternateChange())
           .then(() => resolve())
@@ -561,26 +563,6 @@ export default class LimeExtenisonPageObjects {
                 errors: e.errors,
                 tag: e.stopTime ? `success` : `reject`,
               };
-              // return {
-              //   times: [
-              //     {
-              //       starting_time: Math.floor(
-              //         new Date(e.addTime).getTime() / 1000
-              //       ),
-              //       ending_time: Math.floor(
-              //         new Date(e.startTime).getTime() / 1000
-              //       ),
-              //     },
-              //     {
-              //       starting_time: Math.floor(
-              //         new Date(e.startTime).getTime() / 1000
-              //       ),
-              //       ending_time: Math.floor(
-              //         new Date(e.stopTime || e.rejectTime).getTime() / 1000
-              //       ),
-              //     },
-              //   ],
-              // };
             }),
             {
               tags: [`success`, `reject`],
@@ -597,6 +579,7 @@ export default class LimeExtenisonPageObjects {
   onAlternateChange() {
     this.console.log(`PageEngines: onAlternateChange() >> `);
     return new Promise((resolve, reject) => {
+      const { objectLayer } = this.vue.ui.base.selected;
       let config;
       let oldSchema;
       let newSchema;
@@ -606,27 +589,23 @@ export default class LimeExtenisonPageObjects {
       let dataCopy;
       Promise.resolve()
         .then(() => {
-          config = JSON.parse(JSON.stringify(this.vue.ui.slider.form));
+          config = JSON.parse(JSON.stringify(this.vue.ui.base.form));
           this.console.log(`config: `, config);
         })
-        .then(() => this.rest.generateConfigSchema(config))
+        .then(() => this.rest[`${objectLayer}s`].generateConfigSchema(config))
         .then((schema) => {
           newSchema = schema;
         })
         .then(() => {
-          oldSchema = JSON.parse(
-            JSON.stringify(this.vue.resource.configSchema)
-          );
-          this.vue.resource.configSchema = JSON.parse(
-            JSON.stringify(newSchema)
-          );
+          oldSchema = JSON.parse(JSON.stringify(this.vue.ui.base.formSchema));
+          this.vue.ui.base.formSchema = JSON.parse(JSON.stringify(newSchema));
         })
         .then(() => this.ui.generateData(newSchema))
         .then((data) => {
           newData = data;
         })
         .then(() => {
-          oldData = JSON.parse(JSON.stringify(this.vue.ui.slider.form));
+          oldData = JSON.parse(JSON.stringify(this.vue.ui.base.form));
 
           this.console.log(`old schema: `, oldSchema);
           this.console.log(`new schema: `, newSchema);
@@ -641,7 +620,7 @@ export default class LimeExtenisonPageObjects {
           dataCopy = this.jsonCopyBySchema(oldData, newData, copySchema);
           this.console.log(`Data copy: ${dataCopy}`);
 
-          this.vue.ui.slider.form = oldData;
+          this.vue.ui.base.form = oldData;
         })
         .then(() => dataCopy && this.onAlternateChange())
         .then(() => resolve())

@@ -82,10 +82,10 @@ class PropertyConfigTranslator {
               const first = params.properties.address[0];
               const last =
                 params.properties.address[params.properties.address.length - 1];
-              console.log(`>> address: ${params.properties.address}`);
+              // console.log(`>> address: ${params.properties.address}`);
               // console.log(`readmap: ${JSON.stringify(readMap[params.properties.table], null, 2)}`);
               if (
-                Object.prototype.hasOwnProperty.call(
+                !Object.prototype.hasOwnProperty.call(
                   params.properties,
                   `name`
                 ) &&
@@ -94,8 +94,9 @@ class PropertyConfigTranslator {
               ) {
                 const firstName = readMap[params.properties.table][first].name;
                 const lastName = readMap[params.properties.table][last].name;
-                config.properties.name.const = `${firstName}->${lastName}`;
-              }
+                // if (config.properties.name) config.properties.name = {};
+                config.properties.name.default = `${firstName}-${lastName}`;
+              } // else config.properties.name = params.properties.name;
             }
           })
           .then(() => resolve(config))

@@ -21,6 +21,7 @@ const ValidateConfigSchema = {
       type: "string",
     },
     enable: {
+      title: "Enable",
       type: "boolean",
       default: true,
     },

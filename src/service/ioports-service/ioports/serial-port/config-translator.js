@@ -8,9 +8,9 @@ const {
 
 const SerialPort = require(`serialport`);
 
-class SysportConfigTranslator {
-  constructor(sysportService) {
-    this.sysportService = sysportService;
+class IoportConfigTranslator {
+  constructor(ioportsService) {
+    this.ioportsService = ioportsService;
     this.validator = new Validator();
   }
 
@@ -42,10 +42,10 @@ class SysportConfigTranslator {
       let configPort;
       Promise.resolve()
         .then(() => this.getSerialPortList())
-        .then((sysport) => {
-          systemPort = sysport;
+        .then((ioport) => {
+          systemPort = ioport;
         })
-        .then(() => this.sysportService.objects.get())
+        .then(() => this.ioportsService.objects.get())
         .then((confPort) => {
           configPort = confPort;
         })
@@ -109,4 +109,4 @@ class SysportConfigTranslator {
   }
 }
 
-module.exports = SysportConfigTranslator;
+module.exports = IoportConfigTranslator;

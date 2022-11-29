@@ -20,6 +20,7 @@ const ValidateConfigSchema = {
     },
     enable: {
       type: "boolean",
+      title: "Enable",
       default: true,
     },
 
@@ -42,7 +43,7 @@ const ValidateConfigSchema = {
   },
 };
 
-const AlternateList = [`template`];
+const AlternateList = [`template`, `retry`];
 
 const AttributeList = [
   {

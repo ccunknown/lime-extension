@@ -22,7 +22,7 @@
           v-if="!ui.base.ready"
           class=""
         >
-          <div class="d-flex flex-column justify-content-center">
+          <div class="miso-v-container justify-content-center">
             <br>
             <div class="text-light">
               <center>
@@ -42,6 +42,7 @@
           class="miso-h-container p-0"
           style="
             overflow-x: hidden;
+            overflow-y: overlay;
           "
         >
           <!-- Responsive virtualize container -->
@@ -60,33 +61,54 @@
               class="
                 miso-h-container
                 miso-card-content-maxh
-                miso-transition-200
-                bg-dark
+                miso-transition-400
                 miso-zindex-100
-                p-0 mr-4
+                p-0
               "
               :class="{
-                'miso-translate-x-255-lte-768': !!ui.base.leftPanel
+                'miso-translate-x-255-lte-768': !!ui.base.leftPanel || !ui.base.selected.config
               }"
+              style="
+                gap: 0;
+              "
             >
               <!-- Panel -->
               <div
                 class="
-                  miso-v-container
+                  miso-v-container miso-gap
                   overflow-hidden
-                  p-0 mr-0
+                  bg-dark
+                  p-0 pr-2
                 "
               >
                 <!-- Filter bar -->
-                <div>
-                  <div class="round-edge d-flex flex-row text-truncate" style="font-size: 1rem;width: fit-content;">
+                <div
+                  class="
+                    miso-h-container miso-gap
+                    justify-content-between
+                    mb-2 p-0
+                  "
+                >
+                  <div
+                    class="
+                      miso-h-container
+                      round-edge
+                      p-0
+                      text-truncate
+                    "
+                    style="
+                      font-size: 1rem;
+                      width: fit-content;
+                    "
+                  >
                     <div
                       class="
-                        miso-activable-secondary-bg
+                        miso-activable-bg-secondary
                         horizontal-union
                         border border-secondary
                         bg-dark text-light p-2
                         pointer-cursor
+                        miso-hover-border-light
                       "
                       :class="{
                         active: ui.base.quickFilter.includes(`device`)
@@ -97,11 +119,12 @@
                     </div>
                     <div
                       class="
-                        miso-activable-secondary-bg
+                        miso-activable-bg-secondary
                         horizontal-union
                         border border-secondary
                         bg-dark text-light p-2
                         pointer-cursor
+                        miso-hover-border-light
                       "
                       :class="{
                         active: ui.base.quickFilter.includes(`engine`)
@@ -112,11 +135,12 @@
                     </div>
                     <div
                       class="
-                        miso-activable-secondary-bg
+                        miso-activable-bg-secondary
                         horizontal-union
                         border border-secondary
                         bg-dark text-light p-2
                         pointer-cursor
+                        miso-hover-border-light
                       "
                       :class="{
                         active: ui.base.quickFilter.includes(`ioport`)
@@ -126,13 +150,35 @@
                       IOPorts
                     </div>
                   </div>
+                  <div
+                    class="
+                      miso-h-container
+                      justify-content-center
+                      align-items-center
+                      p-0
+                      pointer-cursor
+                      rounded
+                      border border-secondary
+                      bg-dark
+                      text-secondary
+                      miso-hover-border-light
+                      miso-hover-text-light
+                    "
+                    style="
+                      width: 26px;
+                      height: 26px;
+                    "
+                  >
+                    <i class="fas fa-plus"></i>
+                  </div>
                 </div>
                 <!-- Object Cards container -->
                 <div
                   class="
                     miso-items-container
-                    d-flex flex-column
-                    overflow-auto p-0
+                    miso-v-container miso-gap
+                    overflow-auto
+                    p-0
                   "
                   style="
                     min-width: 250px;
@@ -155,19 +201,21 @@
                       >
                         <div
                           class="
+                            miso-h-container
                             round-edge
-                            miso-activable-yellow-border miso-hover-yellow-border
+                            miso-activable-border-yellow miso-hover-border-yellow
                             border border-secondary
-                            d-flex flex-row
+                            p-0
                           "
                           :class="{active: Array.isArray(ui.base.activeId) ? ui.base.activeId[0] === id : ui.base.activeId === id}"
                         >
                           <!-- type -->
                           <div
                             class="
+                              miso-v-container
                               miso-active-indicator
                               horizontal-union
-                              d-flex flex-column align-items-center justify-content-center
+                              align-items-center justify-content-center
                               p-1
                             "
                           >
@@ -184,15 +232,15 @@
                           </div>
                           <div
                             class="
+                              miso-v-container
                               miso-items-container horizontal-union
-                              d-flex flex-column
                               text-truncate font-weight-bold grow-1 p-1
                             "
                           >
                             <span class="text-truncate">
                               {{item.name}}
                             </span>
-                            <div class="d-flex flex-row">
+                            <div class="miso-h-container p-0">
                               <!-- status bullet -->
                               <i
                                 class="
@@ -236,53 +284,60 @@
                   miso-h-container
                   align-items-center
                   miso-hide-gt-768
+                  p-0
+                "
+                style="
+                  position: absolute;
+                  left: 255px;
+                  top: calc(50% - 24px);
                 "
               >
                 <div
                   class="
-                    d-flex align-items-center
                     rounded
-                    border border-secondary
+                    bg-dark
                     text-light
-                    p-1
+                    pl-0 pr-2 py-2
                   "
-                  @click="fn.toggleLeftPanel()"
                   style="
-                    height: fit-content;
+                    border-top-left-radius: 0 !important;
+                    border-bottom-left-radius: 0 !important;
                   "
                 >
                   <div
-                    class="d-flex align-items-center miso-transition-200"
-                    :class="{
-                      'miso-rotate-180': !!ui.base.leftPanel,
-                    }"
+                    class="
+                      d-flex align-items-center
+                      rounded
+                      border border-secondary
+                      p-1 py-3
+                      pointer-cursor
+                      miso-hover-border-light
+                    "
+                    @click="fn.toggleLeftPanel()"
+                    style="
+                      height: fit-content;
+                    "
                   >
-                    <i class="fas fa-chevron-right"></i>
+                    <div
+                      class="
+                        d-flex
+                        align-items-center
+                        miso-transition-400
+                      "
+                      :class="{
+                        'miso-rotate-180': !!ui.base.leftPanel,
+                      }"
+                    >
+                      <i class="fas fa-chevron-right"></i>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             <!-- Right panel -->
-            <!-- <div
-              class="
-                miso-v-container
-                miso-card-content-maxh
-                grow-1
-                border rounded border-warning
-                miso-w-auto-gt-768
-                miso-w-0-lte-768
-                overflow-hidden
-              "
-              :class="{
-                'miso-hide-lte-768': !!ui.base.leftPanel
-              }"
-              style="
-                overflow-y: auto;
-              "
-            > -->
             <div
               class="
-                miso-v-container
+                miso-v-container miso-gap
                 miso-card-content-maxh
                 grow-1
                 rounded
@@ -296,14 +351,15 @@
               <div
                 v-if="ui.base.selected.config"
                 class="
-                  miso-h-container justify-content-between
-                  rounded bg-secondary
+                  miso-h-container miso-gap
+                  justify-content-between
+                  rounded
+                  bg-secondary
                 "
               >
                 <!-- Breadcrumbs -->
                 <div
-                  class="miso-h-container flex-wrap p-0"
-                  style="gap: 5px;"
+                  class="miso-h-container miso-gap flex-wrap p-0"
                 >
                   <template
                     v-for="(v, i) in ui.base.activeId"
@@ -332,20 +388,54 @@
                   </template>
                 </div>
                 <!-- Button box -->
-                <div class="miso-h-container p-0">
-                  <div class="miso-icon-box-24 rounded bg-warning">
+                <div class="miso-h-container miso-gap p-0">
+                  <!-- Button edit -->
+                  <div
+                    class="miso-icon-box-24 rounded bg-warning"
+                    :class="{
+                      'hide': !['view'].includes(ui.mode)
+                    }"
+                    @click="fn.edit()"
+                  >
                     <i class="fas fa-edit fa-lg"></i>
                   </div>
-                  <div class="miso-icon-box-24 rounded bg-danger text-light">
+                  <!-- Button delete -->
+                  <div
+                    v-if="['view'].includes(ui.mode)"
+                    class="miso-icon-box-24 rounded bg-danger text-light"
+                    :class="{
+                      'hide': !['view'].includes(ui.mode)
+                    }"
+                  >
                     <i class="fas fa-trash fa-lg"></i>
+                  </div>
+                  <!-- Button save -->
+                  <div
+                    class="miso-icon-box-24 rounded bg-success text-light"
+                    :class="{
+                      'hide': !['edit', 'add'].includes(ui.mode)
+                    }"
+                    @click="fn.save()"
+                  >
+                    <i class="fas fa-save fa-lg"></i>
+                  </div>
+                  <!-- Button back -->
+                  <div
+                    class="miso-icon-box-24 rounded bg-danger text-light"
+                    :class="{
+                      'hide': !['edit', 'add'].includes(ui.mode)
+                    }"
+                    @click="fn.view()"
+                  >
+                    <i class="fas fa-backspace fa-lg"></i>
                   </div>
                 </div>
               </div>
-              <!-- Object body -->
+              <!-- Object body view mode -->
               <div
-                v-if="ui.base.selected"
+                v-if="ui.base.selected && ui.mode === 'view'"
                 class="
-                  miso-v-container
+                  miso-v-container miso-gap
                   grow-1 p-0
                 "
               >
@@ -362,15 +452,12 @@
                   <!-- Content -->
                   <div
                     class="
-                      miso-h-container
+                      miso-h-container miso-gap
+                      flex-wrap
                       rounded
                       bg-secondary
                       grow-1
                       p-2
-                    "
-                    style="
-                      flex-wrap: wrap;
-                      gap: 5px;
                     "
                   >
                     <template
@@ -427,7 +514,8 @@
                 <div
                   v-if="ui.base.selected.config"
                   class="
-                    miso-h-container justify-content-between
+                    miso-h-container miso-gap
+                    justify-content-between
                     rounded
                     p-0
                   "
@@ -450,7 +538,7 @@
                         rounded
                         bg-dark text-light
                         border border-secondary
-                        p-1
+                        p-1 mr-0
                       "
                     >
                       <span
@@ -597,6 +685,7 @@
                 </div>
                 <!-- Metric data -->
                 <div
+                  v-if="ui.base.selected.metric"
                   class="
                     miso-h-container
                     rounded
@@ -760,6 +849,7 @@
                 </div>
                 <!-- Config detail -->
                 <div
+                  v-if="ui.base.selected.config"
                   class="
                     miso-h-container
                     rounded
@@ -915,6 +1005,101 @@
                     </span>
                   </div>
                 </div>
+              </div>
+              <!-- Object body edit mode -->
+              <div
+                v-if="ui.base.selected && ui.mode === 'edit'"
+                class="
+                  miso-v-container miso-gap
+                  grow-1
+                  rounded
+                  text-light
+                "
+              >
+                formSchema:{{ui.base.formSchema}}
+                <!-- form: {{ui.base.form}} -->
+                <!-- Genaral info -->
+                <template
+                  v-for="(param, index) in ui.base.formSchema.properties"
+                >
+                  <!-- Boolean attribute type -->
+                  <div
+                    v-if="param.type === 'boolean'"
+                    class="miso-h-container miso-h-union align-items-stretch"
+                  >
+                    <label
+                      v-if="fn.typeIdentify(param) != 'object'"
+                      class="badge badge-secondary m-0"
+                      style="
+                        font-size: 1rem;
+                      "
+                    >
+                      {{param.title || index}}
+                    </label>
+                    <div
+                      class="
+                        miso-h-container p-0 align-items-center
+                        rounded border border-secondary
+                        bg-secondary
+                      "
+                    >
+                      <json-schema-form 
+                        v-bind:param="param"
+                        class="rounded-0 border border-secondary w-100"
+                        v-bind:class="{'no-resize': param.attrs && param.attrs.type === 'textarea'}"
+                        v-model="ui.base.form[index]"
+                        @change="param.alternate && fn.onAlternateChange()"
+                      >
+                      </json-schema-form>
+                    </div>
+                  </div>
+                  <!-- Others attribute type -->
+                  <div
+                    v-else
+                    class="miso-v-container miso-v-union align-items-start"
+                    style="
+                      font-size: 1rem;
+                    "
+                  >
+                    <!-- {{index}} : {{param}} -->
+                    <label
+                      v-if="fn.typeIdentify(param) != 'object'"
+                      class="badge badge-secondary m-0"
+                      style="
+                        font-size: 1rem;
+                      "
+                    >
+                      {{param.title || index}}
+                    </label>
+                    <div
+                      class="
+                        miso-h-container p-0 align-items-center
+                        rounded border border-secondary
+                        bg-secondary w-100
+                      "
+                    >
+                      <json-schema-form 
+                        v-bind:param="param"
+                        class="rounded-0 border border-secondary w-100"
+                        v-bind:class="{'no-resize': param.attrs && param.attrs.type === 'textarea'}"
+                        v-model="ui.base.form[index]"
+                        @change="param.alternate && fn.onAlternateChange()"
+                      >
+                      </json-schema-form>
+                    </div>
+                  </div>
+                </template>
+                <!-- Specific info -->
+              </div>
+              <!-- Object body edit add -->
+              <div
+                v-if="ui.base.selected && ui.mode === 'add'"
+                class="
+                  miso-v-container miso-gap
+                  grow-1 p-0
+                "
+              >
+                Add mode
               </div>
             </div>
           </div>

@@ -10,9 +10,9 @@ const {
 } = require(`./define`);
 
 class ServiceConfigTranslator {
-  constructor(sysportService) {
+  constructor(ioportsService) {
     console.log(`[${this.constructor.name}]`, `constructor() >> `);
-    this.sysportService = sysportService;
+    this.ioportsService = ioportsService;
     this.validator = new Validator();
   }
 
@@ -38,25 +38,25 @@ class ServiceConfigTranslator {
       });
 
       //  Initial 'enum' attribute.
-      let sysportTemplate;
+      let ioportTemplate;
       Promise.resolve()
         .then(() =>
-          this.sysportService.objects.getTemplate(null, { deep: true })
+          this.ioportsService.objects.getTemplate(null, { deep: true })
         )
         .then((template) => {
-          sysportTemplate = template;
+          ioportTemplate = template;
         })
         .then(() => {
-          config.properties.template.enum = sysportTemplate.map((e) => e.name);
+          config.properties.template.enum = ioportTemplate.map((e) => e.name);
           if (params && params.template && params.template.length) {
-            const dir = this.sysportService.config.directory;
-            const SysportConfigTranslator = require(Path.join(
+            const dir = this.ioportsService.config.directory;
+            const IoportConfigTranslator = require(Path.join(
               dir.startsWith(`./`) ? Path.join(__dirname, dir) : dir,
               params.template,
               `config-translator.js`
             ));
-            const sysConfTrans = new SysportConfigTranslator(
-              this.sysportService
+            const sysConfTrans = new IoportConfigTranslator(
+              this.ioportsService
             );
             return sysConfTrans.generateConfigSchema(params);
           }

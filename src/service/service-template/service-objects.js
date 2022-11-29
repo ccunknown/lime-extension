@@ -5,7 +5,7 @@
 const SERVICE_OBJECT_NAME_PAIR = {
   "devices-service": `device`,
   "engines-service": `engine`,
-  "sysport-service": `sysport`,
+  "ioports-service": `ioport`,
 };
 
 const Path = require(`path`);

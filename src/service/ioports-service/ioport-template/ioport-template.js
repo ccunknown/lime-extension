@@ -1,7 +1,7 @@
 const ObjectMonitor = require(`../../object-template/object-template`);
-const SysportOperator = require("./sysport-operator");
+const IoportOperator = require("./ioport-operator");
 
-class SysportTemplate extends ObjectMonitor {
+class IoportTemplate extends ObjectMonitor {
   constructor(enginesService, id, config) {
     super(enginesService, id, config);
 
@@ -9,10 +9,10 @@ class SysportTemplate extends ObjectMonitor {
     this.id = config.id;
     this.config = config;
 
-    this.to = new SysportOperator(this);
+    this.to = new IoportOperator(this);
 
     this.om.obj.log(`${this.id}`, `Construct template`);
   }
 }
 
-module.exports = SysportTemplate;
+module.exports = IoportTemplate;

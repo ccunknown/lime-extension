@@ -1,7 +1,6 @@
-'use strict';
-
-const limeExtension = require('./src/lime-extension');
+const limeExtension = require(`./src/lime-extension`);
 
 module.exports = (addonManager) => {
+  // eslint-disable-next-line no-new, new-cap
   new limeExtension(addonManager);
 };

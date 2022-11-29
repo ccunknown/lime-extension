@@ -8,9 +8,9 @@ const Service = require(`../service-template/service`);
 
 const ConfigTranslator = require(`./config-translator.js`);
 
-const SerialPort = require(`serialport`);
+// const SerialPort = require(`serialport`);
 
-class SysportService extends Service {
+class IoportService extends Service {
   constructor(extension, config, id) {
     super(extension, config, id);
     console.log(`[${this.constructor.name}]`, `contructor() >> `);
@@ -33,7 +33,7 @@ class SysportService extends Service {
       this.portList = {};
       // this.enginesService = this.laborsManager.getService(`engines-service`).obj;
       this.configTranslator = new ConfigTranslator(this);
-      // console.log(`sysport config : ${JSON.stringify(this.config, null, 2)}`);
+      // console.log(`ioport config : ${JSON.stringify(this.config, null, 2)}`);
       // const serviceConfig = this.getSchema();
       const serviceConfig = this.getConfig();
       console.log(`[${this.constructor.name}]`, JSON.stringify(serviceConfig));
@@ -57,7 +57,7 @@ class SysportService extends Service {
       Promise.resolve()
         .then(() => {
           const path = template.path.replace(/^\//, ``);
-          const Obj = require(`./${path}/sysport.js`);
+          const Obj = require(`./${path}/ioport.js`);
           object = new Obj(this, config);
         })
         .then(() => object.init())
@@ -72,35 +72,35 @@ class SysportService extends Service {
     });
   }
 
-  getSerialPortList() {
-    console.log(`[${this.constructor.name}]`, `getSerialPortList() >> `);
-    return new Promise((resolve, reject) => {
-      const portList = [];
-      Promise.resolve()
-        .then(() => SerialPort.list())
-        .then((ports) => {
-          ports.forEach((port) => {
-            portList.push({
-              path: port.path,
-              pnpId: port.pnpId ? port.pnpId : null,
-              manufacturer: port.manufacturer ? port.manufacturer : null,
-            });
-          });
-          console.log(
-            `[${this.constructor.name}]`,
-            `port: ${JSON.stringify(ports, null, 2)}`
-          );
-          console.log(
-            `[${this.constructor.name}]`,
-            `portList: ${JSON.stringify(portList, null, 2)}`
-          );
-          resolve(portList);
-        })
-        .catch((err) => {
-          reject(err);
-        });
-    });
-  }
+  // getSerialPortList() {
+  //   console.log(`[${this.constructor.name}]`, `getSerialPortList() >> `);
+  //   return new Promise((resolve, reject) => {
+  //     const portList = [];
+  //     Promise.resolve()
+  //       .then(() => SerialPort.list())
+  //       .then((ports) => {
+  //         ports.forEach((port) => {
+  //           portList.push({
+  //             path: port.path,
+  //             pnpId: port.pnpId ? port.pnpId : null,
+  //             manufacturer: port.manufacturer ? port.manufacturer : null,
+  //           });
+  //         });
+  //         console.log(
+  //           `[${this.constructor.name}]`,
+  //           `port: ${JSON.stringify(ports, null, 2)}`
+  //         );
+  //         console.log(
+  //           `[${this.constructor.name}]`,
+  //           `portList: ${JSON.stringify(portList, null, 2)}`
+  //         );
+  //         resolve(portList);
+  //       })
+  //       .catch((err) => {
+  //         reject(err);
+  //       });
+  //   });
+  // }
 }
 
-module.exports = SysportService;
+module.exports = IoportService;

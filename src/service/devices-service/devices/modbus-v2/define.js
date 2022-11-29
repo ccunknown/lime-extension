@@ -42,7 +42,7 @@ const ValidateConfigSchema = {
             name: {
               type: "string",
               title: "Name",
-              pattern: "^[a-zA-Z0-9 -_]+$",
+              pattern: "^[a-zA-Z0-9 -_<>]+$",
               minLength: 4,
               maxLength: 50,
             },

@@ -8,7 +8,7 @@ const {
 class ServiceConfigTranslator {
   constructor(enginesService) {
     this.enginesService = enginesService;
-    this.sysportService = this.enginesService.sysportService;
+    this.ioportsService = this.enginesService.ioportsService;
     this.validator = new Validator();
   }
 
@@ -34,9 +34,13 @@ class ServiceConfigTranslator {
 
       //  Initial 'enum' attribute.
       Promise.resolve()
-        .then(() => this.sysportService.objects.get())
+        .then(() => this.ioportsService.objects.get())
         .then((portList) => {
-          console.log(`[${this.constructor.name}]`, `portList`, portList);
+          console.log(
+            `[${this.constructor.name}]`,
+            `portList`,
+            Object.keys(portList)
+          );
           config.properties.port.enum = [];
           Object.keys(portList).forEach((i) => {
             config.properties.port.enum.push(i);
@@ -44,7 +48,7 @@ class ServiceConfigTranslator {
         })
         .then(() => resolve(config))
         .catch((err) => reject(err));
-      // let portList = await this.sysportService.objects.get();
+      // let portList = await this.ioportsService.objects.get();
       // config.properties[`port`].enum = [];
       // for(let i in portList)
       //   config.properties[`port`].enum.push(i);

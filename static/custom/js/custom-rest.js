@@ -25,9 +25,29 @@ export default class CustomRest {
 
   initRest() {
     Object.assign(this, {
-      getItemConfig: (id) => {
+      // getItemConfig: (id) => {
+      //   this.console.log(
+      //     `CustomRest[${this.serviceId}]: getItemConfig(${
+      //       id ? `${id}` : ``
+      //     }) >> `
+      //   );
+      //   return new Promise((resolve, reject) => {
+      //     Promise.resolve()
+      //       .then(() =>
+      //         this.api.restCall(
+      //           `get`,
+      //           `/api/service/${this.serviceId}/config-${this.resourceId}${
+      //             id ? `/${id}` : ``
+      //           }`
+      //         )
+      //       )
+      //       .then((res) => (res.error ? reject(res.error) : resolve(res)))
+      //       .catch((err) => reject(err));
+      //   });
+      // },
+      getObjectConfig: (id) => {
         this.console.log(
-          `CustomRest[${this.serviceId}]: getItemConfig(${
+          `CustomRest[${this.serviceId}]: getObjectConfig(${
             id ? `${id}` : ``
           }) >> `
         );
@@ -36,9 +56,7 @@ export default class CustomRest {
             .then(() =>
               this.api.restCall(
                 `get`,
-                `/api/service/${this.serviceId}/config-${this.resourceId}${
-                  id ? `/${id}` : ``
-                }`
+                `/api/service/${this.resourceId}/objects-config${id ? `/${id}` : ``}`
               )
             )
             .then((res) => (res.error ? reject(res.error) : resolve(res)))
@@ -46,7 +64,27 @@ export default class CustomRest {
         });
       },
 
-      getServicedItem: (id) => {
+      // getServicedItem: (id) => {
+      //   this.console.log(
+      //     `CustomRest[${this.serviceId}]: getServicedItem(${
+      //       id ? `${id}` : ``
+      //     }) >> `
+      //   );
+      //   return new Promise((resolve, reject) => {
+      //     Promise.resolve()
+      //       .then(() =>
+      //         this.api.restCall(
+      //           `get`,
+      //           `/api/service/${this.serviceId}/service-${this.resourceId}${
+      //             id ? `/${id}` : ``
+      //           }`
+      //         )
+      //       )
+      //       .then((res) => (res.error ? reject(res.error) : resolve(res)))
+      //       .catch((err) => reject(err));
+      //   });
+      // },
+      getObjectConfigWithState: (id) => {
         this.console.log(
           `CustomRest[${this.serviceId}]: getServicedItem(${
             id ? `${id}` : ``
@@ -57,9 +95,7 @@ export default class CustomRest {
             .then(() =>
               this.api.restCall(
                 `get`,
-                `/api/service/${this.serviceId}/service-${this.resourceId}${
-                  id ? `/${id}` : ``
-                }`
+                `/api/service/${this.resourceId}/objects${id ? `/${id}` : ``}`
               )
             )
             .then((res) => (res.error ? reject(res.error) : resolve(res)))
@@ -67,6 +103,23 @@ export default class CustomRest {
         });
       },
 
+      // getObjectMetric: (id) => {
+      //   this.console.log(
+      //     `CustomRest[${this.serviceId}]:`,
+      //     `getObjectMetric(${id})`
+      //   );
+      //   return new Promise((resolve, reject) => {
+      //     Promise.resolve()
+      //       .then(() =>
+      //         this.api.restCall(
+      //           `get`,
+      //           `/api/service/${this.serviceId}/service-${this.resourceId}/${id}/metrics`
+      //         )
+      //       )
+      //       .then((res) => (res.error ? reject(res.error) : resolve(res)))
+      //       .catch((err) => reject(err));
+      //   });
+      // },
       getObjectMetric: (id) => {
         this.console.log(
           `CustomRest[${this.serviceId}]:`,
@@ -77,10 +130,28 @@ export default class CustomRest {
             .then(() =>
               this.api.restCall(
                 `get`,
-                `/api/service/${this.serviceId}/service-${this.resourceId}/${id}/metrics`
+                `/api/service/${this.resourceId}/objects/${id}/metric`
               )
             )
             .then((res) => (res.error ? reject(res.error) : resolve(res)))
+            .catch((err) => reject(err));
+        });
+      },
+
+      generateConfigSchema: (param) => {
+        this.console.log(
+          `CustomRest[${this.serviceId}]: generateConfigSchema() >> `
+        );
+        return new Promise((resolve, reject) => {
+          Promise.resolve()
+            .then(() =>
+              this.api.restCall(
+                `post`,
+                `/api/service/${this.serviceId}/config/generate-schema`,
+                param || undefined
+              )
+            )
+            .then((res) => resolve(res))
             .catch((err) => reject(err));
         });
       },
@@ -272,24 +343,6 @@ export default class CustomRest {
             })
             .catch((err) => reject(err))
             .finally(() => toast.remove());
-        });
-      },
-
-      generateConfigSchema: (param) => {
-        this.console.log(
-          `CustomRest[${this.serviceId}]: generateConfigSchema() >> `
-        );
-        return new Promise((resolve, reject) => {
-          Promise.resolve()
-            .then(() =>
-              this.api.restCall(
-                `post`,
-                `/api/service/${this.serviceId}/config/generate-schema`,
-                param || undefined
-              )
-            )
-            .then((res) => resolve(res))
-            .catch((err) => reject(err));
         });
       },
     });

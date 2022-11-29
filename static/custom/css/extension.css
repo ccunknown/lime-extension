@@ -88,18 +88,14 @@
   overflow: auto;
 }
 
+#extension-lime-contents .miso-gap {
+  gap: 5px;
+}
+
 #extension-lime-contents .miso-v-container {
   display: flex;
   flex-direction: column;
   padding: 5px;
-}
-
-#extension-lime-contents .miso-v-container > * {
-  margin-bottom: 5px;
-}
-
-#extension-lime-contents .miso-v-container > *:last-child {
-  margin-bottom: 0px;
 }
 
 #extension-lime-contents .miso-h-container {
@@ -108,28 +104,36 @@
   padding: 5px;
 }
 
-#extension-lime-contents .miso-h-container > * {
-  margin-right: 5px;
-}
-
 #extension-lime-contents .miso-balance-grow > * {
   flex: 1 1 0px;
 }
 
-#extension-lime-contents .miso-h-container > *:last-child {
-  margin-right: 0px;
+#extension-lime-contents .miso-v-union > *:not(:first-child):not(:last-child) {
+  border-radius: 0 !important;
 }
 
-#extension-lime-contents .miso-v-container {
-  padding: 5px;
+#extension-lime-contents .miso-v-union > *:first-child {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
 }
 
-#extension-lime-contents .miso-items-container > * {
-  margin-bottom: 5px;
+#extension-lime-contents .miso-v-union > *:last-child {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
 }
 
-#extension-lime-contents .miso-items-container > *:last-child {
-  margin-bottom: 0px;
+#extension-lime-contents .miso-h-union > *:not(:first-child):not(:last-child) {
+  border-radius: 0 !important;
+}
+
+#extension-lime-contents .miso-h-union > *:first-child {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+#extension-lime-contents .miso-h-union > *:last-child {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
 }
 
 #extension-lime-contents .miso-content-maxh {
@@ -285,25 +289,35 @@
   font-size: 1rem;
 }
 
-#extension-lime-content .miso-hover-yellow-border:hover {
+#extension-lime-content .miso-hover-text-light:hover {
+  color: var(--lime-light) !important;
+  transition: background-color 0.5s ease-out;
+}
+
+#extension-lime-content .miso-hover-border-light:hover {
+  border-color: var(--lime-light) !important;
+  transition: background-color 0.5s ease-out;
+}
+
+#extension-lime-content .miso-hover-border-yellow:hover {
   border-color: var(--lime-yellow) !important;
   transition: background-color 0.5s ease-out;
 }
 
-#extension-lime-content .miso-activable-yellow-border.active {
+#extension-lime-content .miso-activable-border-yellow.active {
   border-color: var(--lime-yellow) !important;
 }
 
-#extension-lime-content .miso-activable-yellow-border.active .miso-active-indicator {
+#extension-lime-content .miso-activable-border-yellow.active .miso-active-indicator {
   background: var(--lime-yellow) !important;
   color: var(--lime-dark) !important;
 }
 
-#extension-lime-content .miso-activable-secondary-bg.active {
+#extension-lime-content .miso-activable-bg-secondary.active {
   background: var(--lime-secondary) !important;
 }
 
-#extension-lime-content .miso-activable-secondary-bg.active .miso-active-indicator {
+#extension-lime-content .miso-activable-bg-secondary.active .miso-active-indicator {
   background: var(--lime-secondary) !important;
   color: var(--lime-dark) !important;
 }
@@ -590,7 +604,7 @@
 #extension-lime-contents .miso-badge-header-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: 10px;
+  /* margin-bottom: 10px; */
   max-width: 100%;
   min-width: 50px;
 }
@@ -1104,18 +1118,38 @@
   transition: 0.2s;
 }
 
+#extension-lime-contents .miso-transition-400 {
+  transition: 0.4s;
+}
+
 #extension-lime-contents .miso-zindex-100 {
   z-index: 100;
 }
 
-/* @container miso-responsive-container (width > 768px) {
-  .miso-hide-gt-768 {
-    display: none;
-  }
+#extension-lime-contents .miso-h-container::-webkit-scrollbar,.miso-v-container::-webkit-scrollbar {
+  display: none;
+  width: 7px;
 }
 
-@container miso-responsive-container (width <= 768px) {
-  .miso-hide-lte-768 {
-    display: none;
-  }
-} */
+#extension-lime-contents .miso-h-container:hover::-webkit-scrollbar,.miso-v-container:hover::-webkit-scrollbar {
+  display:inline-block;
+/*   opacity: 0.5; */
+}
+
+#extension-lime-contents .miso-h-container::-webkit-scrollbar-track,.miso-v-container::-webkit-scrollbar-track {
+/*   display: none; */
+  width: 5px;
+  margin: 1px;
+  padding:1px;
+  border: 1px solid var(--lime-light);
+  border-radius: 3px;
+  background-color: var(--lime-light);
+  opacity: 0.1;
+}
+
+#extension-lime-contents .miso-h-container::-webkit-scrollbar-thumb,.miso-v-container::-webkit-scrollbar-thumb {
+  border: 1px solid var(--lime-light);
+  border-radius: 3px;
+  background-color: var(--lime-secondary);
+  opacity: 0.5;
+}

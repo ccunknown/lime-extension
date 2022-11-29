@@ -7,22 +7,22 @@ const SerialPort = require(`serialport`);
 const Path = require(`path`);
 // const AsyncLock = require("async-lock");
 
-const SysportTemplate = require(`../../sysport-template/sysport-template`);
+const IoportTemplate = require(`../../ioport-template/ioport-template`);
 
-class SerialSysport extends SysportTemplate {
-  constructor(sysportService, id, config) {
-    super(sysportService, id, config);
-    this.sysportService = sysportService;
+class SerialIoport extends IoportTemplate {
+  constructor(ioportsService, id, config) {
+    super(ioportsService, id, config);
+    this.ioportsService = ioportsService;
     this.config = config;
     this.id = id;
     this.lastProcessTimestamp = new Date();
 
     this.Errors = require(Path.join(
-      this.sysportService.getRootDirectory(),
+      this.ioportsService.getRootDirectory(),
       `/constants/errors.js`
     ));
 
-    this.om.obj.log(`${this.id}`, `Construct sysport`);
+    this.om.obj.log(`${this.id}`, `Construct ioport`);
   }
 
   init() {
@@ -134,4 +134,4 @@ class SerialSysport extends SysportTemplate {
   }
 }
 
-module.exports = SerialSysport;
+module.exports = SerialIoport;

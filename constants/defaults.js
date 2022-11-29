@@ -21,8 +21,8 @@ const Defaults = {
         description: "Client - Server communitaction service using WEBRTC.",
       },
       //  Port Service
-      "sysport-service": {
-        path: "sysport-service/sysport-service.js",
+      "ioports-service": {
+        path: "/ioports-service/ioports-service.js",
         enable: true,
         status: "unknow",
         description: "Port resource controller, provide port to engine.",
@@ -78,8 +78,8 @@ const Defaults = {
         },
       },
       //  Port Service
-      "sysport-service": {
-        directory: "./sysport",
+      "ioports-service": {
+        directory: "./ioports",
         list: {},
       },
       //  Engine Service
@@ -89,7 +89,7 @@ const Defaults = {
       },
       //  Device Service
       "devices-service": {
-        directory: "/devices",
+        directory: "./devices",
         list: {},
       },
     },
@@ -127,7 +127,7 @@ const Defaults = {
       "service-config": {
         type: "object",
         required: [
-          "sysport-service",
+          "ioports-service",
           "engines-service",
           "scripts-service",
           "devices-service",
@@ -214,7 +214,7 @@ const Defaults = {
             },
           },
           //  Port Service
-          "sysport-service": {
+          "ioports-service": {
             type: "object",
             required: ["directory", "list"],
             additionalProperties: false,

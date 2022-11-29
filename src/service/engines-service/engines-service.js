@@ -15,8 +15,8 @@ class EnginesService extends Service {
   init(config) {
     console.log(`[${this.constructor.name}]`, `init() >> `);
     try {
-      this.sysportService =
-        this.laborsManager.getService(`sysport-service`).obj;
+      this.ioportsService =
+        this.laborsManager.getService(`ioports-service`).obj;
       this.config = config || this.config;
     } catch (err) {
       console.error(err);
@@ -87,9 +87,9 @@ class EnginesService extends Service {
           engine = new Obj(this, config);
         })
         .then(() =>
-          this.sysportService.objects.get(config.port, { object: true })
+          this.ioportsService.objects.get(config.port, { object: true })
         )
-        .then((sysport) => engine.init(sysport))
+        .then((ioport) => engine.init(ioport))
         .then(() =>
           Object.prototype.hasOwnProperty.call(engine, `oo`) &&
           typeof engine.oo.start === `function`

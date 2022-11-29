@@ -42,7 +42,7 @@ export default class ExtensionRTCPageController {
             { title: `All`, topic: `/.*` },
             { title: `Devices`, topic: `/service/devices-service/.*` },
             { title: `Engines`, topic: `/service/engines-service/.*` },
-            { title: `Ports`, topic: `/service/sysport-service/.*` },
+            { title: `IoPorts`, topic: `/service/ioports-service/.*` },
           ],
           cmdInput: ``,
         },

@@ -40,7 +40,7 @@
   v-on:change="$emit('change', Number($event.target.value))"
 >
 
-<div
+<!-- <div
   v-else-if="fn.typeIdentify(param) == 'checkbox'"
 >
   <input 
@@ -50,7 +50,16 @@
     v-on:input="$emit('input', $event.target.checked)"
     v-on:change="$emit('change', $event.target.checked)"
   >
-</div>
+</div> -->
+
+<input
+  v-else-if="fn.typeIdentify(param) == 'checkbox'"
+  :type="fn.typeIdentify(param)" 
+  :disabled="fn.isDisabled(param)"
+  :checked="value"
+  v-on:input="$emit('input', $event.target.checked)"
+  v-on:change="$emit('change', $event.target.checked)"
+>
 
 <div v-else-if="fn.typeIdentify(param) == 'checklist'" style="padding: 2px; max-height: 150px; overflow: auto;">
   <template v-for="(addr) in param.items.enum">
@@ -86,7 +95,17 @@
       )"
       :checked="fn.isChecked(value, addr)"
     >
-    <span>{{(param.items.enumDisplay && param.items.enumDisplay[`${addr}`] && param.items.enumDisplay[`${addr}`].title) ? param.items.enumDisplay[`${addr}`].title : addr}}</span>
+    <span>
+      {{
+        (
+          param.items.enumDisplay && 
+          param.items.enumDisplay[`${addr}`] && 
+          param.items.enumDisplay[`${addr}`].title
+        )
+          ? param.items.enumDisplay[`${addr}`].title
+          : addr
+      }}
+    </span>
     <br>
   </template>
 </div>
