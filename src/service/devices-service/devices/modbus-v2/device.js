@@ -111,13 +111,24 @@ class ModbusDevice extends DeviceTemplate {
     });
   }
 
-  getEngine() {
-    const state = this.engine ? this.engine.getState() : null;
-    if (state === `running`) {
-      return Promise.resolve(this.engine);
-    }
-    return this.devicesService.enginesService.objects.get(this.config.engine, {
-      object: true,
+  // getEngine() {
+  //   const state = this.engine ? this.engine.getState() : null;
+  //   if (state === `running`) {
+  //     return Promise.resolve(this.engine);
+  //   }
+  //   return this.devicesService.enginesService.objects.get(this.config.engine, {
+  //     object: true,
+  //   });
+  // }
+  getEngine(engineName = this.config.engine) {
+    return new Promise((resolve) => {
+      Promise.resolve()
+        .then(() => this.devicesService.getEngine(engineName))
+        .then((engine) => resolve(engine))
+        .catch((err) => {
+          this.om.obj.error(err);
+          resolve(null);
+        });
     });
   }
 

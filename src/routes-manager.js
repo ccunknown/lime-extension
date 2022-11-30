@@ -230,6 +230,19 @@ class RoutesManager extends APIHandler {
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
+          PUT: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const id = this.getPathElement(req.path, 3);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.objects.update(id, req.body))
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
         },
       },
 

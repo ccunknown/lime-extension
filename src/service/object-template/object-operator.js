@@ -178,6 +178,12 @@ class ObjectOperator {
             : this.parent.stop()
         )
         .then(() => this.setState(ObjectState.STOPPED))
+        .then(() => {
+          // this.queue.removeAllListeners();
+          return this.queue.close();
+          // delete this.parent;
+          // delete this;
+        })
         .then(() => resolve())
         .catch((err) => {
           // this.setState(`error`);

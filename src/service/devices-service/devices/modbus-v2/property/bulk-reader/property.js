@@ -257,6 +257,7 @@ class BulkReader extends PropertyTemplate {
   // Modbus chunk read & process.
   chunkProcess(jobId, opt, engine) {
     return new Promise((resolve, reject) => {
+      console.log(`engine delay:`, engine.config.delay);
       Promise.resolve()
         // .then(() => engine.act(opt.engineOpt, jobId))
         .then(() => engine.act(opt.engineOpt))

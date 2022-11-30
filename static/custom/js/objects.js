@@ -163,23 +163,13 @@ export default class LimeExtenisonPageObjects {
       },
       save: () => {
         this.console.log(`save()`);
-        this.console.log(
-          `save data:`,
-          `${JSON.stringify(this.vue.ui.base.form, null, 2)}`
-        );
-        // return new Promise((resolve, reject) => {
-        //   const id = this.vue.ui.slider[`edit-id`];
-        //   const config = this.vue.ui.slider.form;
-        //   Promise.resolve()
-        //     .then(() =>
-        //       id
-        //         ? this.rest.editConfig(id, config)
-        //         : this.rest.addConfig(config)
-        //     )
-        //     .then((/* res */) => this.render())
-        //     .then(() => resolve())
-        //     .catch((err) => reject(err));
-        // });
+        const id = this.vue.ui.base.activeId.join(`.properties.`);
+        const layer = this.vue.ui.base.selected.objectLayer;
+        const config = this.vue.ui.base.form;
+        this.console.log(`id:`, id);
+        this.console.log(`layer:`, layer);
+        this.console.log(`config:`, JSON.stringify(config, null, 2));
+        return this.updateObject();
       },
       addSubscribe: (id) => {
         this.console.log(`addSubscribe(${id})`);
@@ -349,6 +339,14 @@ export default class LimeExtenisonPageObjects {
     };
 
     this.console.log(this.vue);
+  }
+
+  updateObject(
+    id = this.vue.ui.base.activeId.join(`.properties.`),
+    objectLayer = this.vue.ui.base.selected.objectLayer,
+    config = this.vue.ui.base.form
+  ) {
+    return this.rest[`${objectLayer}s`].updateObject(id, config);
   }
 
   render(base = true) {

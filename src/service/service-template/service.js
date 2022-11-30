@@ -153,7 +153,7 @@ class Service extends EventEmitter {
   getObjectFromService(serviceId, objectId, options) {
     const service = this.laborsManager.getService(serviceId).obj;
     return options && options.object
-      ? service.get(objectId, options)
+      ? service.objects.get(objectId, options)
       : service.objects.getConfig(objectId);
   }
 

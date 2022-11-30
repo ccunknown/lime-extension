@@ -1016,16 +1016,20 @@
                   text-light
                 "
               >
-                formSchema:{{ui.base.formSchema}}
-                <!-- form: {{ui.base.form}} -->
                 <!-- Genaral info -->
                 <template
                   v-for="(param, index) in ui.base.formSchema.properties"
                 >
-                  <!-- Boolean attribute type -->
+                  <!-- All attribute type -->
                   <div
-                    v-if="param.type === 'boolean'"
-                    class="miso-h-container miso-h-union align-items-stretch"
+                    class=""
+                    :class="{
+                      'miso-h-container miso-h-union align-items-stretch': param.type === 'boolean',
+                      'miso-v-container miso-v-union align-items-start': param.type !== 'boolean'
+                    }"
+                    style="
+                      font-size: 1rem;
+                    "
                   >
                     <label
                       v-if="fn.typeIdentify(param) != 'object'"
@@ -1042,46 +1046,16 @@
                         rounded border border-secondary
                         bg-secondary
                       "
+                      :class="{
+                        'w-100': param.type !== 'boolean'
+                      }"
                     >
                       <json-schema-form 
                         v-bind:param="param"
-                        class="rounded-0 border border-secondary w-100"
-                        v-bind:class="{'no-resize': param.attrs && param.attrs.type === 'textarea'}"
-                        v-model="ui.base.form[index]"
-                        @change="param.alternate && fn.onAlternateChange()"
-                      >
-                      </json-schema-form>
-                    </div>
-                  </div>
-                  <!-- Others attribute type -->
-                  <div
-                    v-else
-                    class="miso-v-container miso-v-union align-items-start"
-                    style="
-                      font-size: 1rem;
-                    "
-                  >
-                    <!-- {{index}} : {{param}} -->
-                    <label
-                      v-if="fn.typeIdentify(param) != 'object'"
-                      class="badge badge-secondary m-0"
-                      style="
-                        font-size: 1rem;
-                      "
-                    >
-                      {{param.title || index}}
-                    </label>
-                    <div
-                      class="
-                        miso-h-container p-0 align-items-center
-                        rounded border border-secondary
-                        bg-secondary w-100
-                      "
-                    >
-                      <json-schema-form 
-                        v-bind:param="param"
-                        class="rounded-0 border border-secondary w-100"
-                        v-bind:class="{'no-resize': param.attrs && param.attrs.type === 'textarea'}"
+                        class="rounded-0 border border-secondary bg-light w-100"
+                        v-bind:class="{
+                          'no-resize': param.attrs && param.attrs.type === 'textarea'
+                        }"
                         v-model="ui.base.form[index]"
                         @change="param.alternate && fn.onAlternateChange()"
                       >
@@ -1090,6 +1064,8 @@
                   </div>
                 </template>
                 <!-- Specific info -->
+                formSchema:{{ui.base.formSchema}}
+                <!-- form: {{ui.base.form}} -->
               </div>
               <!-- Object body edit add -->
               <div

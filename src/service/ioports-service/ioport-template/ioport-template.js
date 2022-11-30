@@ -6,7 +6,7 @@ class IoportTemplate extends ObjectMonitor {
     super(enginesService, id, config);
 
     this.enginesService = enginesService;
-    this.id = config.id;
+    this.id = id;
     this.config = config;
 
     this.to = new IoportOperator(this);

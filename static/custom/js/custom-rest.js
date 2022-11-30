@@ -64,6 +64,25 @@ export default class CustomRest {
         });
       },
 
+      updateObject: (id, config) => {
+        this.console.log(
+          `CustomRest[${this.serviceId}]:`,
+          `updateObjectConfig(${id || ``})`
+        );
+        return new Promise((resolve, reject) => {
+          Promise.resolve()
+            .then(() =>
+              this.api.restCall(
+                `put`,
+                `/api/service/${this.resourceId}/objects/${id}`,
+                config
+              )
+            )
+            .then((res) => (res.error ? reject(res.error) : resolve(res)))
+            .catch((err) => reject(err));
+        });
+      },
+
       // getServicedItem: (id) => {
       //   this.console.log(
       //     `CustomRest[${this.serviceId}]: getServicedItem(${
