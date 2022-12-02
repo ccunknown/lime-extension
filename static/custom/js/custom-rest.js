@@ -25,6 +25,216 @@ export default class CustomRest {
 
   initRest() {
     Object.assign(this, {
+      configSchema: {
+        post: (param) => {
+          this.console.log(
+            `CustomRest[${this.resourceId}]: generateConfigSchema() >> `
+          );
+          return new Promise((resolve, reject) => {
+            Promise.resolve()
+              .then(() =>
+                this.api.restCall(
+                  `post`,
+                  `/api/service/${this.resourceId}/config-schema`,
+                  param || undefined
+                )
+              )
+              .then((res) => resolve(res))
+              .catch((err) => reject(err));
+          });
+        },
+      },
+
+      objects: (id) => {
+        return !id
+          ? {
+              config: {
+                get: () => {
+                  this.console.log(
+                    `CustomRest[${this.serviceId}]`,
+                    `objects.config.get()`
+                  );
+                  return new Promise((resolve, reject) => {
+                    Promise.resolve()
+                      .then(() =>
+                        this.api.restCall(
+                          `get`,
+                          `/api/service/${this.resourceId}/objects/config`
+                        )
+                      )
+                      .then((res) =>
+                        res.error ? reject(res.error) : resolve(res)
+                      )
+                      .catch((err) => reject(err));
+                  });
+                },
+              },
+              configWithState: {
+                get: () => {
+                  this.console.log(
+                    `CustomRest[${this.serviceId}]`,
+                    `objects.configWithState.get()`
+                  );
+                  return new Promise((resolve, reject) => {
+                    Promise.resolve()
+                      .then(() =>
+                        this.api.restCall(
+                          `get`,
+                          `/api/service/${this.resourceId}/objects/config-with-state`
+                        )
+                      )
+                      .then((res) =>
+                        res.error ? reject(res.error) : resolve(res)
+                      )
+                      .catch((err) => reject(err));
+                  });
+                },
+              },
+            }
+          : {
+              update: (config) => {
+                this.console.log(
+                  `CustomRest[${this.serviceId}]`,
+                  `objects(${id}).put()`
+                );
+                return new Promise((resolve, reject) => {
+                  Promise.resolve()
+                    .then(() =>
+                      this.api.restCall(
+                        `put`,
+                        `/api/service/${this.resourceId}/objects/${id}`,
+                        config
+                      )
+                    )
+                    .then((res) =>
+                      res.error ? reject(res.error) : resolve(res)
+                    )
+                    .catch((err) => reject(err));
+                });
+              },
+              config: {
+                get: () => {
+                  this.console.log(
+                    `CustomRest[${this.serviceId}]`,
+                    `objects(${id}).config.get()`
+                  );
+                  return new Promise((resolve, reject) => {
+                    Promise.resolve()
+                      .then(() =>
+                        this.api.restCall(
+                          `get`,
+                          `/api/service/${this.resourceId}/objects/${id}/config`
+                        )
+                      )
+                      .then((res) =>
+                        res.error ? reject(res.error) : resolve(res)
+                      )
+                      .catch((err) => reject(err));
+                  });
+                },
+              },
+              configWithState: {
+                get: () => {
+                  this.console.log(
+                    `CustomRest[${this.serviceId}]`,
+                    `objects(${id}).configWithState.get()`
+                  );
+                  return new Promise((resolve, reject) => {
+                    Promise.resolve()
+                      .then(() =>
+                        this.api.restCall(
+                          `get`,
+                          `/api/service/${this.resourceId}/objects/${id}/config-with-state`
+                        )
+                      )
+                      .then((res) =>
+                        res.error ? reject(res.error) : resolve(res)
+                      )
+                      .catch((err) => reject(err));
+                  });
+                },
+              },
+              metric: {
+                get: () => {
+                  this.console.log(
+                    `CustomRest[${this.serviceId}]`,
+                    `objects(${id}).metric.get()`
+                  );
+                  return new Promise((resolve, reject) => {
+                    Promise.resolve()
+                      .then(() =>
+                        this.api.restCall(
+                          `get`,
+                          `/api/service/${this.resourceId}/objects/${id}/metric`
+                        )
+                      )
+                      .then((res) => (res.error ? reject(res.error) : resolve(res)))
+                      .catch((err) => reject(err));
+                  });
+                },
+                delete: () => {
+                  this.console.log(
+                    `CustomRest[${this.serviceId}]`,
+                    `objects(${id}).metric.delete()`
+                  );
+                  return new Promise((resolve, reject) => {
+                    Promise.resolve()
+                      .then(() =>
+                        this.api.restCall(
+                          `delete`,
+                          `/api/service/${this.resourceId}/objects/${id}/metric`
+                        )
+                      )
+                      .then((res) =>
+                        res.error ? reject(res.error) : resolve(res)
+                      )
+                      .catch((err) => reject(err));
+                  });
+                },
+              },
+              cmd: {
+                start: () => {
+                  this.console.log(
+                    `CustomRest[${this.serviceId}]`,
+                    `objects(${id}).cmd.start()`
+                  );
+                  return new Promise((resolve, reject) => {
+                    Promise.resolve()
+                      .then(() =>
+                        this.api.restCall(
+                          `get`,
+                          `/api/service/${this.resourceId}/objects/${id}/cmd/start`
+                        )
+                      )
+                      .then((res) =>
+                        res.error ? reject(res.error) : resolve(res)
+                      )
+                      .catch((err) => reject(err));
+                  });
+                },
+                stop: () => {
+                  this.console.log(
+                    `CustomRest[${this.serviceId}]`,
+                    `objects(${id}).cmd.stop()`
+                  );
+                  return new Promise((resolve, reject) => {
+                    Promise.resolve()
+                      .then(() =>
+                        this.api.restCall(
+                          `get`,
+                          `/api/service/${this.resourceId}/objects/${id}/cmd/stop`
+                        )
+                      )
+                      .then((res) =>
+                        res.error ? reject(res.error) : resolve(res)
+                      )
+                      .catch((err) => reject(err));
+                  });
+                },
+              },
+            };
+      },
+
       // getItemConfig: (id) => {
       //   this.console.log(
       //     `CustomRest[${this.serviceId}]: getItemConfig(${
@@ -157,20 +367,20 @@ export default class CustomRest {
         });
       },
 
-      generateConfigSchema: (param) => {
+      deleteObjectMetric: (id) => {
         this.console.log(
-          `CustomRest[${this.serviceId}]: generateConfigSchema() >> `
+          `CustomRest[${this.serviceId}]:`,
+          `deleteObjectMetric(${id})`
         );
         return new Promise((resolve, reject) => {
           Promise.resolve()
             .then(() =>
               this.api.restCall(
-                `post`,
-                `/api/service/${this.serviceId}/config/generate-schema`,
-                param || undefined
+                `delete`,
+                `/api/service/${this.resourceId}/objects/${id}/metric`
               )
             )
-            .then((res) => resolve(res))
+            .then((res) => (res.error ? reject(res.error) : resolve(res)))
             .catch((err) => reject(err));
         });
       },

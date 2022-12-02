@@ -1,9 +1,71 @@
 <div class="miso-slide-container" id="extension-lime-content-objects-section">
   
+  <!-- Body Loader -->
+  <div
+    class="
+      miso-v-container
+      justify-content-center
+      align-items-center
+      miso-transition-400
+    "
+    :class="{
+      hide: ui.base.ready
+    }"
+    style="
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 200;
+    "
+  >
+    <!-- Background -->
+    <div
+      style="
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 190;
+        background-color: var(--lime-dark);
+        opacity: 0.5;
+      "
+    >
+
+    </div>
+    <!-- Animate Box -->
+    <div
+      class="
+        miso-v-container miso-gap
+        justify-content-center
+        align-items-center
+        rounded border border-dark
+        bg-dark
+      "
+      style="
+        width: 30%;
+      "
+    >
+      <!-- Text -->
+      <div class="text-light" style="font-size: 1rem;">
+        <center>
+          Please wait, this process will take a while.
+        </center>
+      </div>
+      <!-- Loading bar -->
+      <div class="progress w-100">
+        <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100">
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="miso-slide-slide" :class="{hide: ui.slider.hide}">
   </div>
 
-  <div class="miso-slide-base">
+  <div class="miso-slide-base miso-transition-400">
     <div class="card text-dark border-warning w-100">
       <!-- Base Card Header -->
       <div class="card-header bg-warning border-warning">
@@ -17,29 +79,12 @@
       </div>
       <!-- Base Card Body -->
       <div class="card-body bg-dark">
-        <!-- Base Body Loader -->
-        <div 
-          v-if="!ui.base.ready"
-          class=""
-        >
-          <div class="miso-v-container justify-content-center">
-            <br>
-            <div class="text-light">
-              <center>
-                Please wait, this process will take a while.
-              </center>
-            </div>
-            <br>
-            <div class="progress">
-              <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100">
-              </div>
-            </div>
-          </div>
-        </div>
         <!-- Base Body Item Container -->
         <div 
-          v-if="ui.base.ready"
           class="miso-h-container p-0"
+          :class="{
+            hide: !ui.base.ready
+          }"
           style="
             overflow-x: hidden;
             overflow-y: overlay;
@@ -49,7 +94,7 @@
           <div
             class="
               miso-h-container
-              miso-extend-left-255-lte-768
+              miso-extend-leftpanel-lte-768
               w-100 p-0
             "
             style="
@@ -66,7 +111,7 @@
                 p-0
               "
               :class="{
-                'miso-translate-x-255-lte-768': !!ui.base.leftPanel || !ui.base.selected.config
+                'miso-translate-leftpanel-lte-768': !!ui.base.leftPanel || !ui.base.selected.config
               }"
               style="
                 gap: 0;
@@ -288,7 +333,7 @@
                 "
                 style="
                   position: absolute;
-                  left: 255px;
+                  left: var(--lime-miso-content-leftpanel-width);
                   top: calc(50% - 24px);
                 "
               >
@@ -345,6 +390,7 @@
               "
               style="
                 overflow-y: visible !important;
+                max-width: calc(100% - var(--lime-miso-content-leftpanel-width));
               "
             >
               <!-- Object header -->
@@ -389,43 +435,104 @@
                 </div>
                 <!-- Button box -->
                 <div class="miso-h-container miso-gap p-0">
+                  <!-- Button start -->
+                  <div
+                    class="
+                      miso-icon-box-24
+                      border border-success rounded
+                      text-light bg-success
+                      miso-hover-border-light
+                    "
+                    :class="{
+                      'hide': !['view'].includes(ui.mode) || ['running'].includes(ui.base.selected.config.state.objectState.value)
+                    }"
+                    @click="fn.objectCmd.start()"
+                    data-toggle="tooltip"
+                    title="Start"
+                  >
+                    <i class="fas fa-play fa-lg"></i>
+                  </div>
+                  <!-- Button stop -->
+                  <div
+                    class="
+                      miso-icon-box-24
+                      border border-danger rounded
+                      text-light bg-danger
+                      miso-hover-border-light
+                    "
+                    :class="{
+                      'hide': !['view'].includes(ui.mode) || !['running'].includes(ui.base.selected.config.state.objectState.value)
+                    }"
+                    @click="fn.objectCmd.stop()"
+                    data-toggle="tooltip"
+                    title="Stop"
+                  >
+                    <i class="fas fa-stop fa-lg"></i>
+                  </div>
                   <!-- Button edit -->
                   <div
-                    class="miso-icon-box-24 rounded bg-warning"
+                    class="
+                      miso-icon-box-24
+                      border border-warning rounded
+                      text-dark bg-warning
+                      miso-hover-border-light
+                    "
                     :class="{
                       'hide': !['view'].includes(ui.mode)
                     }"
                     @click="fn.edit()"
+                    data-toggle="tooltip"
+                    title="Edit"
                   >
                     <i class="fas fa-edit fa-lg"></i>
                   </div>
                   <!-- Button delete -->
                   <div
-                    v-if="['view'].includes(ui.mode)"
-                    class="miso-icon-box-24 rounded bg-danger text-light"
+                    class="
+                      miso-icon-box-24
+                      border border-danger rounded
+                      text-light bg-danger
+                      miso-hover-border-light"
                     :class="{
                       'hide': !['view'].includes(ui.mode)
                     }"
+                    @click="fn.edit()"
+                    data-toggle="tooltip"
+                    title="Delete"
                   >
                     <i class="fas fa-trash fa-lg"></i>
                   </div>
                   <!-- Button save -->
                   <div
-                    class="miso-icon-box-24 rounded bg-success text-light"
+                    class="
+                      miso-icon-box-24
+                      border border-success rounded
+                      text-light bg-success
+                      miso-hover-border-light  
+                    "
                     :class="{
                       'hide': !['edit', 'add'].includes(ui.mode)
                     }"
                     @click="fn.save()"
+                    data-toggle="tooltip"
+                    title="Save"
                   >
                     <i class="fas fa-save fa-lg"></i>
                   </div>
                   <!-- Button back -->
                   <div
-                    class="miso-icon-box-24 rounded bg-danger text-light"
+                    class="
+                      miso-icon-box-24
+                      border border-danger rounded
+                      text-light bg-danger
+                      miso-hover-border-light
+                    "
                     :class="{
                       'hide': !['edit', 'add'].includes(ui.mode)
                     }"
                     @click="fn.view()"
+                    data-toggle="tooltip"
+                    title="Back"
                   >
                     <i class="fas fa-backspace fa-lg"></i>
                   </div>
@@ -690,6 +797,7 @@
                     miso-h-container
                     rounded
                     bg-secondary
+                    text-truncate
                     p-0
                   "
                   style="
@@ -704,12 +812,38 @@
                       rounded
                       bg-secondary
                       grow-1
+                      text-truncate
                       p-2
                     "
                   >
                     <!-- Object uptime -->
-                    <div>
-                      Data range: {{fn.metric.dataTimeRange()}}
+                    <div
+                      class="
+                        miso-h-container miso-gap
+                        justify-content-between
+                        align-items-center
+                        text-truncate
+                        w-100
+                      "
+                    >
+                      <div class="text-truncate">
+                        Data range: {{fn.metric.dataTimeRange()}}
+                      </div>
+                      <!-- Metric button -->
+                      <div
+                        class="
+                          miso-icon-box-24
+                          miso-hover-border-light
+                          border border-dark rounded
+                          text-light
+                          bg-dark
+                        "
+                        @click="fn.metric.flush()"
+                        data-toggle="tooltip"
+                        title="Flush metric data"
+                      >
+                        <i class="fas fa-trash fa-lg"></i>
+                      </div>
                     </div>
                     <!-- Object Donut chart (success rate, serve quality) -->
                     <div class="miso-responsive-container">
@@ -986,14 +1120,6 @@
                       p-1
                     "
                   >
-                    <!-- <span
-                      style="
-                        writing-mode: vertical-rl;
-                        transform: rotate(-180deg);
-                        font-size: 1rem;
-                        font-weight: bold;
-                      "
-                    > -->
                     <span
                       style="
                         writing-mode: vertical-rl;

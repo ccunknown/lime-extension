@@ -9,7 +9,7 @@ const ModbusRTU = require("modbus-serial");
 // const AsyncLock = require("async-lock");
 
 const EngineTemplate = require(`../../engine-template/engine-template.js`);
-const { ObjectState } = require(`../../../object-template/object-state.js`);
+// const { ObjectState } = require(`../../../object-template/object-state.js`);
 
 class ModbusRtu extends EngineTemplate {
   constructor(enginesService, id, config) {
@@ -288,10 +288,10 @@ class ModbusRtu extends EngineTemplate {
         const timestamp = new Date().getTime();
         const alreadyDelay = timestamp - this.lastProcessTimestamp;
         const remainingDelay = ms - alreadyDelay;
-        this.om.obj.log(`target delay:`, ms);
-        this.om.obj.log(`calcul delay:`, remainingDelay);
-        this.om.obj.log(`last timestamp:`, this.lastProcessTimestamp);
-        this.om.obj.log(`curr timestamp:`, timestamp);
+        // this.om.obj.log(`target delay:`, ms);
+        // this.om.obj.log(`calcul delay:`, remainingDelay);
+        // this.om.obj.log(`last timestamp:`, this.lastProcessTimestamp);
+        // this.om.obj.log(`curr timestamp:`, timestamp);
         setTimeout(() => resolve(), Math.max(remainingDelay, 0));
       } catch (err) {
         reject(err);

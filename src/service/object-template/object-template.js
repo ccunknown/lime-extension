@@ -84,6 +84,10 @@ class ObjectTemplate {
   generateMetric() {
     return this.mb.buildMetric();
   }
+
+  deleteMetric() {
+    return this.mb.deleteMetric();
+  }
 }
 
 module.exports = ObjectTemplate;

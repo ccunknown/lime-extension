@@ -39,9 +39,6 @@ export default class LimeExtenisonPageObjects {
       Promise.resolve()
         .then(() => this.initCustomRest())
         .then(() => this.initVue())
-        // .then(() => {
-        //   this.renderGraph = this.getRenderGraphFunction();
-        // })
         .then(() => resolve())
         .catch((err) => reject(err));
     });
@@ -141,26 +138,30 @@ export default class LimeExtenisonPageObjects {
         this.renderForm(id);
         this.vue.ui.mode = `edit`;
       },
-      view: (id = this.vue.ui.base.activeId) => {
+      view: (
+        id = this.vue.ui.base.activeId,
+        objectLayer = this.vue.ui.base.selected.objectLayer
+      ) => {
         this.console.log(`view(${id})`);
         this.vue.ui.base.activeId = id;
+        this.vue.ui.base.selected.objectLayer = objectLayer;
         this.vue.ui.mode = `view`;
         return this.renderBaseMain(id);
       },
-      remove: (id) => {
-        this.console.log(`delete(${id})`);
-        return new Promise((resolve, reject) => {
-          // eslint-disable-next-line no-undef
-          const conf = confirm(`Are you sure to delete engine "${id}"!`);
-          if (conf) {
-            Promise.resolve()
-              .then(() => this.rest.deleteConfig(id))
-              .then((/* res */) => this.render())
-              .then(() => resolve())
-              .catch((err) => reject(err));
-          } else resolve();
-        });
-      },
+      // remove: (id) => {
+      //   this.console.log(`delete(${id})`);
+      //   return new Promise((resolve, reject) => {
+      //     // eslint-disable-next-line no-undef
+      //     const conf = confirm(`Are you sure to delete engine "${id}"!`);
+      //     if (conf) {
+      //       Promise.resolve()
+      //         .then(() => this.rest.deleteConfig(id))
+      //         .then((/* res */) => this.render())
+      //         .then(() => resolve())
+      //         .catch((err) => reject(err));
+      //     } else resolve();
+      //   });
+      // },
       save: () => {
         this.console.log(`save()`);
         const id = this.vue.ui.base.activeId.join(`.properties.`);
@@ -169,7 +170,27 @@ export default class LimeExtenisonPageObjects {
         this.console.log(`id:`, id);
         this.console.log(`layer:`, layer);
         this.console.log(`config:`, JSON.stringify(config, null, 2));
-        return this.updateObject();
+        return new Promise((resolve, reject) => {
+          Promise.resolve()
+            .then(() => this.updateObject())
+            .then(() => this.vue.fn.renewConfig())
+            .then(() => this.vue.fn.view())
+            .then(() => resolve())
+            .catch((err) => reject(err));
+        });
+      },
+      renewConfig: (config) => {
+        return new Promise((resolve, reject) => {
+          Promise.resolve()
+            .then(() => config || this.getObjectsConfig())
+            .then((conf) =>
+              Object.entries(conf).forEach(([key, value]) => {
+                this.vue.resource[key] = value;
+              })
+            )
+            .then(() => resolve())
+            .catch((err) => reject(err));
+        });
       },
       addSubscribe: (id) => {
         this.console.log(`addSubscribe(${id})`);
@@ -183,46 +204,26 @@ export default class LimeExtenisonPageObjects {
             .catch((err) => reject(err));
         });
       },
-      start: (id) => {
-        this.console.log(`start(${id})`);
-        return new Promise((resolve, reject) => {
-          Promise.resolve()
-            .then(() => this.rest.startServicedItem(id))
-            .then(() => this.render())
-            .then(() => resolve())
-            .catch((err) => reject(err));
-        });
-      },
-      stop: (id) => {
-        this.console.log(`stop(${id})`);
-        return new Promise((resolve, reject) => {
-          Promise.resolve()
-            .then(() => this.rest.stopServicedItem(id))
-            .then(() => this.render())
-            .then(() => resolve())
-            .catch((err) => reject(err));
-        });
-      },
-      addToService: (id) => {
-        this.console.log(`addToService(${id})`);
-        return new Promise((resolve, reject) => {
-          Promise.resolve()
-            .then(() => this.rest.addToService(id))
-            .then(() => this.render())
-            .then(() => resolve())
-            .catch((err) => reject(err));
-        });
-      },
-      removeFromService: (id) => {
-        this.console.log(`removeFromService(${id})`);
-        return new Promise((resolve, reject) => {
-          Promise.resolve()
-            .then(() => this.rest.removeFromService(id))
-            .then(() => this.render())
-            .then(() => resolve())
-            .catch((err) => reject(err));
-        });
-      },
+      // addToService: (id) => {
+      //   this.console.log(`addToService(${id})`);
+      //   return new Promise((resolve, reject) => {
+      //     Promise.resolve()
+      //       .then(() => this.rest.addToService(id))
+      //       .then(() => this.render())
+      //       .then(() => resolve())
+      //       .catch((err) => reject(err));
+      //   });
+      // },
+      // removeFromService: (id) => {
+      //   this.console.log(`removeFromService(${id})`);
+      //   return new Promise((resolve, reject) => {
+      //     Promise.resolve()
+      //       .then(() => this.rest.removeFromService(id))
+      //       .then(() => this.render())
+      //       .then(() => resolve())
+      //       .catch((err) => reject(err));
+      //   });
+      // },
       typeIdentify: (param) => {
         let type;
         if (param.attrs && param.attrs.type) type = param.attrs.type;
@@ -311,6 +312,34 @@ export default class LimeExtenisonPageObjects {
       getJsonElement: (...args) => {
         return this.getJsonElement(...args);
       },
+      objectCmd: {
+        start: (
+          id = this.vue.ui.base.activeId.join(`.properties.`),
+          objectLayer = this.vue.ui.base.selected.objectLayer
+        ) => {
+          this.console.log(`start(${id})`);
+          return new Promise((resolve, reject) => {
+            Promise.resolve()
+              .then(() => this.startObject(id, objectLayer))
+              .then(() => this.render())
+              .then(() => resolve())
+              .catch((err) => reject(err));
+          });
+        },
+        stop: (
+          id = this.vue.ui.base.activeId.join(`.properties.`),
+          objectLayer = this.vue.ui.base.selected.objectLayer
+        ) => {
+          this.console.log(`stop(${id})`);
+          return new Promise((resolve, reject) => {
+            Promise.resolve()
+              .then(() => this.stopObject(id, objectLayer))
+              .then(() => this.render())
+              .then(() => resolve())
+              .catch((err) => reject(err));
+          });
+        },
+      },
       metric: {
         dataTimeRange: () => {
           this.console.log(`uptimeString()`);
@@ -335,10 +364,43 @@ export default class LimeExtenisonPageObjects {
           this.console.log(`uptime:`, `${s} ms`, `/`, resultString);
           return resultString;
         },
+        flush: (id = this.vue.ui.base.activeId.join(`.properties.`)) => {
+          return new Promise((resolve, reject) => {
+            Promise.resolve()
+              .then(() => {
+                this.vue.ui.base.ready = false;
+              })
+              // eslint-disable-next-line no-undef
+              .then(() => confirm(`Are you sure to delete metric of "${id}" ?`))
+              .then((conf) => {
+                if (!conf) throw new Error(`Cancel operation`);
+              })
+              .then(() => this.deleteObjectMetric(id))
+              .then(() => resolve())
+              .catch((err) => reject(err))
+              .finally(() => {
+                this.vue.ui.base.ready = true;
+              });
+          });
+        },
       },
     };
 
     this.console.log(this.vue);
+  }
+
+  startObject(
+    id = this.vue.ui.base.activeId.join(`.properties.`),
+    objectLayer = this.vue.ui.base.selected.objectLayer
+  ) {
+    return this.rest[`${objectLayer}s`].objects(id).cmd.start();
+  }
+
+  stopObject(
+    id = this.vue.ui.base.activeId.join(`.properties.`),
+    objectLayer = this.vue.ui.base.selected.objectLayer
+  ) {
+    return this.rest[`${objectLayer}s`].objects(id).cmd.stop();
   }
 
   updateObject(
@@ -346,7 +408,46 @@ export default class LimeExtenisonPageObjects {
     objectLayer = this.vue.ui.base.selected.objectLayer,
     config = this.vue.ui.base.form
   ) {
-    return this.rest[`${objectLayer}s`].updateObject(id, config);
+    // return this.rest[`${objectLayer}s`].updateObject(id, config);
+    return this.rest[`${objectLayer}s`].objects(id).update(config);
+  }
+
+  getObjectsConfig() {
+    this.console.log(`renewConfig()`);
+    return new Promise((resolve, reject) => {
+      const config = {
+        devices: {},
+        engines: {},
+        ioports: {},
+      };
+      Promise.resolve()
+        .then(() =>
+          Object.keys(config).reduce((prevProm, serviceId) => {
+            // const serviceId = key.replace(/s$/, ``);
+            return prevProm.then(() =>
+              this.rest[serviceId]
+                .objects()
+                .configWithState.get()
+                .then((objects) => {
+                  config[serviceId] = {};
+                  Object.entries(objects).forEach(([key, value]) => {
+                    config[serviceId][key] = { ...value };
+                  });
+                })
+            );
+          }, Promise.resolve())
+        )
+        .then(() => resolve(config))
+        .catch((err) => reject(err));
+    });
+  }
+
+  deleteObjectMetric(
+    id = this.vue.ui.base.activeId.join(`.properties.`),
+    objectLayer = this.vue.ui.base.selected.objectLayer
+  ) {
+    this.console.log(`deleteMetric()`);
+    return this.rest[`${objectLayer}s`].objects(id).metric.delete();
   }
 
   render(base = true) {
@@ -372,39 +473,12 @@ export default class LimeExtenisonPageObjects {
           this.vue.ui.base.ready = false;
           this.vue.ui.slider.hide = true;
         })
-        // Get serviced devices.
-        .then(() => this.rest.devices.getObjectConfigWithState())
-        .then((devices) => {
-          this.vue.resource.devices = {};
-          Object.entries(devices).forEach(([key, value]) => {
-            this.vue.resource.devices[key] = {
-              ...value,
-              // ...{ objectLayer: `device` },
-            };
-          });
-        })
-        // Get serviced engines.
-        .then(() => this.rest.engines.getObjectConfigWithState())
-        .then((engines) => {
-          this.vue.resource.engines = {};
-          Object.entries(engines).forEach(([key, value]) => {
-            this.vue.resource.engines[key] = {
-              ...value,
-              // ...{ objectLayer: `engine` },
-            };
-          });
-        })
-        // Get serviced sysport
-        .then(() => this.rest.ioports.getObjectConfigWithState())
-        .then((ioports) => {
-          this.vue.resource.ioports = {};
-          Object.entries(ioports).forEach(([key, value]) => {
-            this.vue.resource.ioports[key] = {
-              ...value,
-              // ...{ objectLayer: `ioport` },
-            };
-          });
-        })
+        .then(() => this.getObjectsConfig())
+        .then((config) =>
+          Object.entries(config).forEach(([key, value]) => {
+            this.vue.resource[key] = value;
+          })
+        )
         .catch((err) => this.console.error(err))
         .finally(() => {
           this.vue.ui.base.ready = true;
@@ -443,7 +517,9 @@ export default class LimeExtenisonPageObjects {
           const craftedObjectId = Array.isArray(objectId)
             ? objectId.join(`/properties/`)
             : objectId;
-          return this.rest[`${objectLayer}s`].getObjectMetric(craftedObjectId);
+          return this.rest[`${objectLayer}s`]
+            .objects(craftedObjectId)
+            .metric.get();
         })
         .catch((err) => console.error(err))
         .then((metric) => {
@@ -454,8 +530,6 @@ export default class LimeExtenisonPageObjects {
           this.console.log(selected);
           this.vue.ui.base.selected = selected;
         })
-        // .then(() => this.renderGraph.renderSuccessRate())
-        // .then(() => this.renderGraph.renderAvgWaitTime())
         .then(() => this.renderMetricChart(selected.metric))
         .catch((err) => this.console.error(err))
         .finally(() => resolve());
@@ -490,10 +564,12 @@ export default class LimeExtenisonPageObjects {
     return new Promise((resolve, reject) => {
       if (objectId) {
         Promise.resolve()
-          .then(() => this.rest[`${objectLayer}s`].getObjectConfig(objectId))
+          .then(() =>
+            this.rest[`${objectLayer}s`].objects(objectId).config.get()
+          )
           .then((conf) => {
             this.vue.ui.base.form = conf;
-            return this.rest[`${objectLayer}s`].generateConfigSchema(conf);
+            return this.rest[`${objectLayer}s`].configSchema.post(conf);
           })
           .then((schema) => {
             this.vue.ui.base.formSchema = schema;
@@ -590,7 +666,7 @@ export default class LimeExtenisonPageObjects {
           config = JSON.parse(JSON.stringify(this.vue.ui.base.form));
           this.console.log(`config: `, config);
         })
-        .then(() => this.rest[`${objectLayer}s`].generateConfigSchema(config))
+        .then(() => this.rest[`${objectLayer}s`].configSchema(config))
         .then((schema) => {
           newSchema = schema;
         })

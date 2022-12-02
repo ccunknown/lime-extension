@@ -2,11 +2,16 @@
 /* eslint-disable no-nested-ternary */
 const fs = require(`fs`);
 const Path = require(`path`);
+const rimraf = require("rimraf");
 
 class ObjectMetricBuilder {
   constructor(directory, filename) {
     this.directory = directory;
     this.filename = filename.split(`/`).pop();
+  }
+
+  deleteMetric() {
+    return rimraf.sync(this.directory);
   }
 
   buildMetric() {

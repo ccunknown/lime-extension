@@ -155,9 +155,28 @@ class RoutesManager extends APIHandler {
         },
       },
 
-      //  Resource : /service/['device', 'engine', 'ioport']/objects-config
+      //  Resource : /service/['device', 'engine', 'ioport']/config-schema
       {
-        resource: /\/service\/(device|engine|ioport)\/objects-config\/?/,
+        resource: /\/service\/(device|engine|ioport)\/config-schema\/?/,
+        method: {
+          POST: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.generateConfigSchema(req.body))
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
+      //  Resource : /service/['device', 'engine', 'ioport']/objects/config
+      {
+        resource: /\/service\/(device|engine|ioport)\/objects\/config\/?/,
         method: {
           GET: (req) => {
             return new Promise((resolve) => {
@@ -174,29 +193,10 @@ class RoutesManager extends APIHandler {
         },
       },
 
-      //  Resource : /service/['device', 'engine', 'ioport']/objects-config/{object-id}
+      //  Resource : /service/['device', 'engine', 'ioport']/objects/config-with-state
       {
-        resource: /\/service\/(device|engine|ioport)\/objects-config\/[^/]+\/?/,
-        method: {
-          GET: (req) => {
-            return new Promise((resolve) => {
-              const layer = this.getPathElement(req.path, 1);
-              const id = this.getPathElement(req.path, 3);
-              const service = this.laborsManager.getService(
-                `${layer}s-service`
-              ).obj;
-              Promise.resolve()
-                .then(() => service.objects.getConfig(id))
-                .then((ret) => resolve(this.makeJsonRespond(ret)))
-                .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          },
-        },
-      },
-
-      //  Resource : /service/['device', 'engine', 'ioport']/objects
-      {
-        resource: /\/service\/(device|engine|ioport)\/objects\/?/,
+        resource:
+          /\/service\/(device|engine|ioport)\/objects\/config-with-state\/?/,
         method: {
           GET: (req) => {
             return new Promise((resolve) => {
@@ -216,6 +216,47 @@ class RoutesManager extends APIHandler {
       //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}
       {
         resource: /\/service\/(device|engine|ioport)\/objects\/[^/]+\/?/,
+        method: {
+          PUT: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const id = this.getPathElement(req.path, 3);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.objects.update(id, req.body))
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
+      //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}/config
+      {
+        resource: /\/service\/(device|engine|ioport)\/objects\/[^/]+\/config\/?/,
+        method: {
+          GET: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const id = this.getPathElement(req.path, 3);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.objects.getConfig(id))
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
+      //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}/config-with-state
+      {
+        resource:
+          /\/service\/(device|engine|ioport)\/objects\/[^/]+\/config-with-state\/?/,
         method: {
           GET: (req) => {
             return new Promise((resolve) => {
@@ -260,7 +301,21 @@ class RoutesManager extends APIHandler {
               ).obj;
               Promise.resolve()
                 .then(() => service.objects.get(id, { object: true }))
-                .then((device) => device.generateMetric())
+                .then((object) => object.generateMetric())
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          DELETE: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const id = this.getPathElement(req.path, 3);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.objects.get(id, { object: true }))
+                .then((object) => object.deleteMetric())
                 .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -268,7 +323,7 @@ class RoutesManager extends APIHandler {
         },
       },
 
-      //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}/properties/{child-id}
+      //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}/properties/{child-id}/metric
       {
         resource:
           /\/service\/(device|engine|ioport)\/objects\/[^/]+\/properties\/[^/]+\/metric\/?/,
@@ -299,18 +354,28 @@ class RoutesManager extends APIHandler {
         },
       },
 
-      //  Resource : /service/['device', 'engine', 'ioport']/generate-schema
+      //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}/cmd/['start', 'stop']
       {
-        resource: /\/service\/(device|engine|ioport)\/generate-schema\/?/,
+        resource:
+          /\/service\/(device|engine|ioport)\/objects\/[^/]+\/cmd\/(start|stop)\/?/,
         method: {
-          POST: (req) => {
+          GET: (req) => {
             return new Promise((resolve) => {
               const layer = this.getPathElement(req.path, 1);
+              const id = this.getPathElement(req.path, 3);
+              const cmd = this.getPathElement(req.path, 5);
               const service = this.laborsManager.getService(
                 `${layer}s-service`
               ).obj;
               Promise.resolve()
-                .then(() => service.objects.generateConfigSchema(req.body))
+                .then(() =>
+                  // eslint-disable-next-line no-nested-ternary
+                  cmd === `start`
+                    ? service.objects.addToService(id)
+                    : cmd === `stop`
+                    ? service.objects.removeFromService(id)
+                    : new Error(`Command "${cmd}" not define`)
+                )
                 .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
