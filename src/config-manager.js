@@ -32,7 +32,7 @@ class ConfigManager {
         })
         .then((conf) => (path ? this.getJsonElement(conf, path) : conf))
         .then((conf) => {
-          console.log(`[${this.constructor.name}]`, `config:`, JSON.stringify(conf));
+          // console.log(`[${this.constructor.name}]`, `config:`, JSON.stringify(conf));
           return conf;
         })
         .then((conf) => resolve(conf))

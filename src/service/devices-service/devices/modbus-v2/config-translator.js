@@ -27,7 +27,7 @@ class DeviceConfigTranslator {
 
   generateConfigSchema(params) {
     console.log(`DeviceConfigTranslator: generateConfigSchema() >> `);
-    console.log(`>> params: ${JSON.stringify(params, null, 2)}`);
+    // console.log(`>> params: ${JSON.stringify(params, null, 2)}`);
     return new Promise((resolve, reject) => {
       //  Copy config from ValidateConfigSchema.
       let config = JSON.parse(JSON.stringify(ValidateConfigSchema));

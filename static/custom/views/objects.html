@@ -231,9 +231,12 @@
                   "
                 >
                   <!-- Items -->
-                  <template v-for="objectLayer in ['device', 'engine', 'ioport']">
-                    <template v-for="(item, id) in resource[`${objectLayer}s`]">
+                  <template
+                    v-for="objectLayer in ['device', 'engine', 'ioport']"
+                  >
+                    <!-- <template v-for="(item, id) in resource[`${objectLayer}s`]"> -->
                       <div 
+                        v-for="(item, id) in resource[`${objectLayer}s`]"
                         class="
                           miso-small-card card
                           bg-dark text-light
@@ -285,24 +288,43 @@
                             <span class="text-truncate">
                               {{item.name}}
                             </span>
-                            <div class="miso-h-container p-0">
+                            <div
+                              class="miso-h-container p-0"
+                              :class="[
+                                resource[`${objectLayer}s`][id].state.config.value === 'valid'
+                                  ? resource[`${objectLayer}s`][id].state.enable.value
+                                    ? resource[`${objectLayer}s`][id].state.inServiceList.value && resource[`${objectLayer}s`][id].state.objectState.value === 'running'
+                                      ? 'text-success'
+                                      : 'text-danger'
+                                    : 'text-secondary'
+                                  : 'text-danger'
+                              ]"
+                              :key="resource[`${objectLayer}s`][id].state.value"
+                            >
                               <!-- status bullet -->
                               <i
                                 class="
                                   fa-solid fa-circle
                                   mr-3
                                 "
+                              >
+                              </i>
+                              <!-- <i
+                                class="
+                                  fa-solid fa-circle
+                                  mr-3
+                                "
                                 :class="[
-                                  item.state.config.value === 'valid'
-                                    ? item.state.enable.value
-                                      ? item.state.inServiceList.value && item.state.objectState.value === 'running'
+                                  resource[`${objectLayer}s`][id].state.config.value === 'valid'
+                                    ? resource[`${objectLayer}s`][id].state.enable.value
+                                      ? resource[`${objectLayer}s`][id].state.inServiceList.value && resource[`${objectLayer}s`][id].state.objectState.value === 'running'
                                         ? 'text-success'
                                         : 'text-danger'
                                       : 'text-secondary'
                                     : 'text-danger'
                                 ]"
                               >
-                              </i>
+                              </i> -->
                               <!-- template -->
                               <span class="badge text-truncate bg-info text-light">{{item.template}}</span>
                             </div>
@@ -319,7 +341,7 @@
                           </div>
                         </div>
                       </div>
-                    </template>
+                    <!-- </template> -->
                   </template>
                 </div>
               </div>
@@ -1209,5 +1231,7 @@
       </div>
     </div>
   </div>
+
+  <!-- {{resource}} -->
 
 </div>

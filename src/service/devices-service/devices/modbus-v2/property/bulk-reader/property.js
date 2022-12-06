@@ -9,6 +9,7 @@ const PropertyTemplate = require(`../../../../device-template/period-queue-style
 
 const ConfigTranslator = require(`./config-translator.js`);
 const PropertyUnit = require(`./propertyUnit.js`);
+const { ObjectState } = require(`../../../../../object-template/object-state`);
 // const DefaultConfig = require(`../../defalt-config`);
 
 class BulkReader extends PropertyTemplate {
@@ -113,6 +114,14 @@ class BulkReader extends PropertyTemplate {
     return !!this.period;
   }
 
+  getState() {
+    return this.oo.getState();
+  }
+
+  setState(state) {
+    return this.oo.setState(state);
+  }
+
   setPeriodWork() {
     console.log(`[${this.constructor.name}]`, `setPeriodWork() >> `);
     return new Promise((resolve, reject) => {
@@ -123,6 +132,7 @@ class BulkReader extends PropertyTemplate {
           .then(() => {
             this.period = setInterval(() => this.act(), this.config.period);
           })
+          // .then(() => this.oo.setState(ObjectState.RUNNING))
           .then(() => resolve(null))
           .catch((err) => reject(err));
       } else if (!this.device.to.wtDevice) {
@@ -142,6 +152,7 @@ class BulkReader extends PropertyTemplate {
           clearInterval(this.period);
           this.period = null;
         })
+        // .then(() => this.oo.setState(ObjectState.STOPPED))
         .then(() => resolve())
         .catch((err) => reject(err));
     });

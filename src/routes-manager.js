@@ -300,8 +300,9 @@ class RoutesManager extends APIHandler {
                 `${layer}s-service`
               ).obj;
               Promise.resolve()
-                .then(() => service.objects.get(id, { object: true }))
-                .then((object) => object.generateMetric())
+                // .then(() => service.objects.get(id, { object: true }))
+                // .then((object) => object.generateMetric())
+                .then(() => service.objects.metric.buildMetric(id))
                 .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -314,8 +315,9 @@ class RoutesManager extends APIHandler {
                 `${layer}s-service`
               ).obj;
               Promise.resolve()
-                .then(() => service.objects.get(id, { object: true }))
-                .then((object) => object.deleteMetric())
+                // .then(() => service.objects.get(id, { object: true }))
+                // .then((object) => object.deleteMetric())
+                .then(() => service.objects.metric.deleteMetric(id))
                 .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -337,16 +339,19 @@ class RoutesManager extends APIHandler {
                 `${layer}s-service`
               ).obj;
               Promise.resolve()
-                .then(() => service.objects.get(id, { object: true }))
-                .then((object) => {
-                  if (!object) throw new Errors.ObjectNotFound(id);
-                  return object.oo.getChild(childId);
-                })
-                .then((child) => {
-                  if (!child) throw new Errors.ObjectNotFound(childId);
-                  console.log(`Child constructor:`, child.constructor.name);
-                  return child.generateMetric();
-                })
+                // .then(() => service.objects.get(id, { object: true }))
+                // .then((object) => {
+                //   if (!object) throw new Errors.ObjectNotFound(id);
+                //   return object.oo.getChild(childId);
+                // })
+                // .then((child) => {
+                //   if (!child) throw new Errors.ObjectNotFound(childId);
+                //   console.log(`Child constructor:`, child.constructor.name);
+                //   return child.generateMetric();
+                // })
+                .then(() =>
+                  service.objects.metric.buildMetric([id, childId].join(`/`))
+                )
                 .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -376,6 +381,38 @@ class RoutesManager extends APIHandler {
                     ? service.objects.removeFromService(id)
                     : new Error(`Command "${cmd}" not define`)
                 )
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
+      //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}/properties/{child-id}/cmd/['start', 'stop']
+      {
+        resource:
+          /\/service\/(device|engine|ioport)\/objects\/[^/]+\/properties\/[^/]+\/cmd\/(start|stop)\/?/,
+        method: {
+          GET: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const objectId = this.getPathElement(req.path, 3);
+              const childId = this.getPathElement(req.path, 5);
+              const cmd = this.getPathElement(req.path, 7);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.objects.get(objectId))
+                .then((object) => {
+                  if (cmd === `start`) {
+                    return object.oo.startChild(childId);
+                  }
+                  if (cmd === `stop`) {
+                    return object.oo.stopChild(childId);
+                  }
+                  throw new Error(`Command "${cmd}" not define`);
+                })
                 .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });

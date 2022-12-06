@@ -101,7 +101,9 @@ class Service extends EventEmitter {
   }
 
   isValidConfig(config) {
+    console.log(`[${this.constructor.name}]`, `isValidConfig() >> `);
     return new Promise((resolve, reject) => {
+      // console.log(`config:`, config);
       Promise.resolve()
         .then(() => this.configTranslator.validate(config))
         .then(() => resolve(true))

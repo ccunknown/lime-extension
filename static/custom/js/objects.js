@@ -175,6 +175,7 @@ export default class LimeExtenisonPageObjects {
             .then(() => this.updateObject())
             .then(() => this.vue.fn.renewConfig())
             .then(() => this.vue.fn.view())
+            // .then(() => this.vue.fn.clickObject())
             .then(() => resolve())
             .catch((err) => reject(err));
         });
@@ -185,7 +186,7 @@ export default class LimeExtenisonPageObjects {
             .then(() => config || this.getObjectsConfig())
             .then((conf) =>
               Object.entries(conf).forEach(([key, value]) => {
-                this.vue.resource[key] = value;
+                this.vue.resource[`${key}s`] = value;
               })
             )
             .then(() => resolve())
@@ -204,26 +205,6 @@ export default class LimeExtenisonPageObjects {
             .catch((err) => reject(err));
         });
       },
-      // addToService: (id) => {
-      //   this.console.log(`addToService(${id})`);
-      //   return new Promise((resolve, reject) => {
-      //     Promise.resolve()
-      //       .then(() => this.rest.addToService(id))
-      //       .then(() => this.render())
-      //       .then(() => resolve())
-      //       .catch((err) => reject(err));
-      //   });
-      // },
-      // removeFromService: (id) => {
-      //   this.console.log(`removeFromService(${id})`);
-      //   return new Promise((resolve, reject) => {
-      //     Promise.resolve()
-      //       .then(() => this.rest.removeFromService(id))
-      //       .then(() => this.render())
-      //       .then(() => resolve())
-      //       .catch((err) => reject(err));
-      //   });
-      // },
       typeIdentify: (param) => {
         let type;
         if (param.attrs && param.attrs.type) type = param.attrs.type;
@@ -276,7 +257,7 @@ export default class LimeExtenisonPageObjects {
         return result;
       },
       clickObject: (
-        id,
+        id = this.vue.ui.base.activeId,
         objectLayer = this.vue.ui.base.selected.objectLayer,
         mode = `view`
       ) => {
@@ -314,27 +295,33 @@ export default class LimeExtenisonPageObjects {
       },
       objectCmd: {
         start: (
-          id = this.vue.ui.base.activeId.join(`.properties.`),
+          id = this.vue.ui.base.activeId,
           objectLayer = this.vue.ui.base.selected.objectLayer
         ) => {
           this.console.log(`start(${id})`);
           return new Promise((resolve, reject) => {
             Promise.resolve()
-              .then(() => this.startObject(id, objectLayer))
+              .then(() =>
+                this.startObject(id.join(`/properties/`), objectLayer)
+              )
+              // .then(() => this.getObjectsConfig())
               .then(() => this.render())
+              .then(() => this.vue.fn.clickObject(id))
               .then(() => resolve())
               .catch((err) => reject(err));
           });
         },
         stop: (
-          id = this.vue.ui.base.activeId.join(`.properties.`),
+          id = this.vue.ui.base.activeId,
           objectLayer = this.vue.ui.base.selected.objectLayer
         ) => {
           this.console.log(`stop(${id})`);
           return new Promise((resolve, reject) => {
             Promise.resolve()
-              .then(() => this.stopObject(id, objectLayer))
+              .then(() => this.stopObject(id.join(`/properties/`), objectLayer))
+              // .then(() => this.getObjectsConfig())
               .then(() => this.render())
+              .then(() => this.vue.fn.clickObject(id))
               .then(() => resolve())
               .catch((err) => reject(err));
           });
@@ -473,12 +460,18 @@ export default class LimeExtenisonPageObjects {
           this.vue.ui.base.ready = false;
           this.vue.ui.slider.hide = true;
         })
+        .then(() =>
+          [`devices`, `engines`, `ioports`].forEach((key) => {
+            this.vue.resource[key] = {};
+          })
+        )
         .then(() => this.getObjectsConfig())
         .then((config) =>
           Object.entries(config).forEach(([key, value]) => {
             this.vue.resource[key] = value;
           })
         )
+        // .then(() => this.vue.$forceUpdate())
         .catch((err) => this.console.error(err))
         .finally(() => {
           this.vue.ui.base.ready = true;

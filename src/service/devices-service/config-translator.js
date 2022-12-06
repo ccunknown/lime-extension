@@ -18,7 +18,7 @@ class ServiceConfigTranslator {
 
   generateConfigSchema(params) {
     console.log(`[${this.constructor.name}]`, `generateConfigSchema() >> `);
-    console.log(`>> params: ${JSON.stringify(params, null, 2)}`);
+    // console.log(`>> params: ${JSON.stringify(params, null, 2)}`);
     return new Promise((resolve, reject) => {
       //  Copy config from ValidateConfigSchema.
       const config = JSON.parse(JSON.stringify(ValidateConfigSchema));
@@ -84,9 +84,9 @@ class ServiceConfigTranslator {
       templateName,
       `config-translator.js`
     );
-    console.log(`service config:`, this.service.config);
-    console.log(`directory:`, dir);
-    console.log(`path:`, path);
+    // console.log(`service config:`, this.service.config);
+    // console.log(`directory:`, dir);
+    // console.log(`path:`, path);
     const ConfigTranslator = require(path);
     return ConfigTranslator;
   }

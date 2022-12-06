@@ -16,7 +16,7 @@ class IoportConfigTranslator {
 
   generateConfigSchema(params) {
     console.log(`[${this.constructor.name}]`, `generateConfigSchema() >> `);
-    console.log(`Params: ${JSON.stringify(params, null, 2)}`);
+    // console.log(`Params: ${JSON.stringify(params, null, 2)}`);
     return new Promise((resolve, reject) => {
       //  Copy config from ValidateConfigSchema.
       const config = JSON.parse(JSON.stringify(ValidateConfigSchema));
@@ -94,12 +94,8 @@ class IoportConfigTranslator {
           });
           // console.log(
           //   `[${this.constructor.name}]`,
-          //   `port: ${JSON.stringify(ports, null, 2)}`
+          //   `portList: ${JSON.stringify(portList, null, 2)}`
           // );
-          console.log(
-            `[${this.constructor.name}]`,
-            `portList: ${JSON.stringify(portList, null, 2)}`
-          );
           resolve(portList);
         })
         .catch((err) => {

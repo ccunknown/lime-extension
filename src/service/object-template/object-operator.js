@@ -38,7 +38,13 @@ class ObjectOperator {
   }
 
   setState(state) {
-    console.log(`[${this.constructor.name}]`, `setState:`, state);
+    console.log(
+      `[${this.constructor.name}]`,
+      `setState:`,
+      this.state,
+      `->`,
+      state
+    );
     if (JSON.stringify(state) !== JSON.stringify(this.state)) {
       if (
         !Object.values(ObjectState)
@@ -242,13 +248,13 @@ class ObjectOperator {
           .then((child) => {
             if (!child)
               throw new Error(`Child with id '${childId}' not found.`);
-            return child.start();
+            return child.oo.start();
           })
-          .then(() =>
-            this.parent.to && this.parent.to.startChild
-              ? this.parent.to.startChild(childId)
-              : this.parent.startChild(childId)
-          )
+          // .then(() =>
+          //   this.parent.to && this.parent.to.startChild
+          //     ? this.parent.to.startChild(childId)
+          //     : this.parent.startChild(childId)
+          // )
           .then(() => resolve())
           .catch((err) => reject(err));
       } else {
@@ -276,13 +282,13 @@ class ObjectOperator {
           .then((child) => {
             if (!child)
               throw new Error(`Child with id '${childId}' not found.`);
-            return child.stop();
+            return child.oo.stop();
           })
-          .then(() =>
-            this.parent.to && this.parent.to.stopChild
-              ? this.parent.to.stopChild(childId)
-              : this.parent.stopChild(childId)
-          )
+          // .then(() =>
+          //   this.parent.to && this.parent.to.stopChild
+          //     ? this.parent.to.stopChild(childId)
+          //     : this.parent.stopChild(childId)
+          // )
           .then(() => resolve())
           .catch((err) => reject(err));
       } else {
