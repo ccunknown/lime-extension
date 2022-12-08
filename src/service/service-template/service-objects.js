@@ -310,11 +310,7 @@ class ServiceObjects {
         } else {
           const objectList = this.service.mapToObject(this.objects);
           resolve(objectList);
-          // const json = [];
-          // Object.values(objectList).forEach((dev) =>
-          //   json.push(dev.oo.getSchema())
-          // );
-          // resolve(JSON.parse(JSON.stringify(json)));
+          // this.objects.entries(())
         }
       } catch (err) {
         reject(err);
@@ -330,10 +326,11 @@ class ServiceObjects {
     return new Promise((resolve, reject) => {
       if (id) {
         const idArr = id.split(`.`);
-        const object =
-          idArr.length > 1
-            ? this.objects.get(idArr[0]).oo.getChild(idArr[1])
-            : this.objects.get(id) || undefined;
+        let object;
+        // const object =
+        //   idArr.length > 1
+        //     ? this.objects.get(idArr[0]).oo.getChild(idArr[1])
+        //     : this.objects.get(id) || undefined;
         let config = null;
         let parentConfig = null;
         // Default state.
@@ -343,7 +340,19 @@ class ServiceObjects {
           inServiceList: ObjectServiceState.inServiceList.NOTINSERVICE,
           objectState: `undefined`,
         };
+        console.log(`idArr:`, idArr);
         Promise.resolve()
+          // Get object.
+          .then(() =>
+            idArr.length > 1
+              ? this.objects.get(idArr[0])
+                ? this.objects.get(idArr[0]).oo.getChild(idArr[1])
+                : undefined
+              : this.objects.get(id) || undefined
+          )
+          .then((obj) => {
+            object = obj;
+          })
           // Check object config (unavailable, invalid, valid).
           .then(() => this.getConfig(id))
           .then((conf) => {

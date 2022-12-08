@@ -403,7 +403,7 @@ class RoutesManager extends APIHandler {
                 `${layer}s-service`
               ).obj;
               Promise.resolve()
-                .then(() => service.objects.get(objectId))
+                .then(() => service.objects.get(objectId, { object: true }))
                 .then((object) => {
                   if (cmd === `start`) {
                     return object.oo.startChild(childId);
