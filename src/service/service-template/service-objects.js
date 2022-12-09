@@ -11,6 +11,7 @@ const SERVICE_OBJECT_NAME_PAIR = {
 const Path = require(`path`);
 const { ObjectServiceState } = require(`../object-template/object-state`);
 const { Errors } = require(`../../../constants/constants`);
+const path = require("path");
 const ServiceObjectsMetric = require("./service-objects-metric");
 
 class ServiceObjects {
@@ -190,12 +191,12 @@ class ServiceObjects {
             throw new Error(
               `Object template '${config.template}' not found!!!`
             );
-          const path = Path.join(
+          const templateLocation = Path.join(
             this.service.serviceDir,
             `${template.path}`,
             `${SERVICE_OBJECT_NAME_PAIR[this.service.id]}.js`
           );
-          const Obj = require(path);
+          const Obj = require(templateLocation);
           object = new Obj(this.service, id, config);
         })
         .then(() => object.oo.init())
@@ -571,6 +572,49 @@ class ServiceObjects {
           .catch((err) => reject(err));
       }
     });
+  }
+
+  getTemplateLocation(id) {
+    console.log(
+      `[${this.constructor.name}:${this.service.id}]`,
+      `this.getObjectTemplateLocation(${id || ``})`
+    );
+    return new Promise((resolve, reject) => {
+      let serviceDir;
+      let objectList;
+      Promise.resolve()
+        // Get config if 'recursiveConfig' not declare.
+        .then(() => this.service.getConfig())
+        .then((conf) => {
+          objectList = conf.list;
+          serviceDir = conf.directory;
+        })
+        // Craft template location recursively.
+        .then(() => this.getRelativeTemplateDirectory(id, objectList))
+        .then((dir) =>
+          path.join(__dirname, `../`, this.service.id, serviceDir, dir)
+        )
+        .then((dir) => {
+          console.log(`template[${id}]:`, dir);
+          return dir;
+        })
+        .then((ret) => resolve(ret))
+        .catch((err) => reject(err));
+    });
+  }
+
+  getRelativeTemplateDirectory(id, config) {
+    const idArr = id.split(`.`);
+    if (idArr.length > 1)
+      return path.join(
+        config[idArr[0]].template || ``,
+        `property`,
+        this.getRelativeTemplateDirectory(
+          idArr.slice(1).join(`.`),
+          config[idArr[0]].properties
+        )
+      );
+    return config[id].template;
   }
 
   generateMetric(id) {

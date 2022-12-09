@@ -1,4 +1,5 @@
 const Queue = require(`bull`);
+const Path = require(`path`);
 const { ObjectState, ObjectActivity } = require(`./object-state`);
 
 class ObjectOperator {
@@ -202,15 +203,24 @@ class ObjectOperator {
     }
   }
 
-  addChild(childId, templatePath, config) {
+  addChild(childId, config) {
     console.log(`[${this.constructor.name}]`, `addChild(${childId}) >> `);
     return new Promise((resolve, reject) => {
+      let templatePath;
       let ChildObject;
       let child;
       Promise.resolve()
+        .then(() =>
+          this.parentService.objects.getTemplateLocation(
+            [this.id, childId].join(`.`)
+          )
+        )
+        .then((tpath) => {
+          templatePath = tpath;
+        })
         .then(() => {
           // eslint-disable-next-line import/no-dynamic-require, global-require
-          ChildObject = require(templatePath);
+          ChildObject = require(Path.join(templatePath, `property`));
           child = new ChildObject(this.parent, childId, config);
         })
         .then(() => child.init())

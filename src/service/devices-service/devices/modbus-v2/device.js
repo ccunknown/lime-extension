@@ -51,10 +51,10 @@ class ModbusDevice extends DeviceTemplate {
               .then(() =>
                 this.oo.addChild(
                   id,
-                  Path.join(
-                    __dirname,
-                    `/property/${propertiesConfig[id].template}/property.js`
-                  ),
+                  // Path.join(
+                  //   __dirname,
+                  //   `/property/${propertiesConfig[id].template}/property.js`
+                  // ),
                   propertiesConfig[id]
                 )
               )

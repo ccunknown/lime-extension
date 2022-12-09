@@ -1168,7 +1168,7 @@
                 <template
                   v-for="(param, index) in ui.base.formSchema.properties"
                 >
-                  <!-- All attribute type -->
+                  <!-- All attribute -->
                   <div
                     class=""
                     :class="{
@@ -1180,7 +1180,6 @@
                     "
                   >
                     <label
-                      v-if="fn.typeIdentify(param) != 'object'"
                       class="badge badge-secondary m-0"
                       style="
                         font-size: 1rem;
@@ -1199,6 +1198,7 @@
                       }"
                     >
                       <json-schema-form 
+                        v-if="index !== 'properties'"
                         v-bind:param="param"
                         class="rounded-0 border border-secondary bg-light w-100"
                         v-bind:class="{
@@ -1208,11 +1208,102 @@
                         @change="param.alternate && fn.onAlternateChange()"
                       >
                       </json-schema-form>
+                      <div
+                        v-if="index === 'properties'"
+                        class="
+                          miso-v-container miso-gap
+                          rounded bg-dark
+                          w-100
+                        "
+                      >
+                        <template
+                          v-for="(prop, propId) in ui.base.form[index]"
+                        >
+                          <div
+                            class="
+                              miso-h-container miso-gap
+                              justify-content-between
+                              align-items-center
+                              rounded border border-secondary
+                              miso-hover-bg-secondary
+                            "
+                          >
+                            <!-- Property short detail -->
+                            <div
+                              class="
+                                miso-v-container miso-gap
+                                text-truncate
+                                p-0
+                              "
+                            >
+                              <span
+                                class="text-truncate"
+                                style="
+                                  font-weight: bold;
+                                  font-size: 1.2rem;
+                                "
+                              >
+                                {{prop.name}}
+                              </span>
+                              <span class="text-truncate pl-3">{{propId}}</span>
+                            </div>
+                            <!-- Property button box -->
+                            <div
+                              class="
+                                miso-h-container miso-gap
+                                p-0
+                              "
+                            >
+                              <!-- Edit button -->
+                              <div
+                                class="
+                                  miso-icon-box-24
+                                  border border-warning rounded
+                                  text-dark bg-warning
+                                  miso-hover-border-light
+                                "
+                                data-toggle="tooltip"
+                                title="Edit"
+                              >
+                                <i class="fas fa-edit fa-lg"></i>
+                              </div>
+                              <!-- Delete button -->
+                              <div
+                                class="
+                                  miso-icon-box-24
+                                  border border-danger rounded
+                                  text-light bg-danger
+                                  miso-hover-border-light
+                                "
+                                data-toggle="tooltip"
+                                title="Delete"
+                              >
+                                <i class="fas fa-trash fa-lg"></i>
+                              </div>
+                            </div>
+                          </div>
+                        </template>
+                        <div
+                          class="
+                            miso-h-container
+                            justify-content-center align-items-center
+                            rounded bg-info border border-info
+                            miso-hover-border-light
+                            pointer-cursor
+                            p-1 w-100
+                          "
+                          style="font-weight: bold"
+                        >
+                          <span>Add property</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </template>
                 <!-- Specific info -->
-                formSchema:{{ui.base.formSchema}}
+                form: {{ui.base.form}}
+                <br>
+                formSchema: {{ui.base.formSchema}}
                 <!-- form: {{ui.base.form}} -->
               </div>
               <!-- Object body edit add -->
@@ -1231,6 +1322,11 @@
       </div>
     </div>
   </div>
+  <!-- activeId: {{ui.base.activeId}}
+  <br>
+  objectLayer: {{ui.base.objectLayer}}
+  <br>
+  selected: {{ui.base.selected}} -->
 
   <!-- {{resource}} -->
 

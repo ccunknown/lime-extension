@@ -263,8 +263,8 @@ export default class LimeExtenisonPageObjects {
       ) => {
         this.console.log(`clickObject:`, id, objectLayer);
         this.vue.ui.base.activeId = id;
+        this.vue.ui.base.selected.objectLayer = objectLayer;
         this.vue.ui.mode = mode;
-        if (objectLayer) this.vue.ui.base.selected.objectLayer = objectLayer;
         this.vue.fn.toggleLeftPanel(false);
         this.console.log(`click object '`, id, `' layer '${objectLayer}'`);
         // this.console.log(`info:`, this.vue.resource[`${objectLayer}s`][id]);

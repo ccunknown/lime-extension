@@ -362,7 +362,7 @@ class RoutesManager extends APIHandler {
       //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}/cmd/['start', 'stop']
       {
         resource:
-          /\/service\/(device|engine|ioport)\/objects\/[^/]+\/cmd\/(start|stop)\/?/,
+          /\/service\/(device|engine|ioport)\/objects\/[^/]+\/cmd\/[^/]+\/?/,
         method: {
           GET: (req) => {
             return new Promise((resolve) => {
@@ -373,15 +373,25 @@ class RoutesManager extends APIHandler {
                 `${layer}s-service`
               ).obj;
               Promise.resolve()
-                .then(() =>
+                .then(() => {
                   // eslint-disable-next-line no-nested-ternary
-                  cmd === `start`
-                    ? service.objects.addToService(id)
-                    : cmd === `stop`
-                    ? service.objects.removeFromService(id)
-                    : new Error(`Command "${cmd}" not define`)
-                )
-                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                  if (cmd === `start`) {
+                    return service.objects.addToService(id);
+                  }
+                  if (cmd === `stop`) {
+                    return service.objects.removeFromService(id);
+                  }
+                  if (cmd === `template-location`) {
+                    return service.objects.getTemplateLocation(id).then((p) => {
+                      return {
+                        id,
+                        "template-location": p,
+                      };
+                    });
+                  }
+                  throw new Error(`Command "${cmd}" not define`);
+                })
+                .then((ret) => resolve(this.makeJsonRespond(ret || {})))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
@@ -391,7 +401,7 @@ class RoutesManager extends APIHandler {
       //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}/properties/{child-id}/cmd/['start', 'stop']
       {
         resource:
-          /\/service\/(device|engine|ioport)\/objects\/[^/]+\/properties\/[^/]+\/cmd\/(start|stop)\/?/,
+          /\/service\/(device|engine|ioport)\/objects\/[^/]+\/properties\/[^/]+\/cmd\/[^/]+\/?/,
         method: {
           GET: (req) => {
             return new Promise((resolve) => {
@@ -406,14 +416,33 @@ class RoutesManager extends APIHandler {
                 .then(() => service.objects.get(objectId, { object: true }))
                 .then((object) => {
                   if (cmd === `start`) {
-                    return object.oo.startChild(childId);
+                    let childConfig;
+                    return Promise.resolve()
+                      .then(() =>
+                        service.objects.getConfig([objectId, childId].join(`.`))
+                      )
+                      .then((conf) => {
+                        childConfig = conf;
+                      })
+                      .then(() => object.oo.addChild(childId, childConfig))
+                      .then((child) => child.oo.start());
+                    // return object.oo.startChild(childId);
                   }
                   if (cmd === `stop`) {
                     return object.oo.stopChild(childId);
                   }
+                  if (cmd === `template-location`)
+                    return service.objects
+                      .getTemplateLocation([objectId, childId].join(`.`))
+                      .then((p) => {
+                        return {
+                          id: [objectId, childId].join(`.`),
+                          "template-location": p,
+                        };
+                      });
                   throw new Error(`Command "${cmd}" not define`);
                 })
-                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .then((ret) => resolve(this.makeJsonRespond(ret || {})))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },

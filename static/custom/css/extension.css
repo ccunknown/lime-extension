@@ -306,6 +306,11 @@
   transition: background-color 0.5s ease-out;
 }
 
+#extension-lime-content .miso-hover-bg-secondary:hover {
+  background-color: var(--lime-secondary) !important;
+  transition: background-color 0.2s ease-out;
+}
+
 #extension-lime-content .miso-activable-border-yellow.active {
   border-color: var(--lime-yellow) !important;
 }
