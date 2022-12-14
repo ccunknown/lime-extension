@@ -552,7 +552,10 @@
                     :class="{
                       'hide': !['edit', 'add'].includes(ui.mode)
                     }"
-                    @click="fn.view()"
+                    @click="
+                      ui.base.activeId.length > 1
+                        ? ui.base.activeId.pop() && fn.render()
+                        : fn.view()"
                     data-toggle="tooltip"
                     title="Back"
                   >
@@ -1166,7 +1169,7 @@
               >
                 <!-- Genaral info -->
                 <template
-                  v-for="(param, index) in ui.base.formSchema.properties"
+                  v-for="(param, index) in ui.base.activeId.length > 1 ? ui.base.formSchema.properties.properties.patternProperties['^[^\n]+$'].properties : ui.base.formSchema.properties"
                 >
                   <!-- All attribute -->
                   <div
@@ -1198,9 +1201,9 @@
                       }"
                     >
                       <json-schema-form 
-                        v-if="index !== 'properties'"
+                        v-if="!['properties', 'state'].includes(index)"
                         v-bind:param="param"
-                        class="rounded-0 border border-secondary bg-light w-100"
+                        class="rounded-0 border border-secondary bg-light text-dark w-100"
                         v-bind:class="{
                           'no-resize': param.attrs && param.attrs.type === 'textarea'
                         }"
@@ -1217,7 +1220,7 @@
                         "
                       >
                         <template
-                          v-for="(prop, propId) in ui.base.form[index]"
+                          v-for="(prop, propId) in ui.base.form.properties"
                         >
                           <div
                             class="
@@ -1264,6 +1267,7 @@
                                 "
                                 data-toggle="tooltip"
                                 title="Edit"
+                                @click="fn.propEdit([...ui.base.activeId, propId])"
                               >
                                 <i class="fas fa-edit fa-lg"></i>
                               </div>
@@ -1302,7 +1306,9 @@
                 </template>
                 <!-- Specific info -->
                 form: {{ui.base.form}}
-                <br>
+                <br><br>
+                parentForm: {{ui.base.parentForm}}
+                <br><br>
                 formSchema: {{ui.base.formSchema}}
                 <!-- form: {{ui.base.form}} -->
               </div>

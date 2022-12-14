@@ -324,8 +324,10 @@ export default class ExtensionUi {
   generateData(schema, extend = false) {
     let result = {};
     if (schema.type === `object`) {
-      Object.keys(schema.properties).forEach((i) => {
-        result[i] = this.generateData(schema.properties[i], extend);
+      this.console.log(`ui.schema:`, schema);
+      const schemaProperties = schema.properties || schema.patternProperties;
+      Object.keys(schemaProperties).forEach((i) => {
+        result[i] = this.generateData(schemaProperties[i], extend);
         if (schema.required.includes(i) && extend) result[i].required = true;
       });
       // for(let i in schema.properties) {

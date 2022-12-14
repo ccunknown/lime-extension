@@ -64,8 +64,14 @@ class PropertyConfigTranslator {
             config.properties.address.items.enumDisplay = {};
             Object.keys(addrList).forEach((i) => {
               config.properties.address.items.enum.push(Number(i));
+              const detail = {
+                address: `0x${Number(i).toString(16).padStart(4, `0`).toUpperCase()}`,
+                unit: addrList[i].unit ? `${addrList[i].unit}` : ``,
+                name: `${addrList[i].name}`,
+              };
               config.properties.address.items.enumDisplay[Number(i)] = {
-                title: `${addrList[i].name} [Addr:${Number(i).toString(16)}] ${(addrList[i].unit) ? `(${addrList[i].unit})` : ``}`
+                title: `${detail.name} [Addr:${detail.address}] ${detail.unit}`,
+                detail,
               };
             });
 

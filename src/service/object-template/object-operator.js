@@ -237,11 +237,14 @@ class ObjectOperator {
   }
 
   getChild(childId) {
-    console.log(`[${this.constructor.name}]`, `getChild(${childId}) >> `);
+    console.log(
+      `[${this.constructor.name}:${this.id}]`,
+      `getChild(${childId}) >> `
+    );
     if (this.parent.to.getChild) {
       // const child = this.parent.to.getChild(childId);
       const child = this.children.get(childId);
-      return childId
+      return child
         ? child.master || child
         : child.map((kid) => kid.master || kid);
     }

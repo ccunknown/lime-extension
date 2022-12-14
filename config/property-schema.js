@@ -1,7 +1,7 @@
 const config = {
-  "idPattern": {
-    "regex": `^[^\n]+$`
-  }
+  idPattern: {
+    regex: `^[^\n]+$`,
+  },
 };
 
 module.exports = config;

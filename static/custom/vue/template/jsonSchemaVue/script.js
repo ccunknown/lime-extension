@@ -29,24 +29,24 @@ export default {
         },
 
         check: (arr, val) => {
-          // eslint-disable-next-line no-param-reassign
-          arr = Array.isArray(arr) ? arr : [];
-          if (!arr.includes(val)) arr.push(val);
-          // arr.sort();
-          return arr;
+          const result = [...arr];
+          if (!result.includes(val)) result.push(val);
+          return result.sort((a, b) => a - b);
         },
 
         uncheck: (arr, val) => {
-          // eslint-disable-next-line no-param-reassign
-          arr = (Array.isArray(arr)) ? arr : [];
-          const result = [];
-          if (arr.includes(val)) {
-            arr.forEach((i) => {
-              if (arr[i] !== val) result.push(arr[i]);
-            });
-          }
-          // result.sort();
-          return result;
+          return [...arr].filter((e) => e !== val).sort((a, b) => a - b);
+        },
+
+        translateEnumDisplay: (addr, elem) => {
+          // eslint-disable-next-line no-nested-ternary
+          return elem && elem.title
+            ? elem.detail
+              ? Object.entries(elem.detail)
+                  .map(([key, val]) => `<td v-html="html">${val}</td>`)
+                  .join(``)
+              : `<td v-html="html">${elem.title}</td>`
+            : `<td v-html="html">${addr}</td>`;
         },
       },
     };

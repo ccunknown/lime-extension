@@ -117,6 +117,8 @@ export default class LimeExtenisonPageObjects {
             activeId: null,
             quickFilter: [`device`, `engine`, `ioport`],
             selected: {},
+            parentForm: {},
+            // parentFormSchema: {},
             form: {},
             formSchema: {},
           },
@@ -133,9 +135,9 @@ export default class LimeExtenisonPageObjects {
         this.vue.ui.slider[`edit-id`] = null;
         this.renderSlider();
       },
-      edit: (id = this.vue.ui.base.activeId) => {
-        this.console.log(`edit(${id})`);
-        this.renderForm(id);
+      edit: (idArr = this.vue.ui.base.activeId) => {
+        this.console.log(`edit(${idArr})`);
+        this.renderForm(idArr);
         this.vue.ui.mode = `edit`;
       },
       view: (
@@ -147,6 +149,13 @@ export default class LimeExtenisonPageObjects {
         this.vue.ui.base.selected.objectLayer = objectLayer;
         this.vue.ui.mode = `view`;
         return this.renderBaseMain(id);
+      },
+      render: () => {
+        return this.vue.ui.mode === `view`
+          ? this.vue.fn.view()
+          : this.vue.ui.mode === `edit`
+          ? this.vue.fn.edit()
+          : {};
       },
       // remove: (id) => {
       //   this.console.log(`delete(${id})`);
@@ -164,12 +173,21 @@ export default class LimeExtenisonPageObjects {
       // },
       save: () => {
         this.console.log(`save()`);
-        const id = this.vue.ui.base.activeId.join(`.properties.`);
+        const idArr = this.vue.ui.base.activeId;
+        const id = idArr.join(`.properties.`);
         const layer = this.vue.ui.base.selected.objectLayer;
         const config = this.vue.ui.base.form;
         this.console.log(`id:`, id);
         this.console.log(`layer:`, layer);
         this.console.log(`config:`, JSON.stringify(config, null, 2));
+        if (idArr.length > 1) {
+          const propId = idArr.pop();
+          this.console.log(`propId:`, propId);
+          this.vue.ui.base.parentForm.properties[propId] =
+            this.vue.ui.base.form;
+          this.vue.ui.base.form = this.clone(this.vue.ui.base.parentForm);
+          return Promise.resolve();
+        }
         return new Promise((resolve, reject) => {
           Promise.resolve()
             .then(() => this.updateObject())
@@ -180,7 +198,14 @@ export default class LimeExtenisonPageObjects {
             .catch((err) => reject(err));
         });
       },
+      propEdit: (idArr) => {
+        this.console.log(`propEdit(${idArr})`);
+        this.vue.ui.base.parentForm = this.clone(this.vue.ui.base.form);
+        this.vue.ui.base.activeId = idArr;
+        return this.renderForm(idArr);
+      },
       renewConfig: (config) => {
+        this.console.log(`fn.renewConfig()`);
         return new Promise((resolve, reject) => {
           Promise.resolve()
             .then(() => config || this.getObjectsConfig())
@@ -231,7 +256,6 @@ export default class LimeExtenisonPageObjects {
           ? config.state
           : {
               config: { value: `unrecognize`, level: 0 },
-              // eslint-disable-next-line no-underscore-dangle
               enable: { value: config.enable, level: 0 },
               inServiceList: { value: `unrecognize`, level: 0 },
               objectState: { value: `unrecognize`, level: 0 },
@@ -391,11 +415,12 @@ export default class LimeExtenisonPageObjects {
   }
 
   updateObject(
-    id = this.vue.ui.base.activeId.join(`.properties.`),
+    idArr = this.vue.ui.base.activeId,
     objectLayer = this.vue.ui.base.selected.objectLayer,
     config = this.vue.ui.base.form
   ) {
-    // return this.rest[`${objectLayer}s`].updateObject(id, config);
+    this.console.log(`updateObject():`, idArr);
+    const id = idArr.join(`.properties.`);
     return this.rest[`${objectLayer}s`].objects(id).update(config);
   }
 
@@ -481,7 +506,7 @@ export default class LimeExtenisonPageObjects {
   }
 
   renderBaseMain(
-    objectId,
+    objectId = this.vue.ui.base.activeId,
     objectLayer = this.vue.ui.base.selected.objectLayer
   ) {
     this.console.log(
@@ -495,14 +520,12 @@ export default class LimeExtenisonPageObjects {
       const selected = { config: {}, metric: {}, objectLayer };
       Promise.resolve()
         .then(() => {
-          selected.config = JSON.parse(
-            JSON.stringify(
-              this.getJsonElement(
-                Array.isArray(objectId)
-                  ? objectId.join(`.properties.`)
-                  : objectId,
-                this.vue.resource[`${objectLayer}s`]
-              )
+          selected.config = this.clone(
+            this.getJsonElement(
+              Array.isArray(objectId)
+                ? objectId.join(`.properties.`)
+                : objectId,
+              this.vue.resource[`${objectLayer}s`]
             )
           );
         })
@@ -546,26 +569,59 @@ export default class LimeExtenisonPageObjects {
     });
   }
 
-  renderForm(objectId, objectLayer = this.vue.ui.base.selected.objectLayer) {
-    this.console.log(`PageEngines: renderForm(${objectId || ``}) >> `);
+  renderForm(
+    idArr = this.vue.ui.base.activeId,
+    objectLayer = this.vue.ui.base.selected.objectLayer
+  ) {
+    this.console.log(`PageObjects: renderForm(${idArr || ``}) >> `);
     this.console.log(
       `[${this.constructor.name}]`,
-      `renderBaseMain(${objectLayer}:`,
-      objectId,
+      `renderForm(${objectLayer}:`,
+      idArr,
       `)`
     );
     return new Promise((resolve, reject) => {
-      if (objectId) {
+      if (idArr) {
         Promise.resolve()
           .then(() =>
-            this.rest[`${objectLayer}s`].objects(objectId).config.get()
+            this.rest[`${objectLayer}s`]
+              // .objects(idArr.join(`/properties/`))
+              .objects(idArr[0])
+              .config.get()
           )
           .then((conf) => {
-            this.vue.ui.base.form = conf;
-            return this.rest[`${objectLayer}s`].configSchema.post(conf);
+            // this.vue.ui.base.form = conf;
+            this.console.log(`conf:`, conf);
+            const form = this.clone(conf);
+            if (form.properties && idArr.length > 1) {
+              // if (Object.keys(form.properties).includes(idArr[1]))
+              //   form.properties = form.properties[idArr[1]];
+              // else form.properties = {};
+              if (!form.properties[idArr[1]]) form.properties[idArr[1]] = {};
+            }
+            this.setAssemForm(form);
+            this.console.log(`activeId:`, this.vue.ui.base.activeId);
+            this.console.log(`form:`, this.vue.ui.base.form);
+            // return this.onAlternateChange();
+          })
+          .then(() => {
+            const form =
+              idArr.length > 1
+                ? this.getShortAssemForm()
+                : this.vue.ui.base.form;
+            this.console.log(`form:`, form);
+            return this.rest[`${objectLayer}s`].configSchema.post(form);
           })
           .then((schema) => {
+            this.console.log(`idArr:`, idArr);
             this.vue.ui.base.formSchema = schema;
+            // this.vue.ui.base.formSchema =
+            //   idArr.length > 1
+            //     ? this.getJsonElement(
+            //         `properties.properties.patternProperties.^[^\n]+$`,
+            //         schema
+            //       )
+            //     : schema;
           })
           .then(() => resolve())
           .catch((err) => reject(err));
@@ -644,8 +700,9 @@ export default class LimeExtenisonPageObjects {
   }
 
   onAlternateChange() {
-    this.console.log(`PageEngines: onAlternateChange() >> `);
+    this.console.log(`PageObjects: onAlternateChange() >> `);
     return new Promise((resolve, reject) => {
+      const idArr = this.vue.ui.base.activeId;
       const { objectLayer } = this.vue.ui.base.selected;
       let config;
       let oldSchema;
@@ -656,23 +713,30 @@ export default class LimeExtenisonPageObjects {
       let dataCopy;
       Promise.resolve()
         .then(() => {
-          config = JSON.parse(JSON.stringify(this.vue.ui.base.form));
-          this.console.log(`config: `, config);
+          config = this.getShortAssemForm();
+          this.console.log(`config[${this.vue.ui.base.activeId}]: `, config);
         })
-        .then(() => this.rest[`${objectLayer}s`].configSchema(config))
+        .then(() => this.rest[`${objectLayer}s`].configSchema.post(config))
         .then((schema) => {
           newSchema = schema;
         })
         .then(() => {
-          oldSchema = JSON.parse(JSON.stringify(this.vue.ui.base.formSchema));
-          this.vue.ui.base.formSchema = JSON.parse(JSON.stringify(newSchema));
+          oldSchema = this.clone(this.vue.ui.base.formSchema);
+          this.vue.ui.base.formSchema = this.clone(newSchema);
+          this.console.log(`newSchema:`, newSchema);
         })
         .then(() => this.ui.generateData(newSchema))
         .then((data) => {
           newData = data;
+          if (idArr.length > 1) {
+            const key = Object.keys(newData.properties)[0];
+            // newData.properties[idArr[1]] = newData.properties[key];
+            // delete newData.properties[key];
+            newData.properties = newData.properties[key];
+          }
         })
         .then(() => {
-          oldData = JSON.parse(JSON.stringify(this.vue.ui.base.form));
+          oldData = this.getShortAssemForm();
 
           this.console.log(`old schema: `, oldSchema);
           this.console.log(`new schema: `, newSchema);
@@ -686,8 +750,10 @@ export default class LimeExtenisonPageObjects {
           );
           dataCopy = this.jsonCopyBySchema(oldData, newData, copySchema);
           this.console.log(`Data copy: ${dataCopy}`);
+          this.console.log(`copy schema:`, copySchema);
 
-          this.vue.ui.base.form = oldData;
+          // this.vue.ui.base.form = oldData;
+          this.setShortAssemForm(oldData);
         })
         .then(() => dataCopy && this.onAlternateChange())
         .then(() => resolve())
@@ -697,13 +763,13 @@ export default class LimeExtenisonPageObjects {
 
   jsonCopyBySchema(dst, source, schema) {
     // console.log(`dst: `, dst);
-    const src = JSON.parse(JSON.stringify(source));
+    const src = this.clone(source);
     let copyFlag = false;
     Object.keys(schema).forEach((i) => {
       if (schema[i] === true) {
         // eslint-disable-next-line no-param-reassign
         dst[i] = [`object`, `array`].includes(typeof src[i])
-          ? JSON.parse(JSON.stringify(src[i]))
+          ? this.clone(src[i])
           : src[i];
         copyFlag = true;
         // console.log(`jsonCopyBySchema[${i}]: `, dst[i]);
@@ -716,7 +782,7 @@ export default class LimeExtenisonPageObjects {
   jsonDiv(dst, src, options) {
     // console.log(`jsonDiv()`);
     const result = {};
-    const opt = options ? JSON.parse(JSON.stringify(options)) : {};
+    const opt = options ? this.clone(options) : {};
     if (opt.level) opt.level -= 1;
 
     Object.keys(dst).forEach((i) => {
@@ -747,5 +813,58 @@ export default class LimeExtenisonPageObjects {
     }
     this.console.log(`final result:`, result);
     return result;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  clone(src) {
+    return JSON.parse(JSON.stringify(src));
+  }
+
+  getShortAssemForm() {
+    const idArr = this.vue.ui.base.activeId;
+    return idArr.length > 1
+      ? { ...this.vue.ui.base.parentForm, properties: this.vue.ui.base.form }
+      : this.clone(this.vue.ui.base.form);
+  }
+
+  setShortAssemForm(data) {
+    const idArr = this.vue.ui.base.activeId;
+    this.console.log(`setShortAssemForm([${idArr}]):`, data);
+    if (idArr.length > 1) {
+      Object.entries(data)
+        .filter(([key]) => key !== `properties`)
+        .forEach(([key, value]) => {
+          this.console.log(`key:`, key);
+          this.console.log(`value:`, value);
+          this.vue.ui.base.parentForm[key] = value;
+        });
+      // this.vue.ui.base.parentForm = this.clone(data);
+      // this.vue.ui.base.form = this.clone(data.properties[idArr[1]]);
+      this.vue.ui.base.form = this.clone(data.properties);
+    } else {
+      this.vue.ui.base.form = this.clone(data);
+    }
+  }
+
+  getAssemForm() {
+    const idArr = this.vue.ui.base.activeId;
+    if (idArr.length > 1) {
+      const result = this.clone(this.vue.ui.base.parentForm);
+      result.properties[idArr[1]] = this.clone(this.vue.ui.base.form);
+      return result;
+    }
+    return this.clone(this.vue.ui.base.form);
+  }
+
+  setAssemForm(data) {
+    const idArr = this.vue.ui.base.activeId;
+    this.console.log(`setAssemForm([${idArr}]):`, data);
+    if (idArr.length > 1) {
+      this.vue.ui.base.parentForm = this.clone(data);
+      this.vue.ui.base.form = this.clone(data.properties[idArr[1]]);
+      // this.vue.ui.base.form = this.clone(data.properties);
+    } else {
+      this.vue.ui.base.form = this.clone(data);
+    }
   }
 }

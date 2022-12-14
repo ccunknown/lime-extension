@@ -230,6 +230,19 @@ class RoutesManager extends APIHandler {
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
+          DELETE: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const id = this.getPathElement(req.path, 3);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.objects.remove(id))
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
         },
       },
 
@@ -246,6 +259,19 @@ class RoutesManager extends APIHandler {
               ).obj;
               Promise.resolve()
                 .then(() => service.objects.getConfig(id))
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          PUT: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const id = this.getPathElement(req.path, 3);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.objects.update(id, req.body))
                 .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -267,19 +293,6 @@ class RoutesManager extends APIHandler {
               ).obj;
               Promise.resolve()
                 .then(() => service.objects.getConfigWithState(id))
-                .then((ret) => resolve(this.makeJsonRespond(ret)))
-                .catch((err) => resolve(this.catchErrorRespond(err)));
-            });
-          },
-          PUT: (req) => {
-            return new Promise((resolve) => {
-              const layer = this.getPathElement(req.path, 1);
-              const id = this.getPathElement(req.path, 3);
-              const service = this.laborsManager.getService(
-                `${layer}s-service`
-              ).obj;
-              Promise.resolve()
-                .then(() => service.objects.update(id, req.body))
                 .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
@@ -318,6 +331,27 @@ class RoutesManager extends APIHandler {
                 // .then(() => service.objects.get(id, { object: true }))
                 // .then((object) => object.deleteMetric())
                 .then(() => service.objects.metric.deleteMetric(id))
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
+      //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}/properties/{child-id}/config
+      {
+        resource: /\/service\/(device|engine|ioport)\/objects\/[^/]+\/properties\/[^/]+\/config\/?/,
+        method: {
+          GET: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const id = this.getPathElement(req.path, 3);
+              const childId = this.getPathElement(req.path, 5);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.objects.getConfig([id, childId].join(`.`)))
                 .then((ret) => resolve(this.makeJsonRespond(ret)))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });

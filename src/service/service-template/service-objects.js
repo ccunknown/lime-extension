@@ -139,21 +139,25 @@ class ServiceObjects {
     });
   }
 
-  add(config) {
+  add(id = this.service.generateId(), config = {}) {
     console.log(`[${this.constructor.name}:${this.service.id}]`, `add() >> `);
     return new Promise((resolve, reject) => {
-      let id;
+      // let id;
       Promise.resolve()
         .then(() => this.service.configTranslator.validate(config))
         .then(() => this.getTemplate(config.template, { deep: true }))
-        .then((template) =>
-          template
-            ? this.service.generateId()
-            : new Error(`Template '${config.template}' not found!!!`)
-        )
-        .then((i) => {
-          id = i;
+        .then((template) => {
+          if (!template)
+            throw new Error(`Template '${config.template}' not found!!!`);
         })
+        // .then((template) =>
+        //   template
+        //     ? this.service.generateId()
+        //     : new Error(`Template '${config.template}' not found!!!`)
+        // )
+        // .then((i) => {
+        //   id = i;
+        // })
         .then(() => this.addToConfig(id, config))
         .then(() => this.addToService(id, config))
         .then(() => this.service.reloadConfig())
@@ -289,7 +293,7 @@ class ServiceObjects {
       Promise.resolve()
         .then(() => this.service.configTranslator.validate(config))
         .then(() => this.remove(id))
-        .then(() => this.add(config))
+        .then(() => this.add(id, config))
         .then(() => resolve({}))
         .catch((err) => reject(err));
     });
@@ -577,7 +581,7 @@ class ServiceObjects {
   getTemplateLocation(id) {
     console.log(
       `[${this.constructor.name}:${this.service.id}]`,
-      `this.getObjectTemplateLocation(${id || ``})`
+      `getTemplateLocation(${id || ``})`
     );
     return new Promise((resolve, reject) => {
       let serviceDir;
@@ -604,6 +608,11 @@ class ServiceObjects {
   }
 
   getRelativeTemplateDirectory(id, config) {
+    console.log(
+      `[${this.constructor.name}:${this.service.id}]`,
+      `getRelativeTemplateDirectory(${id || ``})`
+    );
+    console.log(`config:`, config);
     const idArr = id.split(`.`);
     if (idArr.length > 1)
       return path.join(
