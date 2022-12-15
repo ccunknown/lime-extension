@@ -3,13 +3,6 @@ export default class CustomRest {
     this.console = extension.console;
     this.api = extension.api;
     this.ui = extension.ui;
-    // this.meta = meta;
-    // this.meta = {
-    //   "serviceId": meta[`service-id`],
-    //   "serviceTitle": meta[`service-title`],
-    //   "resourceId": meta[`resource-id`],
-    //   "resourceTitle": meta[`resource-name`]
-    // };
     this.serviceId = meta[`service-id`];
     this.serviceTitle = meta[`service-title`];
     this.resourceId = meta[`resource-id`];

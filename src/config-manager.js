@@ -1,6 +1,8 @@
 /* eslint-disable class-methods-use-this */
+const Path = require(`path`);
 const { Validator } = require(`jsonschema`);
 const { EventEmitter } = require(`events`);
+// const Database = require(`./lib/my-database-backup`);
 const Database = require(`./lib/my-database`);
 const { Defaults, Errors } = require(`../constants/constants.js`);
 
@@ -12,6 +14,13 @@ class ConfigManager {
     this.manifest = extension.manifest;
     this.validator = new Validator();
     this.event = new EventEmitter();
+    // this.db = new Database(this.manifest.name);
+    const confPath = Path.join(
+      extension.addonManager.getUserProfile().dataDir,
+      extension.manifest.id,
+      // `settings.json`
+    );
+    this.db = new Database(confPath);
   }
 
   getConfig(path) {
@@ -25,6 +34,7 @@ class ConfigManager {
         .then((conf) => {
           const validateInfo = this.validate(conf);
           if (validateInfo.errors.length) {
+            console.log(`conf:`, typeof conf, conf);
             console.warn(`Invalid config!!!`);
             console.warn(JSON.stringify(validateInfo.errors, null, 2));
           } else console.log(`Valid config.`);
@@ -37,21 +47,6 @@ class ConfigManager {
         })
         .then((conf) => resolve(conf))
         .catch((err) => reject(err || new Errors.ErrorObjectNotReturn()));
-      // try {
-      //   this.getConfigFromDatabase().then((conf) => {
-      //     const config = this.isEmptyObject(conf) ? this.initialConfig() : conf;
-
-      //     const validateInfo = this.validate(config);
-      //     if (validateInfo.errors.length) {
-      //       console.warn(`Invalid config!!!`);
-      //       console.warn(JSON.stringify(validateInfo.errors, null, 2));
-      //     } else console.log(`Valid config.`);
-      //     resolve(config);
-      //   });
-      // } catch (err) {
-      //   console.log(`getConfig error.`);
-      //   reject(err || new Errors.ErrorObjectNotReturn());
-      // }
     });
   }
 
@@ -86,7 +81,11 @@ class ConfigManager {
 
   addToConfig(newElem, path) {
     console.log(`[${this.constructor.name}]`, `addToConfig(${path}) >> `);
-    console.log(`[${this.constructor.name}]`, `element:`, JSON.stringify(newElem));
+    console.log(
+      `[${this.constructor.name}]`,
+      `element:`,
+      JSON.stringify(newElem)
+    );
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => this.getConfig())
@@ -139,7 +138,7 @@ class ConfigManager {
     return new Promise((resolve, reject) => {
       if (Database) {
         // console.log("{Database} found.");
-        this.db = new Database(this.manifest.name);
+        // this.db = new Database(this.manifest.name);
         // console.log("{Database} imported.");
         let config = null;
         Promise.resolve()
@@ -169,7 +168,7 @@ class ConfigManager {
       //  Save to Database
       else if (Database) {
         // console.log("{Database found.}");
-        this.db = new Database(this.manifest.name);
+        // this.db = new Database(this.manifest.name);
         // console.log("{Database} imported.");
         Promise.resolve()
           .then(() => this.db.open())
@@ -188,7 +187,7 @@ class ConfigManager {
     console.log(`${this.constructor.name}`, `deleteConfigFromDatabase() >> `);
     return new Promise((resolve, reject) => {
       if (Database) {
-        this.db = new Database(this.manifest.name);
+        // this.db = new Database(this.manifest.name);
         Promise.resolve()
           .then(() => this.db.open())
           .then(() => {
@@ -205,6 +204,7 @@ class ConfigManager {
   }
 
   initialConfig() {
+    console.log(`[${this.constructor.name}]:`, `initialConfig() >> `);
     const config = JSON.parse(JSON.stringify(Defaults.config));
     return config;
   }
