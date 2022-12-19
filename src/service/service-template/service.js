@@ -208,22 +208,30 @@ class Service extends EventEmitter {
   generateId(prefix = `lime-${SERVICE_OBJECT_NAME_PAIR[this.id]}`) {
     console.log(`[${this.constructor.name}]`, `generateId() >> `);
     return new Promise((resolve, reject) => {
-      let id;
-      const maxIndex = 10000;
       Promise.resolve()
         // .then(() => this.getSchema({ renew: true }))
         .then(() => this.getConfig({ renew: true }))
-        .then((config) => config.list)
-        .then((list) => {
-          for (let i = 1; i < maxIndex; i += 1) {
-            console.log(
-              `[${this.constructor.name}]`,
-              `id list: ${Object.keys(list)}`
-            );
-            id = `${prefix}-${i}`;
-            if (!Object.prototype.hasOwnProperty.call(list, id)) break;
-          }
-          return id;
+        .then((config) => Object.keys(config.list))
+        // .then((list) => {
+        //   for (let i = 1; i < maxIndex; i += 1) {
+        //     console.log(
+        //       `[${this.constructor.name}]`,
+        //       `id list: ${Object.keys(list)}`
+        //     );
+        //     id = `${prefix}-${i}`;
+        //     if (!Object.prototype.hasOwnProperty.call(list, id)) break;
+        //   }
+        //   return id;
+        // })
+        .then((keyList) => {
+          let generated;
+          let i = 0;
+          do {
+            i += 1;
+            generated = `${prefix}-${i}`;
+          } while (keyList.includes(generated));
+          console.log(`got id:`, generated);
+          return generated;
         })
         .then((ret) => resolve(ret))
         .catch((err) => reject(err));

@@ -48,16 +48,7 @@ class ModbusDevice extends DeviceTemplate {
         .reduce(
           (prevProm, id) =>
             prevProm
-              .then(() =>
-                this.oo.addChild(
-                  id,
-                  // Path.join(
-                  //   __dirname,
-                  //   `/property/${propertiesConfig[id].template}/property.js`
-                  // ),
-                  propertiesConfig[id]
-                )
-              )
+              .then(() => this.oo.addChild(id, propertiesConfig[id]))
               .catch((err) => this.om.obj.error(err)),
           Promise.resolve()
         )

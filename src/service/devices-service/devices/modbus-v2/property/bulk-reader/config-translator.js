@@ -163,6 +163,7 @@ class PropertyConfigTranslator {
       try {
         const schema = {
           name: modbusRegister.name,
+          title: modbusRegister.name,
           type: modbusRegister.type,
           value:
             modbusRegister.type === `string`

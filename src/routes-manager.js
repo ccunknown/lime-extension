@@ -174,6 +174,25 @@ class RoutesManager extends APIHandler {
         },
       },
 
+      //  Resource : /service/['device', 'engine', 'ioport']/objects
+      {
+        resource: /\/service\/(device|engine|ioport)\/objects\/?/,
+        method: {
+          POST: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() => service.objects.add(req.body))
+                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+        },
+      },
+
       //  Resource : /service/['device', 'engine', 'ioport']/objects/config
       {
         resource: /\/service\/(device|engine|ioport)\/objects\/config\/?/,
@@ -337,6 +356,26 @@ class RoutesManager extends APIHandler {
           },
         },
       },
+
+      // //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}/properties/{child-id}
+      // {
+      //   resource: /\/service\/(device|engine|ioport)\/objects\/[^/]+\/properties\/[^/]+\/?/,
+      //   method: {
+      //     DELETE: (req) => {
+      //       return new Promise((resolve) => {
+      //         const layer = this.getPathElement(req.path, 1);
+      //         const id = this.getPathElement(req.path, 3);
+      //         const service = this.laborsManager.getService(
+      //           `${layer}s-service`
+      //         ).obj;
+      //         Promise.resolve()
+      //           .then(() => service.objects.remove(id))
+      //           .then((ret) => resolve(this.makeJsonRespond(ret)))
+      //           .catch((err) => resolve(this.catchErrorRespond(err)));
+      //       });
+      //     },
+      //   },
+      // },
 
       //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}/properties/{child-id}/config
       {

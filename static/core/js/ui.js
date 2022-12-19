@@ -322,6 +322,7 @@ export default class ExtensionUi {
   }
 
   generateData(schema, extend = false) {
+    this.console.log(`generateData():`, schema);
     let result = {};
     if (schema.type === `object`) {
       this.console.log(`ui.schema:`, schema);
@@ -364,20 +365,24 @@ export default class ExtensionUi {
   }
 
   shortJsonElement(schema, elem) {
-    // this.console.log(`PageSysport: shortJsonElement(${elem}) >> `);
+    this.console.log(`PageSysport: shortJsonElement(${elem}):`, schema);
     if (schema[elem]) {
+      this.console.log(`founded:`, elem, schema[elem]);
       return schema[elem];
     }
     if (Array.isArray(schema) || typeof schema === `object`) {
+      let result = null;
       Object.keys(schema).forEach((i) => {
+        this.console.log(`recurse[${i}]:`, schema[i]);
         const res = this.shortJsonElement(schema[i], elem);
-        if (res) return res;
-        return null;
+        if (res) {
+          result = res;
+        }
       });
-      // for(let i in schema) {
-      // }
-      return null;
+      this.console.log(`founded:`, result);
+      return result;
     }
+    this.console.log(`founded:`, null);
     return null;
   }
 }

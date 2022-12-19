@@ -139,11 +139,22 @@ class ServiceObjects {
     });
   }
 
-  add(id = this.service.generateId(), config = {}) {
-    console.log(`[${this.constructor.name}:${this.service.id}]`, `add() >> `);
+  add() {
+    const assignedId = arguments[1] ? arguments[0] : undefined;
+    const config = arguments[1] || arguments[0];
+    console.log(
+      `[${this.constructor.name}:${this.service.id}]`,
+      `add(${assignedId || ``}) >> `
+    );
     return new Promise((resolve, reject) => {
-      // let id;
+      let id;
       Promise.resolve()
+        // .then(() => this.service.generateId())
+        .then(() => assignedId || this.service.generateId())
+        .then((i) => {
+          id = i;
+        })
+        .then(() => console.log(`add with ID:`, id))
         .then(() => this.service.configTranslator.validate(config))
         .then(() => this.getTemplate(config.template, { deep: true }))
         .then((template) => {

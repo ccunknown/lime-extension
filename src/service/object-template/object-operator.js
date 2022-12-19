@@ -244,9 +244,10 @@ class ObjectOperator {
     if (this.parent.to.getChild) {
       // const child = this.parent.to.getChild(childId);
       const child = this.children.get(childId);
-      return child
-        ? child.master || child
-        : child.map((kid) => kid.master || kid);
+      // return child
+      //   ? child.master || child
+      //   : child.map((kid) => kid.master || kid);
+      return child ? child.master || child : undefined;
     }
     if (childId) return this.children.get(childId);
     return Object.fromEntries(this.children);

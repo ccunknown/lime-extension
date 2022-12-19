@@ -40,6 +40,7 @@ class DeviceConfigTranslator {
       config.properties.properties = JSON.parse(
         Mustache.render(propertiesStr, JSON.parse(mustacheData))
       );
+      console.log(`pre-translate:`, JSON.stringify(config, null, 2));
 
       //  Adjust condition field and assign enum.
       Promise.resolve()
@@ -91,7 +92,7 @@ class DeviceConfigTranslator {
           console.log(`index: ${i}`);
           if (
             Object.prototype.hasOwnProperty.call(pointer, `properties`) &&
-            Object.prototype.hasOwnProperty.call(pointer, i)
+            Object.prototype.hasOwnProperty.call(pointer.properties, i)
           ) {
             pointer = pointer.properties[i];
             if (indexArray.length === 0) pointer.alternate = true;
@@ -100,13 +101,15 @@ class DeviceConfigTranslator {
               pointer,
               `patternProperties`
             ) &&
-            Object.prototype.hasOwnProperty.call(pointer, i)
+            Object.prototype.hasOwnProperty.call(pointer.patternProperties, i)
           ) {
             pointer = pointer.patternProperties[i];
             if (indexArray.length === 0) pointer.alternate = true;
           } else {
+            console.log(`break`);
             break;
           }
+          console.log(`keys:`, Object.keys(pointer));
         }
       });
       resolve(config);

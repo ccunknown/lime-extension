@@ -41,6 +41,26 @@ export default class CustomRest {
       objects: (id) => {
         return !id
           ? {
+              post: (config) => {
+                this.console.log(
+                  `CustomRest[${this.serviceId}]`,
+                  `objects.post()`
+                );
+                return new Promise((resolve, reject) => {
+                  Promise.resolve()
+                    .then(() =>
+                      this.api.restCall(
+                        `post`,
+                        `/api/service/${this.resourceId}/objects`,
+                        config
+                      )
+                    )
+                    .then((res) =>
+                      res.error ? reject(res.error) : resolve(res)
+                    )
+                    .catch((err) => reject(err));
+                });
+              },
               config: {
                 get: () => {
                   this.console.log(
@@ -97,6 +117,21 @@ export default class CustomRest {
                         `put`,
                         `/api/service/${this.resourceId}/objects/${id}`,
                         config
+                      )
+                    )
+                    .then((res) =>
+                      res.error ? reject(res.error) : resolve(res)
+                    )
+                    .catch((err) => reject(err));
+                });
+              },
+              delete: () => {
+                return new Promise((resolve, reject) => {
+                  Promise.resolve()
+                    .then(() =>
+                      this.api.restCall(
+                        `delete`,
+                        `/api/service/${this.resourceId}/objects/${id}`
                       )
                     )
                     .then((res) =>

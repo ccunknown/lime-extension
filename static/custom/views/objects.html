@@ -196,25 +196,35 @@
                     </div>
                   </div>
                   <div
-                    class="
-                      miso-h-container
-                      justify-content-center
-                      align-items-center
-                      p-0
-                      pointer-cursor
-                      rounded
-                      border border-secondary
-                      bg-dark
-                      text-secondary
-                      miso-hover-border-light
-                      miso-hover-text-light
-                    "
-                    style="
-                      width: 26px;
-                      height: 26px;
-                    "
+                    class="dropdown"
                   >
-                    <i class="fas fa-plus"></i>
+                    <div
+                      class="
+                        miso-h-container
+                        justify-content-center
+                        align-items-center
+                        p-0
+                        pointer-cursor
+                        rounded
+                        border border-secondary
+                        bg-dark
+                        text-secondary
+                        miso-hover-border-light
+                        miso-hover-text-light
+                      "
+                      style="
+                        width: 26px;
+                        height: 26px;
+                      "
+                      data-toggle="dropdown"
+                    >
+                      <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="dropdown-menu dropdown-menu-right">
+                      <button class="dropdown-item" @click="fn.add([], `device`)">Device</button>
+                      <button class="dropdown-item">Engine</button>
+                      <button class="dropdown-item">IOPort</button>
+                    </div>
                   </div>
                 </div>
                 <!-- Object Cards container -->
@@ -450,7 +460,12 @@
                         fn.getJsonElement(
                           ui.base.activeId.slice(0, i+1).join(`.properties.`),
                           resource[`${ui.base.selected.objectLayer}s`]
-                        ).name
+                        )
+                          ? fn.getJsonElement(
+                              ui.base.activeId.slice(0, i+1).join(`.properties.`),
+                              resource[`${ui.base.selected.objectLayer}s`]
+                            ).name
+                          : `unknown`
                       }}
                     </div>
                   </template>
@@ -580,6 +595,7 @@
                     bg-secondary
                     p-0
                   "
+                  :key="ui.base.selected.config"
                 >
                   <!-- Content -->
                   <div
@@ -1156,6 +1172,10 @@
                     </span>
                   </div>
                 </div>
+                <div class="text-light" :key="ui.base.selected.config">
+                  selected.config: {{ui.base.selected.config}}<br><br>
+                  selected.objectLayer: {{ui.base.selected.objectLayer}}
+                </div>
               </div>
               <!-- Object body edit mode -->
               <div
@@ -1281,6 +1301,7 @@
                                 "
                                 data-toggle="tooltip"
                                 title="Delete"
+                                @click="fn.remove([...ui.base.activeId, propId])"
                               >
                                 <i class="fas fa-trash fa-lg"></i>
                               </div>
@@ -1297,6 +1318,7 @@
                             p-1 w-100
                           "
                           style="font-weight: bold"
+                          @click="fn.propAdd()"
                         >
                           <span>Add property</span>
                         </div>
@@ -1324,6 +1346,9 @@
               </div>
             </div>
           </div>
+        </div>
+        <div class="text-light">
+          resource: {{resource}}
         </div>
       </div>
     </div>

@@ -319,9 +319,13 @@ export default class PageScripts {
           if (renew) this.vue.resource.schema = schema;
         })
         .then(() => {
-          this.vue.ui.slider.form = this.ui.generateData(
-            this.ui.shortJsonElement(this.vue.resource.schema, `.+`)
+          const shortSchema = this.ui.shortJsonElement(
+            this.vue.resource.schema,
+            `[^\n]+`
           );
+          this.console.log(`schema:`, this.vue.resource.schema);
+          this.console.log(`shortSchema:`, shortSchema);
+          this.vue.ui.slider.form = this.ui.generateData(shortSchema);
         })
         .then(() => this.renderForm(name))
         .then(() => resolve())
@@ -333,7 +337,7 @@ export default class PageScripts {
   }
 
   renderForm(name) {
-    this.console.log(`PageScripts: renderVueAddForm() >> `);
+    this.console.log(`PageScripts: renderVueAddForm(${name}) >> `);
     return new Promise((resolve, reject) => {
       if (name) {
         this.vue.ui.slider.edit = false;

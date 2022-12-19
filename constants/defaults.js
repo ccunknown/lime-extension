@@ -148,7 +148,7 @@ const Defaults = {
                 default: {},
                 additionalProperties: false,
                 patternProperties: {
-                  ".+": {
+                  "[^\n]+": {
                     $id: "#fileStructurObject",
                     type: "object",
                     required: ["name", "type", "meta", "children"],
