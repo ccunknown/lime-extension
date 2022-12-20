@@ -221,7 +221,7 @@
                       <i class="fas fa-plus"></i>
                     </div>
                     <div class="dropdown-menu dropdown-menu-right">
-                      <button class="dropdown-item" @click="fn.add([], `device`)">Device</button>
+                      <button class="dropdown-item" @click="fn.add(`device`)">Device</button>
                       <button class="dropdown-item">Engine</button>
                       <button class="dropdown-item">IOPort</button>
                     </div>
@@ -427,7 +427,7 @@
             >
               <!-- Object header -->
               <div
-                v-if="ui.base.selected.config"
+                v-if="ui.base.selected.config || ['add'].includes(ui.mode)"
                 class="
                   miso-h-container miso-gap
                   justify-content-between
@@ -459,11 +459,11 @@
                       {{
                         fn.getJsonElement(
                           ui.base.activeId.slice(0, i+1).join(`.properties.`),
-                          resource[`${ui.base.selected.objectLayer}s`]
+                          resource[`${ui.base.objectLayer}s`]
                         )
                           ? fn.getJsonElement(
                               ui.base.activeId.slice(0, i+1).join(`.properties.`),
-                              resource[`${ui.base.selected.objectLayer}s`]
+                              resource[`${ui.base.objectLayer}s`]
                             ).name
                           : `unknown`
                       }}
@@ -529,11 +529,12 @@
                       miso-icon-box-24
                       border border-danger rounded
                       text-light bg-danger
-                      miso-hover-border-light"
+                      miso-hover-border-light
+                    "
                     :class="{
-                      'hide': !['view'].includes(ui.mode)
+                      'hide': !['edit'].includes(ui.mode)
                     }"
-                    @click="fn.edit()"
+                    @click="fn.remove()"
                     data-toggle="tooltip"
                     title="Delete"
                   >
@@ -1174,12 +1175,12 @@
                 </div>
                 <div class="text-light" :key="ui.base.selected.config">
                   selected.config: {{ui.base.selected.config}}<br><br>
-                  selected.objectLayer: {{ui.base.selected.objectLayer}}
+                  selected.objectLayer: {{ui.base.objectLayer}}
                 </div>
               </div>
-              <!-- Object body edit mode -->
+              <!-- Object body add & edit mode -->
               <div
-                v-if="ui.base.selected && ui.mode === 'edit'"
+                v-if="ui.base.selected && ['add', 'edit'].includes(ui.mode)"
                 class="
                   miso-v-container miso-gap
                   grow-1
@@ -1287,7 +1288,7 @@
                                 "
                                 data-toggle="tooltip"
                                 title="Edit"
-                                @click="fn.propEdit([...ui.base.activeId, propId])"
+                                @click="fn.editProp([...ui.base.activeId, propId])"
                               >
                                 <i class="fas fa-edit fa-lg"></i>
                               </div>
@@ -1318,7 +1319,7 @@
                             p-1 w-100
                           "
                           style="font-weight: bold"
-                          @click="fn.propAdd()"
+                          @click="fn.addProp()"
                         >
                           <span>Add property</span>
                         </div>
@@ -1335,7 +1336,7 @@
                 <!-- form: {{ui.base.form}} -->
               </div>
               <!-- Object body edit add -->
-              <div
+              <!-- <div
                 v-if="ui.base.selected && ui.mode === 'add'"
                 class="
                   miso-v-container miso-gap
@@ -1343,12 +1344,14 @@
                 "
               >
                 Add mode
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
         <div class="text-light">
           resource: {{resource}}
+          <br><br>
+          ui: {{ui}}
         </div>
       </div>
     </div>

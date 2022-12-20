@@ -114,7 +114,8 @@ export default class LimeExtenisonPageObjects {
           base: {
             leftPanel: false,
             ready: false,
-            activeId: null,
+            activeId: [],
+            objectLayer: null,
             quickFilter: [`device`, `engine`, `ioport`],
             selected: {},
             parentForm: {},
@@ -131,43 +132,55 @@ export default class LimeExtenisonPageObjects {
 
     //  Setup vue function.
     this.vue.fn = {
-      add: (
-        idArr = this.vue.ui.base.activeId,
-        objectLayer = this.vue.ui.base.selected.objectLayer
-      ) => {
-        this.console.log(`add():`, idArr, objectLayer);
-        return new Promise((resolve, reject) => {
-          Promise.resolve()
-            .then(() =>
-              idArr.length ? [...idArr, this.generatePropertiesId()] : []
-            )
-            .then((idArray) => {
-              if (!idArray.length) this.vue.ui.base.form = { properties: {} };
-              this.vue.ui.base.form.properties[idArray[idArray.length - 1]] = {};
-              this.vue.ui.base.activeId = idArray;
-              this.vue.ui.base.selected.objectLayer = objectLayer;
-              return this.renderForm(idArray, objectLayer);
-            })
-            // .then((idArray) => this.renderForm(idArray, objectLayer))
-            .then(() => {
-              this.vue.ui.mode = `edit`;
-            })
-            .then(() => resolve())
-            .catch((err) => reject(err));
-        });
+      add: (objectLayer = this.vue.ui.base.objectLayer) => {
+        this.console.log(`add():`, objectLayer);
+        // return new Promise((resolve, reject) => {
+        //   Promise.resolve()
+        //     .then(() => [])
+        //     .then((idArray) => {
+        //       this.vue.ui.base.form = {};
+        //       this.vue.ui.base.activeId = idArray;
+        //       this.vue.ui.base.objectLayer = objectLayer;
+        //       return this.renderForm(idArray, objectLayer);
+        //     })
+        //     .then(() => {
+        //       this.vue.ui.mode = `add`;
+        //     })
+        //     .then(() => resolve())
+        //     .catch((err) => reject(err));
+        // });
+        this.vue.ui.mode = `add`;
+        return this.renderAddForm([this.generateObjectId()], objectLayer);
       },
       edit: (idArr = this.vue.ui.base.activeId) => {
         this.console.log(`edit(${idArr})`);
-        this.renderForm(idArr);
+        // this.renderForm(idArr);
         this.vue.ui.mode = `edit`;
+        return this.renderEditForm(idArr);
+      },
+      addProp: (
+        idArr = [...this.vue.ui.base.activeId, this.generatePropertyId()],
+        objectLayer = this.vue.ui.base.objectLayer
+      ) => {
+        this.console.log(`addProp(${idArr})`);
+        // this.vue.ui.base.form.properties[idArr[idArr.length - 1]] = {};
+        // return this.renderForm(idArr);
+        return this.renderAddPropertyForm(idArr, objectLayer);
+      },
+      editProp: (idArr) => {
+        this.console.log(`propEdit(${idArr})`);
+        // this.vue.ui.base.parentForm = this.clone(this.vue.ui.base.form);
+        // this.vue.ui.base.activeId = idArr;
+        // return this.renderForm(idArr);
+        return this.renderEditPropertyForm(idArr);
       },
       view: (
         id = this.vue.ui.base.activeId,
-        objectLayer = this.vue.ui.base.selected.objectLayer
+        objectLayer = this.vue.ui.base.objectLayer
       ) => {
         this.console.log(`view(${id})`);
         this.vue.ui.base.activeId = id;
-        this.vue.ui.base.selected.objectLayer = objectLayer;
+        this.vue.ui.base.objectLayer = objectLayer;
         this.vue.ui.mode = `view`;
         return this.renderBaseMain(id);
       },
@@ -182,7 +195,7 @@ export default class LimeExtenisonPageObjects {
         this.console.log(`save()`);
         const idArr = this.vue.ui.base.activeId;
         const id = idArr.join(`.properties.`);
-        const layer = this.vue.ui.base.selected.objectLayer;
+        const layer = this.vue.ui.base.objectLayer;
         const config = this.vue.ui.base.form;
         this.console.log(`id:`, id);
         this.console.log(`layer:`, layer);
@@ -197,7 +210,11 @@ export default class LimeExtenisonPageObjects {
         }
         return new Promise((resolve, reject) => {
           Promise.resolve()
-            .then(() => this.updateObject())
+            .then(() => {
+              if (this.vue.ui.mode === `add`) return this.addObject();
+              if (this.vue.ui.mode === `edit`) return this.updateObject();
+              throw new Error(`Mode "${this.vue.ui.mode}" undefined.`);
+            })
             .then(() => this.vue.fn.renewConfig())
             .then(() => this.renderBaseMain())
             .then(() => this.vue.fn.view())
@@ -207,30 +224,25 @@ export default class LimeExtenisonPageObjects {
             .catch((err) => reject(err));
         });
       },
-      propAdd: (
-        idArr = [...this.vue.ui.base.activeId, this.generatePropertiesId()]
-      ) => {
-        this.console.log(`propAdd(${idArr})`);
-        this.vue.ui.base.form.properties[idArr[idArr.length - 1]] = {};
-        return this.renderForm(idArr);
-      },
-      propEdit: (idArr) => {
-        this.console.log(`propEdit(${idArr})`);
-        this.vue.ui.base.parentForm = this.clone(this.vue.ui.base.form);
-        this.vue.ui.base.activeId = idArr;
-        return this.renderForm(idArr);
-      },
       remove: (idArr = this.vue.ui.base.activeId) => {
         this.console.log(`delete(${idArr})`);
-        return idArr.length > 1
-          ? this.deleteObjectPropertyFromForm(idArr)
-          : this.deleteObject(idArr);
+        // eslint-disable-next-line no-undef
+        const confirmRemove = confirm(
+          `Are you sure to delete "${idArr.join(`.`)}"`
+        );
+        if (confirmRemove) {
+          if (idArr.length > 1) return this.deleteObjectPropertyFromForm(idArr);
+          return Promise.resolve()
+            .then(() => this.deleteObject(idArr))
+            .then(() => this.vue.fn.renewConfig());
+        }
+        return null;
       },
       renewConfig: (config) => {
         this.console.log(`fn.renewConfig()`);
         return new Promise((resolve, reject) => {
           const idArr = this.vue.ui.base.activeId;
-          const { objectLayer } = this.vue.ui.base.selected;
+          const { objectLayer } = this.vue.ui.base;
           Promise.resolve()
             .then(() => config || this.getObjectsConfig())
             .then((conf) =>
@@ -317,12 +329,12 @@ export default class LimeExtenisonPageObjects {
       },
       clickObject: (
         idArr = this.vue.ui.base.activeId,
-        objectLayer = this.vue.ui.base.selected.objectLayer,
+        objectLayer = this.vue.ui.base.objectLayer,
         mode = `view`
       ) => {
         this.console.log(`clickObject:`, idArr, objectLayer);
         this.vue.ui.base.activeId = idArr;
-        this.vue.ui.base.selected.objectLayer = objectLayer;
+        this.vue.ui.base.objectLayer = objectLayer;
         this.vue.ui.mode = mode;
         this.vue.fn.toggleLeftPanel(false);
         this.console.log(`click object '`, idArr, `' layer '${objectLayer}'`);
@@ -355,7 +367,7 @@ export default class LimeExtenisonPageObjects {
       objectCmd: {
         start: (
           id = this.vue.ui.base.activeId,
-          objectLayer = this.vue.ui.base.selected.objectLayer
+          objectLayer = this.vue.ui.base.objectLayer
         ) => {
           this.console.log(`start(${id})`);
           return new Promise((resolve, reject) => {
@@ -372,7 +384,7 @@ export default class LimeExtenisonPageObjects {
         },
         stop: (
           id = this.vue.ui.base.activeId,
-          objectLayer = this.vue.ui.base.selected.objectLayer
+          objectLayer = this.vue.ui.base.objectLayer
         ) => {
           this.console.log(`stop(${id})`);
           return new Promise((resolve, reject) => {
@@ -437,21 +449,29 @@ export default class LimeExtenisonPageObjects {
 
   startObject(
     id = this.vue.ui.base.activeId.join(`.properties.`),
-    objectLayer = this.vue.ui.base.selected.objectLayer
+    objectLayer = this.vue.ui.base.objectLayer
   ) {
     return this.rest[`${objectLayer}s`].objects(id).cmd.start();
   }
 
   stopObject(
     id = this.vue.ui.base.activeId.join(`.properties.`),
-    objectLayer = this.vue.ui.base.selected.objectLayer
+    objectLayer = this.vue.ui.base.objectLayer
   ) {
     return this.rest[`${objectLayer}s`].objects(id).cmd.stop();
   }
 
+  addObject(
+    objectLayer = this.vue.ui.base.objectLayer,
+    config = this.vue.ui.base.form
+  ) {
+    this.console.log(`addObject():`, objectLayer);
+    return this.rest[`${objectLayer}s`].objects().post(config);
+  }
+
   updateObject(
     idArr = this.vue.ui.base.activeId,
-    objectLayer = this.vue.ui.base.selected.objectLayer,
+    objectLayer = this.vue.ui.base.objectLayer,
     config = this.vue.ui.base.form
   ) {
     this.console.log(`updateObject():`, idArr);
@@ -461,7 +481,7 @@ export default class LimeExtenisonPageObjects {
 
   deleteObject(
     idArr = this.vue.ui.base.activeId,
-    objectLayer = this.vue.ui.base.selected.objectLayer
+    objectLayer = this.vue.ui.base.objectLayer
   ) {
     this.console.log(`deleteObject():`, idArr);
     const id = idArr[0];
@@ -479,7 +499,7 @@ export default class LimeExtenisonPageObjects {
   }
 
   getObjectsConfig() {
-    this.console.log(`renewConfig()`);
+    this.console.log(`getObjectsConfig()`);
     return new Promise((resolve, reject) => {
       const config = {
         devices: {},
@@ -510,7 +530,7 @@ export default class LimeExtenisonPageObjects {
 
   deleteObjectMetric(
     id = this.vue.ui.base.activeId.join(`.properties.`),
-    objectLayer = this.vue.ui.base.selected.objectLayer
+    objectLayer = this.vue.ui.base.objectLayer
   ) {
     this.console.log(`deleteMetric()`);
     return this.rest[`${objectLayer}s`].objects(id).metric.delete();
@@ -561,7 +581,7 @@ export default class LimeExtenisonPageObjects {
 
   renderBaseMain(
     objectId = this.vue.ui.base.activeId,
-    objectLayer = this.vue.ui.base.selected.objectLayer
+    objectLayer = this.vue.ui.base.objectLayer
   ) {
     this.console.log(
       `[${this.constructor.name}]`,
@@ -571,7 +591,7 @@ export default class LimeExtenisonPageObjects {
     );
     this.console.log(`resource:`, this.vue.resource);
     return new Promise((resolve) => {
-      const selected = { config: {}, metric: {}, objectLayer };
+      const selected = { config: {}, metric: {} };
       Promise.resolve()
         .then(() => {
           selected.config = this.clone(
@@ -623,9 +643,107 @@ export default class LimeExtenisonPageObjects {
     });
   }
 
+  renderAddForm(
+    idArr = [this.generateObjectId()],
+    objectLayer = this.vue.ui.base.objectLayer
+  ) {
+    this.console.log(`renderAddForm():`, objectLayer);
+    return new Promise((resolve, reject) => {
+      let form;
+      Promise.resolve()
+        .then(() => {
+          form = {};
+          this.setAssemForm(form);
+          form = this.getShortAssemForm();
+          this.vue.ui.base.activeId = idArr;
+          this.vue.ui.base.objectLayer = objectLayer;
+        })
+        .then(() => this.rest[`${objectLayer}s`].configSchema.post(form))
+        .then((schema) => {
+          this.vue.ui.base.formSchema = schema;
+        })
+        .then(() => resolve())
+        .catch((err) => reject(err));
+    });
+  }
+
+  renderAddPropertyForm(
+    idArr = [...this.vue.ui.base.activeId, this.generatePropertyId()],
+    objectLayer = this.vue.ui.base.objectLayer
+  ) {
+    this.console.log(`renderAddPropertyForm():`, idArr);
+    return new Promise((resolve, reject) => {
+      let form;
+      Promise.resolve()
+        .then(() => {
+          form = this.getAssemForm();
+          form.properties = form.properties || {};
+          form.properties[idArr[idArr.length - 1]] = {};
+          this.vue.ui.base.activeId = idArr;
+          this.vue.ui.base.objectLayer = objectLayer;
+          this.setAssemForm(form);
+        })
+        .then(() => this.rest[`${objectLayer}s`].configSchema.post(form))
+        .then((schema) => {
+          this.vue.ui.base.formSchema = schema;
+        })
+        .then(() => resolve())
+        .catch((err) => reject(err));
+    });
+  }
+
+  renderEditForm(
+    idArr = this.vue.ui.base.activeId,
+    objectLayer = this.vue.ui.base.objectLayer
+  ) {
+    this.console.log(`renderEditForm():`, idArr, objectLayer);
+    return new Promise((resolve, reject) => {
+      let config;
+      Promise.resolve()
+        .then(() => this.rest[`${objectLayer}s`].objects(idArr[0]).config.get())
+        .then((conf) => {
+          this.vue.ui.base.activeId = idArr;
+          this.vue.ui.base.objectLayer = objectLayer;
+          this.setAssemForm(conf);
+          config = this.getShortAssemForm();
+          return this.rest[`${objectLayer}s`].configSchema.post(config);
+        })
+        .then((schema) => {
+          this.vue.ui.base.formSchema = schema;
+        })
+        .then(() => resolve())
+        .catch((err) => reject(err));
+    });
+  }
+
+  renderEditPropertyForm(
+    idArr = this.vue.ui.base.activeId,
+    objectLayer = this.vue.ui.base.objectLayer
+  ) {
+    this.console.log(`renderEditPropertyForm():`, idArr);
+    return new Promise((resolve, reject) => {
+      let config;
+      Promise.resolve()
+        // .then(() => this.rest[`${objectLayer}s`].objects(idArr[0]).config.get())
+        .then(() => this.getAssemForm())
+        .then((conf) => {
+          this.vue.ui.base.activeId = idArr;
+          this.vue.ui.base.objectLayer = objectLayer;
+          this.setAssemForm(conf);
+          config = this.getShortAssemForm();
+          return this.rest[`${objectLayer}s`].configSchema.post(config);
+        })
+        .then((schema) => {
+          this.vue.ui.base.formSchema = schema;
+        })
+        .then(() => resolve())
+        .catch((err) => reject(err));
+    });
+  }
+
   renderForm(
     idArr = this.vue.ui.base.activeId,
-    objectLayer = this.vue.ui.base.selected.objectLayer
+    objectLayer = this.vue.ui.base.objectLayer
   ) {
     // this.console.log(`PageObjects: renderForm(${idArr || ``}) >> `);
     this.console.log(
@@ -745,44 +863,25 @@ export default class LimeExtenisonPageObjects {
     });
   }
 
-  generatePropertiesId(
-    idArr = this.vue.ui.base.activeId,
-    objectLayer = this.vue.ui.base.selected.objectLayer
-  ) {
-    this.console.log(`generatePropertiesId():`, idArr, objectLayer);
-    const config = this.getJsonElement(
-      // idArr.join(`.properties.`),
-      `properties`,
-      this.vue.ui.base.form
-    ) || { properties: {} };
-    this.console.log(`config:`, config);
-    let i = 0;
-    let result;
-    do {
-      i += 1;
-      result = `property-${i}`;
-    } while (Object.keys(config).includes(result));
-    return result;
-  }
-
   onAlternateChange() {
     this.console.log(`PageObjects: onAlternateChange() >> `);
     return new Promise((resolve, reject) => {
       const idArr = this.vue.ui.base.activeId;
-      const { objectLayer } = this.vue.ui.base.selected;
-      let config;
+      const { objectLayer } = this.vue.ui.base;
+      let form;
       let oldSchema;
       let newSchema;
       let oldData;
       let newData;
       let copySchema;
       let dataCopy;
+      this.console.log(`idArr:`, idArr);
       Promise.resolve()
         .then(() => {
-          config = this.getShortAssemForm();
-          this.console.log(`config[${this.vue.ui.base.activeId}]: `, config);
+          form = this.getShortAssemForm();
+          this.console.log(`form[${this.vue.ui.base.activeId}]: `, form);
         })
-        .then(() => this.rest[`${objectLayer}s`].configSchema.post(config))
+        .then(() => this.rest[`${objectLayer}s`].configSchema.post(form))
         .then((schema) => {
           newSchema = schema;
         })
@@ -793,7 +892,10 @@ export default class LimeExtenisonPageObjects {
         })
         .then(() => this.ui.generateData(newSchema))
         .then((data) => {
-          newData = data;
+          // newData = data;
+          newData = Object.keys(form.properties || {}).length
+            ? data
+            : { ...data, properties: newData.properties ? {} : undefined };
           if (idArr.length > 1) {
             const key = Object.keys(newData.properties)[0];
             newData.properties = newData.properties[key];
@@ -801,8 +903,8 @@ export default class LimeExtenisonPageObjects {
         })
         .then(() => {
           // oldData = this.getShortAssemForm();
-          oldData = JSON.parse(JSON.stringify(config));
-          this.console.log(`config:`, config);
+          oldData = JSON.parse(JSON.stringify(form));
+          this.console.log(`form:`, form);
 
           this.console.log(`old schema: `, oldSchema);
           this.console.log(`new schema: `, newSchema);
@@ -825,6 +927,39 @@ export default class LimeExtenisonPageObjects {
         .then(() => resolve())
         .catch((err) => reject(err));
     });
+  }
+
+  generateObjectId(objectLayer = this.vue.ui.base.objectLayer) {
+    this.console.log(`generatePropertyId():`, objectLayer);
+    const config = this.vue.resource[`${objectLayer}s`] || {};
+    this.console.log(`config:`, config);
+    let i = 0;
+    let result;
+    do {
+      i += 1;
+      result = `${objectLayer}-${i}`;
+    } while (Object.keys(config).includes(result));
+    return result;
+  }
+
+  generatePropertyId(
+    idArr = this.vue.ui.base.activeId,
+    objectLayer = this.vue.ui.base.objectLayer
+  ) {
+    this.console.log(`generatePropertyId():`, idArr, objectLayer);
+    const config = this.getJsonElement(
+      // idArr.join(`.properties.`),
+      `properties`,
+      this.vue.ui.base.form
+    ) || { properties: {} };
+    this.console.log(`config:`, config);
+    let i = 0;
+    let result;
+    do {
+      i += 1;
+      result = `property-${i}`;
+    } while (Object.keys(config).includes(result));
+    return result;
   }
 
   jsonCopyBySchema(dst, source, schema) {
