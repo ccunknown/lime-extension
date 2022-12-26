@@ -34,12 +34,7 @@ class ModbusRtu extends EngineTemplate {
     return new Promise((resolve, reject) => {
       let ioport;
       Promise.resolve()
-        // .then(() => this.ioportsService.objects.removeFromService(this.config.port))
-        // .then(() => this.ioportsService.objects.addToService(this.config.port))
-        .then(() =>
-          // this.ioportsService.objects.get(this.config.port, { object: true })
-          this.getPort()
-        )
+        .then(() => this.getPort())
         .then((port) => {
           ioport = port;
         })
@@ -226,58 +221,6 @@ class ModbusRtu extends EngineTemplate {
         const err = new Error(`Action "${cmd.action}" not define!!!`);
         reject(err);
       }
-      // if (this.getState() !== ObjectState.RUNNING) {
-      //   reject(new Error(`Port currently "`, this.getState(), `".`));
-      // } else if (cmd.action === `read`) {
-      //   this.client.setID(cmd.id);
-      //   let val;
-      //   const func =
-      //     cmd.table === `coils`
-      //       ? this.client.readCoils.bind(this.client)
-      //       : cmd.table === `contacts`
-      //       ? this.client.readDiscreteInputs.bind(this.client)
-      //       : cmd.table === `inputRegisters`
-      //       ? this.client.readInputRegisters.bind(this.client)
-      //       : cmd.table === `holdingRegisters`
-      //       ? this.client.readHoldingRegisters.bind(this.client)
-      //       : undefined;
-      //   if (func) {
-      //     let timeout;
-      //     Promise.resolve()
-      //       .then(() => this.dynamicDelay(this.config.delay))
-      //       .then(() => {
-      //         timeout = setTimeout(() => {
-      //           reject(new Error(`Engine command timeout`));
-      //         }, this.config.timeout);
-      //         this.om.task.log(
-      //           //
-      //           jobId,
-      //           `start req: ${new Date().toISOString()}`
-      //         );
-      //       })
-      //       .then(() => func(cmd.address, cmd.numtoread))
-      //       .then((ret) => {
-      //         this.lastProcessTimestamp = new Date();
-      //         clearTimeout(timeout);
-      //         this.om.task.log(
-      //           jobId,
-      //           `end req: ${this.lastProcessTimestamp.toISOString()}`
-      //         );
-      //         val = ret;
-      //       })
-      //       .then(() => {
-      //         const ret = [...val.buffer];
-      //         resolve(ret);
-      //       })
-      //       .catch((err) => reject(err));
-      //   } else {
-      //     const err = new Error(`Table "${cmd.table}" miss match!!!`);
-      //     reject(err);
-      //   }
-      // } else {
-      //   const err = new Error(`Action "${cmd.action}" not define!!!`);
-      //   reject(err);
-      // }
     });
   }
 

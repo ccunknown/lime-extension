@@ -1,135 +1,132 @@
-'use strict'
-
-const EventEmitter = require(`events`).EventEmitter;
-const ModbusTCP = require(`modbus-serial`);
-const AsyncLock = require(`async-lock`);
+/* eslint-disable no-nested-ternary */
+const { EventEmitter } = require(`events`);
 const Path = require(`path`);
+const ModbusTCP = require(`modbus-serial`);
 
-class ModbusTcp {
-  constructor(enginesService, config) {
+const EngineTemplate = require("../../engine-template/engine-template");
+
+class ModbusTcp extends EngineTemplate {
+  constructor(enginesService, id, config) {
+    super(enginesService, id, config);
     this.enginesService = enginesService;
+    this.ioportsService = enginesService.ioportsService;
     this.config = config;
+    this.lastProcessTimestamp = new Date();
     this.event = new EventEmitter();
     this.client = new ModbusTCP();
-    this.state = `stop`;
-    this.lock = {
-      "act": {
-        "key": `act-lock`,
-        "locker": new AsyncLock()
-      }
-    };
-    this.Errors = require(Path.join(this.enginesService.getRootDirectory(), `/constants/errors.js`));
+
+    // eslint-disable-next-line import/no-dynamic-require, global-require
+    this.Errors = require(Path.join(
+      this.enginesService.getRootDirectory(),
+      `/constants/errors.js`
+    ));
+
+    this.om.obj.log(`${this.id}`, `Construct engine`);
   }
 
   init() {
-    return new Promise((resolve, reject) => {
-      resolve();
-    });
+    console.log(`[${this.constructor.name}]:`, `init() >>`);
+    return Promise.resolve();
   }
 
   start() {
-    console.log(`ModbusTcp: start() >> `);
-    if(this.state != `restarting`)
-      this.emit(`starting`, this);
-    return new Promise((resolve, reject) => {
-      this.emit(`running`, this);
-      resolve();
-    });
-  }
-
-  restart() {
-    console.log(`ModbusTcp: restart() >> `);
-    this.emit(`restarting`, this);
-    return new Promise((resolve, reject) => {
-      this.stop()
-      .then(() => this.start())
-      .then(() => resolve())
-      .catch((err) => setTimeout(() => this.restart(), 5000));
-    });
+    console.log(`[${this.constructor.name}]`, `start() >> `);
+    return Promise.resolve();
   }
 
   stop() {
-    console.log(`ModbusTcp: stop() >> `);
-    if(this.state != `restarting`)
-      this.emit(`stoping`, this);
+    console.log(`[${this.constructor.name}]`, `stop() >> `);
+    return Promise.resolve();
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  commandToString(cmd) {
+    const ac = cmd.action;
+    const tb = cmd.table;
+    const { id } = cmd;
+    const addr = cmd.address.toString(16).padStart(2, `0`);
+    const len = cmd.numtoread;
+    return `<${ac}:${tb}> <id:${id}> <addr:0x${addr}->${len}>`;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  resultToString(result) {
+    const hexString = result
+      .map((e) => e.toString(16).padStart(2, `0`))
+      .join(` `);
+    return `<0x ${hexString}>`;
+  }
+
+  processor(jobId, cmd) {
     return new Promise((resolve, reject) => {
-      (this.state != `restarting`) && this.emit(`stop`, this);
-      resolve();
-    });
-  }
-
-  emit(event, arg) {
-    console.log(`ModbusTcp: emit("${event}") >> `);
-    this.state = event;
-    return this.event.emit(event, arg);
-  }
-
-  getState() {
-    return this.state;
-  }
-
-  act(cmd) {
-    return new Promise((resolve, reject) => {
-      let locker = this.lock[`act`].locker;
-      let key = this.lock[`act`].key;
-      locker.acquire(key, () => {
-        return this._act(cmd);
-      })
-      .then((ret) => resolve(ret))
-      .catch((err) => {
-        console.log(`ModbusTcp: act() >> catch error!!!`);
-        console.error(err);
-        reject(err);
-      });
-    });
-  }
-
-  _act(cmd) {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        this.__act(cmd)
-        .then((res) => resolve(res))
-        .catch((err) => reject(err));
-      }, this.config.delay);
-    });
-  }
-
-  __act(cmd) {
-    let timestamp = (new Date()).toISOString();
-    //console.log(`>>>>>> time: ${timestamp}`);
-    //console.log(`cmd : ${JSON.stringify(cmd)}`);
-    return new Promise((resolve, reject) => {
-
-      let timeout = setTimeout(() => {
-        let timeerr = (new Date()).toISOString();
-        console.log(`>>>>>> error time: ${timestamp}/${timeerr}`);
-        console.log(`cmd`, JSON.stringify(cmd, null, 2));
-        reject(`Engine command timeout.`);
-      }, this.config.timeout);
-      if(this.state != `running`) {
-        reject(new Error(`Port currently "${this.state}".`));
-      }
-      else if(cmd.action == `read`) {
-        this.client.connectTCP(cmd.ip, {port: cmd.port})
-        .then(() => this.client.setID(cmd.id))
-        .then(() => 
-          (cmd.table == `coils`) ? this.client.readCoils.bind(this.client) :
-          (cmd.table == `contacts`) ? this.client.readDiscreteInputs.bind(this.client) :
-          (cmd.table == `inputRegisters`) ? this.client.readInputRegisters.bind(this.client) :
-          (cmd.table == `holdingRegisters`) ? this.client.readHoldingRegisters.bind(this.client) : 
-          undefined)
-        .then((func) => (func) ? func(cmd.address, cmd.numtoread) : new Error(`Table "${cmd.table}" miss match!!!`))
-        // .then((ret) => resolve(ret))
-        .then((ret) => this.client.close(() => resolve(ret)))
-        .catch((err) => {
-          console.error(`catch error`);
-          reject(err)
-        })
-        .finally(() => clearTimeout(timeout));
-      }
-      else {
+      if (cmd.action === `read`) {
+        let val;
+        const func =
+          cmd.table === `coils`
+            ? this.client.readCoils.bind(this.client)
+            : cmd.table === `contacts`
+            ? this.client.readDiscreteInputs.bind(this.client)
+            : cmd.table === `inputRegisters`
+            ? this.client.readInputRegisters.bind(this.client)
+            : cmd.table === `holdingRegisters`
+            ? this.client.readHoldingRegisters.bind(this.client)
+            : undefined;
+        if (func) {
+          let timeout;
+          Promise.resolve()
+            .then(() => this.client.connectTCP(cmd.ip, { port: cmd.port }))
+            .then(() => this.client.setID(cmd.id))
+            .then(() => this.dynamicDelay(this.config.delay))
+            .then(() => {
+              timeout = setTimeout(() => {
+                reject(new Error(`Engine command timeout`));
+              }, this.config.timeout);
+              this.om.task.log(
+                //
+                jobId,
+                `start req: ${new Date().toISOString()}`
+              );
+            })
+            .then(() => func(cmd.address, cmd.numtoread))
+            .then((ret) => {
+              const timestamp = new Date();
+              clearTimeout(timeout);
+              this.om.task.log(jobId, `end req: ${timestamp.toISOString()}`);
+              val = ret;
+            })
+            .then(() => {
+              const ret = [...val.buffer];
+              this.client.close(() => resolve(ret));
+            })
+            .catch((err) => reject(err))
+            .finally(() => {
+              this.lastProcessTimestamp = new Date().getTime();
+            });
+        } else {
+          const err = new Error(`Table "${cmd.table}" miss match!!!`);
+          reject(err);
+        }
+      } else {
         // console.warn(`Action "${cmd.action}" not define!!!`);
         reject(new Error(`Action "${cmd.action}" not define!!!`));
+      }
+    });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  dynamicDelay(ms) {
+    return new Promise((resolve, reject) => {
+      try {
+        const timestamp = new Date().getTime();
+        const alreadyDelay = timestamp - this.lastProcessTimestamp;
+        const remainingDelay = ms - alreadyDelay;
+        // this.om.obj.log(`target delay:`, ms);
+        // this.om.obj.log(`calcul delay:`, remainingDelay);
+        // this.om.obj.log(`last timestamp:`, this.lastProcessTimestamp);
+        // this.om.obj.log(`curr timestamp:`, timestamp);
+        setTimeout(() => resolve(), Math.max(remainingDelay, 0));
+      } catch (err) {
+        reject(err);
       }
     });
   }

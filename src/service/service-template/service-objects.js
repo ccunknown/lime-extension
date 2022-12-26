@@ -310,28 +310,64 @@ class ServiceObjects {
     });
   }
 
-  get(id, options) {
+  // get(id, options) {
+  //   console.log(`[${this.constructor.name}:${this.service.id}]`, `get(${id})`);
+  //   // console.log(`[${this.constructor.name}:${this.service.id}]`, Array.from(this.objects.keys()));
+  //   return new Promise((resolve, reject) => {
+  //     try {
+  //       if (options && options.object) {
+  //         resolve(
+  //           id ? this.objects.get(id) : this.service.mapToObject(this.objects)
+  //         );
+  //       } else if (id) {
+  //         const object = this.objects.get(id);
+  //         const json = object.oo.getSchema();
+  //         resolve(JSON.parse(JSON.stringify(json)));
+  //       } else {
+  //         const objectList = this.service.mapToObject(this.objects);
+  //         resolve(objectList);
+  //         // this.objects.entries(())
+  //       }
+  //     } catch (err) {
+  //       reject(err);
+  //     }
+  //   });
+  // }
+
+  get(id, options = {}) {
     console.log(`[${this.constructor.name}:${this.service.id}]`, `get(${id})`);
-    // console.log(`[${this.constructor.name}:${this.service.id}]`, Array.from(this.objects.keys()));
-    return new Promise((resolve, reject) => {
-      try {
-        if (options && options.object) {
-          resolve(
-            id ? this.objects.get(id) : this.service.mapToObject(this.objects)
-          );
-        } else if (id) {
-          const object = this.objects.get(id);
-          const json = object.oo.getSchema();
-          resolve(JSON.parse(JSON.stringify(json)));
-        } else {
-          const objectList = this.service.mapToObject(this.objects);
-          resolve(objectList);
-          // this.objects.entries(())
-        }
-      } catch (err) {
-        reject(err);
+    let result;
+    if (id) {
+      const object = this.getObject(id);
+      result = options.object ? object : object.oo.getSchema();
+    } else {
+      const objects = this.service.mapToObject(this.objects);
+      if (options.object) {
+        result = objects;
+      } else {
+        result = {};
+        Object.entries(objects).forEach(([key, val]) => {
+          result[key] = val.oo.getSchema();
+        });
       }
-    });
+    }
+    return result;
+  }
+
+  getObject(id, parent) {
+    console.log(
+      `[${this.constructor.name}:${this.service.id}]`,
+      `getObject(${id || ``})`
+    );
+    const idArr = id.split(`.`);
+    const object = parent
+      ? parent.oo.getChild(idArr[0])
+      : this.objects.get(idArr[0]);
+    return object
+      ? idArr.length > 1
+        ? this.getObject(idArr.slice(1).join(`.`), object)
+        : object
+      : undefined;
   }
 
   getState(id) {
@@ -639,6 +675,40 @@ class ServiceObjects {
 
   generateMetric(id) {
     return this.metric.buildMetric(id);
+  }
+
+  // deleteMetric(id) {
+  //   return new Promise((resolve, reject) => {
+  //     let restartFlag = false;
+  //     Promise.resolve()
+  //       .then(() => this.get(id, { object: true }))
+  //       .then((obj) => {
+  //         restartFlag = !!obj;
+  //       })
+  //       .then(() => restartFlag && this.removeFromService(id))
+  //       .then(() => this.metric.deleteMetric(id))
+  //       .then(() => restartFlag && this.addToService(id))
+  //       .then(() => resolve())
+  //       .catch((err) => reject(err));
+  //   });
+  // }
+
+  // Support only 1st level child.
+  deleteMetric(id) {
+    return new Promise((resolve, reject) => {
+      const idArr = id.split(`.`);
+      let restartFlag = false;
+      Promise.resolve()
+        .then(() => this.get(id, { object: true }))
+        .then((obj) => {
+          restartFlag = !!obj;
+        })
+        .then(() => restartFlag && this.removeFromService(idArr[0]))
+        .then(() => this.metric.deleteMetric(idArr.join(`/`)))
+        .then(() => restartFlag && this.addToService(idArr[0]))
+        .then(() => resolve())
+        .catch((err) => reject(err));
+    });
   }
 }
 

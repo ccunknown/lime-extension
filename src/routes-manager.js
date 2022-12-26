@@ -349,33 +349,14 @@ class RoutesManager extends APIHandler {
               Promise.resolve()
                 // .then(() => service.objects.get(id, { object: true }))
                 // .then((object) => object.deleteMetric())
-                .then(() => service.objects.metric.deleteMetric(id))
-                .then((ret) => resolve(this.makeJsonRespond(ret)))
+                // .then(() => service.objects.metric.deleteMetric(id))
+                .then(() => service.objects.deleteMetric(id))
+                .then((ret) => resolve(this.makeJsonRespond(ret || {})))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },
         },
       },
-
-      // //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}/properties/{child-id}
-      // {
-      //   resource: /\/service\/(device|engine|ioport)\/objects\/[^/]+\/properties\/[^/]+\/?/,
-      //   method: {
-      //     DELETE: (req) => {
-      //       return new Promise((resolve) => {
-      //         const layer = this.getPathElement(req.path, 1);
-      //         const id = this.getPathElement(req.path, 3);
-      //         const service = this.laborsManager.getService(
-      //           `${layer}s-service`
-      //         ).obj;
-      //         Promise.resolve()
-      //           .then(() => service.objects.remove(id))
-      //           .then((ret) => resolve(this.makeJsonRespond(ret)))
-      //           .catch((err) => resolve(this.catchErrorRespond(err)));
-      //       });
-      //     },
-      //   },
-      // },
 
       //  Resource : /service/['device', 'engine', 'ioport']/objects/{object-id}/properties/{child-id}/config
       {
@@ -412,20 +393,26 @@ class RoutesManager extends APIHandler {
                 `${layer}s-service`
               ).obj;
               Promise.resolve()
-                // .then(() => service.objects.get(id, { object: true }))
-                // .then((object) => {
-                //   if (!object) throw new Errors.ObjectNotFound(id);
-                //   return object.oo.getChild(childId);
-                // })
-                // .then((child) => {
-                //   if (!child) throw new Errors.ObjectNotFound(childId);
-                //   console.log(`Child constructor:`, child.constructor.name);
-                //   return child.generateMetric();
-                // })
                 .then(() =>
                   service.objects.metric.buildMetric([id, childId].join(`/`))
                 )
                 .then((ret) => resolve(this.makeJsonRespond(ret)))
+                .catch((err) => resolve(this.catchErrorRespond(err)));
+            });
+          },
+          DELETE: (req) => {
+            return new Promise((resolve) => {
+              const layer = this.getPathElement(req.path, 1);
+              const id = this.getPathElement(req.path, 3);
+              const childId = this.getPathElement(req.path, 5);
+              const service = this.laborsManager.getService(
+                `${layer}s-service`
+              ).obj;
+              Promise.resolve()
+                .then(() =>
+                  service.objects.deleteMetric([id, childId].join(`.`))
+                )
+                .then((ret) => resolve(this.makeJsonRespond(ret || {})))
                 .catch((err) => resolve(this.catchErrorRespond(err)));
             });
           },

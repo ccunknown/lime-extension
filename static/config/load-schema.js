@@ -56,10 +56,10 @@
               "type": "parallel",
               "load": [
                 "page-objects",
-                "page-devices",
+                // "page-devices",
                 "page-scripts",
-                "page-engines",
-                "page-sysport",
+                // "page-engines",
+                // "page-sysport",
                 "page-configs"
               ]
             },
@@ -80,10 +80,10 @@
             "extension-view-rtc-overlay",
             "custom-rest",
             "script-objects",
-            "script-devices",
+            // "script-devices",
             "script-scripts",
-            "script-engines",
-            "script-sysport",
+            // "script-engines",
+            // "script-sysport",
             "script-configs"
           ]
         }
