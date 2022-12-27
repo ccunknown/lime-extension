@@ -254,6 +254,29 @@ export default class LimeExtenisonPageObjects {
           return Promise.resolve();
         }
         return new Promise((resolve, reject) => {
+          if (this.vue.ui.mode === `add`) {
+            let res;
+            Promise.resolve()
+              .then(() => this.addObject())
+              .then((ret) => {
+                res = ret;
+                this.vue.ui.base.selected = {};
+                this.vue.ui.base.activeId = [];
+                this.vue.ui.mode = `view`;
+              })
+              .then(() => this.vue.fn.renewConfig())
+              .then(() => this.vue.clickObject([res.id]))
+              .then(() => resolve())
+              .catch((err) => reject(err));
+          } else if (this.vue.ui.mode === `edit`) {
+            Promise.resolve()
+              .then(() => this.updateObject())
+              .then(() => this.vue.fn.renewConfig())
+              .then(() => this.vue.fn.view())
+              .then(() => resolve())
+              .catch((err) => reject(err));
+            // return this.updateObject();
+          } else reject(new Error(`Mode "${this.vue.ui.mode}" undefined.`));
           Promise.resolve()
             .then(() => {
               if (this.vue.ui.mode === `add`) {
@@ -263,9 +286,15 @@ export default class LimeExtenisonPageObjects {
               if (this.vue.ui.mode === `edit`) return this.updateObject();
               throw new Error(`Mode "${this.vue.ui.mode}" undefined.`);
             })
+            .then(() => {
+              this.vue.ui.base.selected = {};
+              this.vue.ui.base.activeId = [];
+              this.vue.ui.mode = `view`;
+            })
             .then(() => this.vue.fn.renewConfig())
-            .then(() => this.renderBaseMain())
+            // .then(() => this.renderBaseMain())
             .then(() => this.vue.fn.view())
+            // .then(() => this.vue.ui.fn.clickObject())
             .then(() => resolve())
             .catch((err) => reject(err));
         });
@@ -280,6 +309,11 @@ export default class LimeExtenisonPageObjects {
           if (idArr.length > 1) return this.deleteObjectPropertyFromForm(idArr);
           return Promise.resolve()
             .then(() => this.deleteObject(idArr))
+            .then(() => {
+              this.vue.ui.base.selected = {};
+              this.vue.ui.base.activeId = [];
+              this.vue.ui.mode = `view`;
+            })
             .then(() => this.vue.fn.renewConfig());
         }
         return null;
@@ -291,20 +325,25 @@ export default class LimeExtenisonPageObjects {
           const { objectLayer } = this.vue.ui.base;
           Promise.resolve()
             .then(() => config || this.getObjectsConfig())
-            .then((conf) =>
+            .then((conf) => {
+              this.console.log(`renewConfig:`, conf);
               Object.entries(conf).forEach(([key, value]) => {
                 this.vue.resource[`${key}`] = value;
-              })
-            )
-            // Copy new value to selected
+              });
+            })
+            // Copy new value to selected if idArr is not empty.
             .then(() => {
-              this.vue.ui.base.selected.config = this.clone(
-                this.getJsonElement(
-                  idArr.join(`.properties.`),
-                  this.vue.resource[`${objectLayer}s`]
-                )
-              );
-              this.vue.ui.base.selected = this.clone(this.vue.ui.base.selected);
+              if (idArr.length) {
+                this.vue.ui.base.selected.config = this.clone(
+                  this.getJsonElement(
+                    idArr.join(`.properties.`),
+                    this.vue.resource[`${objectLayer}s`]
+                  )
+                );
+                this.vue.ui.base.selected = this.clone(
+                  this.vue.ui.base.selected
+                );
+              }
             })
             .then(() => resolve())
             .catch((err) => reject(err));

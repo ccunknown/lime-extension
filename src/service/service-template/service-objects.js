@@ -139,6 +139,7 @@ class ServiceObjects {
     });
   }
 
+  // Output will be contain [ { id: `id of object`, configWithState: {...} } ].
   add() {
     const assignedId = arguments[1] ? arguments[0] : undefined;
     const config = arguments[1] || arguments[0];
@@ -173,7 +174,12 @@ class ServiceObjects {
         .then(() => this.addToService(id, config))
         .then(() => this.service.reloadConfig())
         .then(() => this.getConfigWithState(id))
-        .then((res) => resolve(res))
+        .then((res) =>
+          resolve({
+            id,
+            configWithState: res,
+          })
+        )
         .catch((err) => reject(err));
     });
   }
