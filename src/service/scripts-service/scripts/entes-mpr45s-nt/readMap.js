@@ -380,30 +380,30 @@ const config = {
         unit: `volts-ampere-reactive`,
         translator: `function.bufferToFloat32`
       },
-      0x07DE: {
-        name: `ac.thdCurrent.L1`,
-        translator: `function.bufferToUint32Div10`
-      },
-      0x07E0: {
-        name: `ac.thdCurrent.L2`,
-        translator: `function.bufferToUint32Div10`
-      },
-      0x07E2: {
-        name: `ac.thdCurrent.L3`,	
-        translator: `function.bufferToUint32Div10`
-      },
-      0x07D6: {
-        name: `ac.thdVoltage.L1`,	
-        translator: `function.bufferToUint32Div10`
-      },
-      0x07D8: {
-        name: `ac.thdVoltage.L2`,	
-        translator: `function.bufferToUint32Div10`
-      },
-      0x07DA: {
-        name: `ac.thdVoltage.L3`,	
-        translator: `function.bufferToUint32Div10`
-      },
+    //   0x07DE: {
+    //     name: `ac.thdCurrent.L1`,
+    //     translator: `function.bufferToUint32Div10`
+    //   },
+    //   0x07E0: {
+    //     name: `ac.thdCurrent.L2`,
+    //     translator: `function.bufferToUint32Div10`
+    //   },
+    //   0x07E2: {
+    //     name: `ac.thdCurrent.L3`,	
+    //     translator: `function.bufferToUint32Div10`
+    //   },
+    //   0x07D6: {
+    //     name: `ac.thdVoltage.L1`,	
+    //     translator: `function.bufferToUint32Div10`
+    //   },
+    //   0x07D8: {
+    //     name: `ac.thdVoltage.L2`,	
+    //     translator: `function.bufferToUint32Div10`
+    //   },
+    //   0x07DA: {
+    //     name: `ac.thdVoltage.L3`,	
+    //     translator: `function.bufferToUint32Div10`
+    //   },
       0x00EC: {
         name: `ac.totalActiveEnergy.export`,
         unit: `kilowatt hour`,

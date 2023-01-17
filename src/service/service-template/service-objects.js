@@ -341,7 +341,7 @@ class ServiceObjects {
   // }
 
   get(id, options = {}) {
-    console.log(`[${this.constructor.name}:${this.service.id}]`, `get(${id})`);
+    // console.log(`[${this.constructor.name}:${this.service.id}]`, `get(${id})`);
     let result;
     if (id) {
       const object = this.getObject(id);
@@ -361,10 +361,10 @@ class ServiceObjects {
   }
 
   getObject(id, parent) {
-    console.log(
-      `[${this.constructor.name}:${this.service.id}]`,
-      `getObject(${id || ``})`
-    );
+    // console.log(
+    //   `[${this.constructor.name}:${this.service.id}]`,
+    //   `getObject(${id || ``})`
+    // );
     const idArr = id.split(`.`);
     const object = parent
       ? parent.oo.getChild(idArr[0])

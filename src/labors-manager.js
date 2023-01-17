@@ -123,7 +123,7 @@ class LaborsManager {
   }
 
   getService(id) {
-    console.log(`[${this.constructor.name}]`, `getService(${id}) >> `);
+    // console.log(`[${this.constructor.name}]`, `getService(${id}) >> `);
     return this.serviceList[id];
   }
 }

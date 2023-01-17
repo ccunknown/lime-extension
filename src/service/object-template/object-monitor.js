@@ -23,9 +23,9 @@ class ObjectMonitor {
       rtcPeerService: service.laborsManager.getService(`rtcpeer-service`).obj,
       logger: winston.createLogger(
         generateConfig({
-          console: {
-            label: id,
-          },
+          // console: {
+          //   label: id,
+          // },
           files: [
             {
               dirname: storageDir,

@@ -38,13 +38,13 @@ class ModbusRtu extends EngineTemplate {
         .then((port) => {
           ioport = port;
         })
-        .then(() => {
-          console.log(
-            `[${this.constructor.name}]`,
-            `isPortOpen:`,
-            ioport.port.isOpen
-          );
-        })
+        // .then(() => {
+        //   console.log(
+        //     `[${this.constructor.name}]`,
+        //     `isPortOpen:`,
+        //     ioport.port.isOpen
+        //   );
+        // })
         .then(() => this.initMod())
         .then(() => require(`./rtubufferedport`))
         .then((RtuBufferedPort) => {
@@ -165,11 +165,11 @@ class ModbusRtu extends EngineTemplate {
 
   processor(jobId, cmd) {
     return new Promise((resolve, reject) => {
-      console.log(
-        `[${this.constructor.name}]`,
-        `isPortOpen:`,
-        this.port._client.isOpen
-      );
+      // console.log(
+      //   `[${this.constructor.name}]`,
+      //   `isPortOpen:`,
+      //   this.port._client.isOpen
+      // );
       if (cmd.action === `read`) {
         this.client.setID(cmd.id);
         let val;

@@ -5,7 +5,7 @@ require(`winston-daily-rotate-file`);
 const { combine, printf } = winston.format;
 
 const defaultOptions = {
-  console: true,
+  console: false,
   files: [
     // {
     //   dirname: __dirname,
