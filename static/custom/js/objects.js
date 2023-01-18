@@ -842,7 +842,7 @@ export default class LimeExtenisonPageObjects {
           // this.setShortAssemForm(newConf);
           this.vue.ui.base.form = newConf.properties;
         })
-        // .then(() => this.onAlternateChange())
+        .then(() => this.onAlternateChange())
         .then(() => resolve())
         .catch((err) => reject(err));
     });
