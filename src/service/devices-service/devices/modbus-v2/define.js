@@ -36,7 +36,7 @@ const ValidateConfigSchema = {
       patternProperties: {
         "{{{idPattern.regex}}}": {
           type: "object",
-          required: ["template"],
+          required: ["name", "template", "enable"],
           additionalProperties: false,
           properties: {
             name: {
@@ -45,6 +45,7 @@ const ValidateConfigSchema = {
               pattern: "^[a-zA-Z0-9 -_<>]+$",
               minLength: 4,
               maxLength: 50,
+              default: "Property",
             },
             description: {
               type: "string",

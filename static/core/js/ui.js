@@ -357,6 +357,7 @@ export default class ExtensionUi {
         result.value = value;
       } else result = value;
     }
+    console.log(`data:`, result);
     return result;
   }
 

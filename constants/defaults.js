@@ -4,6 +4,9 @@ const Defaults = {
     version: "0.1.0",
   },
   config: {
+    log: {
+      console: false,
+    },
     service: {
       //  Script Service
       "scripts-service": {
@@ -99,6 +102,16 @@ const Defaults = {
     required: ["service"],
     additionalProperties: false,
     properties: {
+      log: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          console: {
+            type: "boolean",
+            default: false,
+          },
+        },
+      },
       service: {
         type: "object",
         additionalProperties: false,

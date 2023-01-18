@@ -28,6 +28,10 @@ class LimeExtension {
         .then((configManager) => {
           this.configManager = configManager;
         })
+        .then(() => this.configManager.getConfig())
+        .then((conf) => {
+          this.config = conf;
+        })
         .then(() => new LaborsManager(this))
         .then((laborsManager) => {
           this.laborsManager = laborsManager;

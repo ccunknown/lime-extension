@@ -101,7 +101,7 @@ class PropertyConfigTranslator {
                 const firstName = readMap[params.properties.table][first].name;
                 const lastName = readMap[params.properties.table][last].name;
                 // if (config.properties.name) config.properties.name = {};
-                config.properties.title.default = `${firstName}-${lastName}`;
+                config.properties.name.default = `${firstName}-${lastName}`;
               } // else config.properties.name = params.properties.name;
             }
           })

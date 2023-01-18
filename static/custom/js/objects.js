@@ -105,6 +105,7 @@ export default class LimeExtenisonPageObjects {
         // UI
         ui: {
           mode: `view`, // [view, edit, add]
+          propertyMode: `view`, // [view, edit, add]
           slider: {
             hide: true,
             ready: false,
@@ -154,10 +155,12 @@ export default class LimeExtenisonPageObjects {
         objectLayer = this.vue.ui.base.objectLayer
       ) => {
         this.console.log(`addProp(${idArr})`);
+        this.vue.ui.propertyMode = `add`;
         return this.renderAddPropertyForm(idArr, objectLayer);
       },
       editProp: (idArr) => {
         this.console.log(`propEdit(${idArr})`);
+        this.vue.ui.propertyMode = `edit`;
         return this.renderEditPropertyForm(idArr);
       },
       back: (
@@ -165,28 +168,90 @@ export default class LimeExtenisonPageObjects {
         idArr = this.vue.ui.base.activeId,
         objectLayer = this.vue.ui.base.objectLayer
       ) => {
-        if ([`add`, `edit`].includes(mode)) {
-          this.vue.ui.base.form = {};
-          const form = this.getAssemForm();
-          this.console.log(`current form:`, form);
-          if (this.vue.ui.base.activeId.length > 1) {
+        // if ([`add`, `edit`].includes(mode)) {
+        //   this.vue.ui.base.form = {};
+        //   const form = this.getAssemForm();
+        //   this.console.log(`current form:`, form);
+        //   if (this.vue.ui.base.activeId.length > 1) {
+        //     const tid = this.vue.ui.base.activeId.pop();
+        //     form.properties[tid] = undefined;
+        //     this.setShortAssemForm(form);
+        //     return this.renderAddForm(idArr, objectLayer, form);
+        //   }
+        //   if (mode === `add`) {
+        //     this.vue.ui.base.selected = {};
+        //     return this.vue.fn.view([]);
+        //   }
+        //   this.vue.ui.mode = `view`;
+        //   return this.vue.fn.view();
+        // }
+        // if ([`view`].includes(mode)) {
+        //   return this.vue.ui.base.activeId.length > 1
+        //     ? this.vue.ui.base.activeId.pop() && this.vue.fn.render()
+        //     : this.vue.fn.view();
+        // }
+
+        // Point to property
+        if (idArr.length > 1) {
+          // Add mode
+          if ([`add`].includes(this.vue.ui.propertyMode)) {
+            const parentForm = this.clone(this.vue.ui.base.parentForm);
+            const propId = idArr[idArr.length - 1];
+            delete parentForm.properties[propId];
+            this.vue.ui.base.form = parentForm;
+            this.vue.ui.base.activeId = idArr.slice(0, 1);
+          }
+          // Edit mode
+          else if ([`edit`].includes(this.vue.ui.propertyMode)) {
+            const parentForm = this.clone(this.vue.ui.base.parentForm);
+            this.vue.ui.base.form = parentForm;
+            this.vue.ui.base.activeId = idArr.slice(0, 1);
+          }
+          // View mode
+          if ([`view`].includes(this.vue.ui.propertyMode)) {
             this.vue.ui.base.activeId.pop();
-            this.setShortAssemForm(form);
-            return this.renderAddForm(idArr, objectLayer, form);
           }
-          if (mode === `add`) {
+          this.vue.ui.propertyMode = `view`;
+          if (this.vue.ui.mode === `add`) {
+            return this.renderAddForm(
+              undefined,
+              undefined,
+              this.vue.ui.base.form
+            );
+          }
+          if (this.vue.ui.mode === `edit`) {
+            return this.renderEditForm(
+              undefined,
+              undefined,
+              this.vue.ui.base.form
+            );
+          }
+          if (this.vue.ui.mode === `view`) {
+            return this.vue.fn.view();
+          }
+          throw new Error(`Invalid mode: "${mode}"`);
+        }
+        // Point to device
+        else {
+          // Mode add or edit
+          if ([`add`].includes(this.vue.ui.mode)) {
+            this.vue.ui.base.form = {};
+            this.vue.ui.mode = `view`;
             this.vue.ui.base.selected = {};
-            return this.vue.fn.view([]);
+            this.vue.ui.base.activeId.pop();
+            return this.vue.fn.view();
           }
-          this.vue.ui.mode = `view`;
-          return this.vue.fn.view();
+          if ([`edit`].includes(this.vue.ui.mode)) {
+            this.vue.ui.base.form = {};
+            this.vue.ui.mode = `view`;
+            return this.vue.fn.view();
+          }
+          // Mode view
+          if ([`view`].includes(this.vue.ui.mode)) {
+            return this.vue.fn.view();
+          }
+          throw new Error(`Invalid mode: "${mode}"`);
         }
-        if ([`view`].includes(mode)) {
-          return this.vue.ui.base.activeId.length > 1
-            ? this.vue.ui.base.activeId.pop() && this.vue.fn.render()
-            : this.vue.fn.view();
-        }
-        throw new Error(`Invalid mode: "${mode}"`);
       },
       view: (
         id = this.vue.ui.base.activeId,
@@ -756,6 +821,7 @@ export default class LimeExtenisonPageObjects {
       Promise.resolve()
         .then(() => {
           form = this.getAssemForm();
+          this.console.log(`getAssemForm:`, form);
           form.properties = form.properties || {};
           form.properties[idArr[idArr.length - 1]] = {};
           this.vue.ui.base.activeId = idArr;
@@ -765,7 +831,17 @@ export default class LimeExtenisonPageObjects {
         .then(() => this.rest[`${objectLayer}s`].configSchema.post(form))
         .then((schema) => {
           this.vue.ui.base.formSchema = schema;
+          this.console.log(`schema:`, schema);
+          return this.ui.generateData(schema);
         })
+        .then((conf) => {
+          const newConf = conf;
+          newConf.properties = conf.properties[`^[^\n]+$`];
+          this.console.log(`conf:`, newConf);
+          // this.setShortAssemForm(newConf);
+          this.vue.ui.base.form = newConf.properties;
+        })
+        // .then(() => this.onAlternateChange())
         .then(() => resolve())
         .catch((err) => reject(err));
     });
@@ -773,13 +849,18 @@ export default class LimeExtenisonPageObjects {
 
   renderEditForm(
     idArr = this.vue.ui.base.activeId,
-    objectLayer = this.vue.ui.base.objectLayer
+    objectLayer = this.vue.ui.base.objectLayer,
+    iconfig = undefined
   ) {
     this.console.log(`renderEditForm():`, idArr, objectLayer);
     return new Promise((resolve, reject) => {
       let config;
       Promise.resolve()
-        .then(() => this.rest[`${objectLayer}s`].objects(idArr[0]).config.get())
+        .then(
+          () =>
+            iconfig ||
+            this.rest[`${objectLayer}s`].objects(idArr[0]).config.get()
+        )
         .then((conf) => {
           this.vue.ui.base.activeId = idArr;
           this.vue.ui.base.objectLayer = objectLayer;
@@ -1006,7 +1087,7 @@ export default class LimeExtenisonPageObjects {
           this.console.log(`copy schema:`, copySchema);
           dataCopy = this.jsonCopyBySchema(oldData, newData, copySchema);
           this.console.log(`Data copy: ${dataCopy}`);
-
+          this.console.log(`old data:`, oldData);
           this.setShortAssemForm(oldData);
         })
         .then(() => dataCopy && this.onAlternateChange())

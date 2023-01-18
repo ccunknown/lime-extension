@@ -14,6 +14,17 @@ class ObjectMonitor {
       service.id,
       id
     );
+    const logConfig = {
+      files: [
+        {
+          dirname: storageDir,
+          filename: `${id}`,
+        },
+      ],
+    };
+    if (extension.config.log && extension.config.log.console) {
+      logConfig.console = { label: id };
+    }
     const properties = {
       extension,
       service,
@@ -21,19 +32,20 @@ class ObjectMonitor {
       storageDir,
       publishPath: `/service/${service.id}/monitor/${id}/`,
       rtcPeerService: service.laborsManager.getService(`rtcpeer-service`).obj,
-      logger: winston.createLogger(
-        generateConfig({
-          // console: {
-          //   label: id,
-          // },
-          files: [
-            {
-              dirname: storageDir,
-              filename: `${id}`,
-            },
-          ],
-        })
-      ),
+      logger: winston.createLogger(generateConfig(logConfig)),
+      // logger: winston.createLogger(
+      //   generateConfig({
+      //     // console: {
+      //     //   label: id,
+      //     // },
+      //     files: [
+      //       {
+      //         dirname: storageDir,
+      //         filename: `${id}`,
+      //       },
+      //     ],
+      //   })
+      // ),
       task: {},
     };
 
