@@ -168,6 +168,7 @@ export default class LimeExtenisonPageObjects {
         idArr = this.vue.ui.base.activeId,
         objectLayer = this.vue.ui.base.objectLayer
       ) => {
+        this.console.log(`vue.back():`, idArr, objectLayer);
         // if ([`add`, `edit`].includes(mode)) {
         //   this.vue.ui.base.form = {};
         //   const form = this.getAssemForm();
@@ -342,26 +343,26 @@ export default class LimeExtenisonPageObjects {
               .catch((err) => reject(err));
             // return this.updateObject();
           } else reject(new Error(`Mode "${this.vue.ui.mode}" undefined.`));
-          Promise.resolve()
-            .then(() => {
-              if (this.vue.ui.mode === `add`) {
-                this.vue.ui.base.selected = {};
-                return this.addObject();
-              }
-              if (this.vue.ui.mode === `edit`) return this.updateObject();
-              throw new Error(`Mode "${this.vue.ui.mode}" undefined.`);
-            })
-            .then(() => {
-              this.vue.ui.base.selected = {};
-              this.vue.ui.base.activeId = [];
-              this.vue.ui.mode = `view`;
-            })
-            .then(() => this.vue.fn.renewConfig())
-            // .then(() => this.renderBaseMain())
-            .then(() => this.vue.fn.view())
-            // .then(() => this.vue.ui.fn.clickObject())
-            .then(() => resolve())
-            .catch((err) => reject(err));
+          // Promise.resolve()
+          //   .then(() => {
+          //     if (this.vue.ui.mode === `add`) {
+          //       this.vue.ui.base.selected = {};
+          //       return this.addObject();
+          //     }
+          //     if (this.vue.ui.mode === `edit`) return this.updateObject();
+          //     throw new Error(`Mode "${this.vue.ui.mode}" undefined.`);
+          //   })
+          //   .then(() => {
+          //     this.vue.ui.base.selected = {};
+          //     this.vue.ui.base.activeId = [];
+          //     this.vue.ui.mode = `view`;
+          //   })
+          //   .then(() => this.vue.fn.renewConfig())
+          //   // .then(() => this.renderBaseMain())
+          //   .then(() => this.vue.fn.view())
+          //   // .then(() => this.vue.ui.fn.clickObject())
+          //   .then(() => resolve())
+          //   .catch((err) => reject(err));
         });
       },
       remove: (idArr = this.vue.ui.base.activeId) => {
