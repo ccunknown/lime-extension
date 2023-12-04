@@ -243,8 +243,9 @@ class BulkReader extends PropertyTemplate {
         }
       } while (tmpAddrArr.length);
 
-      opt.engineOpt.numtoread =
-        addrArr[addrArr.length - 1] + numtoread - addrArr[0];
+      // opt.engineOpt.numtoread =
+      //   addrArr[addrArr.length - 1] + numtoread - addrArr[0];
+      opt.engineOpt.numtoread = numtoread;
       [opt.engineOpt.address] = addrArr;
       if (ip && port) {
         opt.engineOpt.ip = ip;
