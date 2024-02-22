@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 export default class ExtensionUi {
@@ -34,6 +35,7 @@ export default class ExtensionUi {
   }
 
   initView() {
+    console.log(`initView()`);
     const mainView = this.extension.loader.getCoreObject(`page-main`);
     const resourceView = this.extension.loader.getCoreObject(`page-resource`);
     const resource = new DOMParser().parseFromString(resourceView, "text/html");
@@ -55,20 +57,32 @@ export default class ExtensionUi {
       rtcOverlay: null,
     };
 
-    for(let i in customViews) {
-      let schema = this.extension.loader.getSchemaDefine(i);
+    Object.keys(customViews).forEach((i) => {
+      const schema = this.extension.loader.getSchemaDefine(i);
       this.page[i] = {};
       this.page[i].schema = schema;
       this.page[i].view = customViews[i];
-      if(schema[`link-script`])
-        this.page[i].object = new (this.extension.loader.getObject(schema[`link-script`]))(this.extension);
-    }
+      if (schema[`link-script`])
+        this.page[i].object = new (this.extension.loader.getObject(
+          schema[`link-script`]
+        ))(this.extension);
+    });
+    // for(let i in customViews) {
+    // }
 
-    for(let i in this.page) {
+    Object.keys(this.page).forEach((i) => {
       data.page = this.page[i];
-      data.nav = `${data.nav} ${this.mustache.render(resource.getElementById(`extension-template-nav`).innerHTML, data)}`;
-      data.content = `${data.content} ${this.mustache.render(resource.getElementById(`extension-template-content`).innerHTML, data)}`;
-    }
+      data.nav = `${data.nav} ${this.mustache.render(
+        resource.getElementById(`extension-template-nav`).innerHTML,
+        data
+      )}`;
+      data.content = `${data.content} ${this.mustache.render(
+        resource.getElementById(`extension-template-content`).innerHTML,
+        data
+      )}`;
+    });
+    // for(let i in this.page) {
+    // }
     // data.rtcOverlay = this.mustache.render(rtcOverlayView, data);
     data.rtcOverlay = rtcOverlayView;
     // document.getElementById(`extension-lime-rtc-overlay`).innerHTML = rtcOverlay;
@@ -82,48 +96,58 @@ export default class ExtensionUi {
     console.log(`ExtensionUi: initVue() >> `);
     return new Promise((resolve, reject) => {
       Vue.use(Toasted, {
-        "iconPack": "fontawesome"
+        iconPack: "fontawesome",
       });
-      let defaultOptions = {
-        "position": `bottom-right`,
-        "keepOnHover": true,
-        "iconPack": `fontawesome`,
-        "duration": 5000
+      const defaultOptions = {
+        position: `bottom-right`,
+        keepOnHover: true,
+        iconPack: `fontawesome`,
+        duration: 5000,
       };
       this.toast = {
-        "error": (message, options) => {
-          return Vue.toasted.error(message, Object.assign(defaultOptions, 
-            Object.assign({
-              "icon": `fa-exclamation-triangle`
-            }, (options) ? options : {})
-          ));
+        error: (message, options) => {
+          return Vue.toasted.error(
+            message,
+            Object.assign(defaultOptions, {
+              icon: `fa-exclamation-triangle`,
+              ...(options || {}),
+            })
+          );
         },
-        "info": (message, options) => {
-          return Vue.toasted.info(message, Object.assign(defaultOptions, 
-            Object.assign({
-              "icon": `fa-info-circle`
-            }, (options) ? options : {})
-          ));
+        info: (message, options) => {
+          return Vue.toasted.info(
+            message,
+            Object.assign(defaultOptions, {
+              icon: `fa-info-circle`,
+              ...(options || {}),
+            })
+          );
         },
-        "success": (message, options) => {
-          return Vue.toasted.success(message, Object.assign(defaultOptions, 
-            Object.assign({
-              "icon": `fa-check-circle`
-            }, (options) ? options : {})
-          ));
+        success: (message, options) => {
+          return Vue.toasted.success(
+            message,
+            Object.assign(defaultOptions, {
+              icon: `fa-check-circle`,
+              ...(options || {}),
+            })
+          );
         },
-        "show": (message, options) => {
-          return Vue.toasted.show(message, Object.assign(defaultOptions, 
-            Object.assign({
+        show: (message, options) => {
+          return Vue.toasted.show(
+            message,
+            Object.assign(defaultOptions, {
               // "icon": `fa-check-circle`
-            }, (options) ? options : {})
-          ));
+              ...(options || {}),
+            })
+          );
         },
-        "transform": (toast, dest, message) => {
-          let styleArr = [`default`, `success`, `info`, `error`];
-          for(let i in styleArr)
+        transform: (toast, dest, message) => {
+          const styleArr = [`default`, `success`, `info`, `error`];
+          Object.keys(styleArr).forEach((i) => {
             toast.el.classList.remove(styleArr[i]);
-          toast.el.classList.add((styleArr.includes(dest)) ? dest : `default`);
+          });
+          // for(let i in styleArr)
+          toast.el.classList.add(styleArr.includes(dest) ? dest : `default`);
           toast.text(message);
         },
       };
@@ -132,29 +156,49 @@ export default class ExtensionUi {
   }
 
   initVueComponent() {
-    return new Promise(async (resolve, reject) => {
+    console.log(`initVueComponent()`);
+    return new Promise((resolve, reject) => {
       //  Load resource.
-      let loader = this.extension.loader;
-      let script = await loader.getObject(`vue-component-json-schema-script`);
+      const { loader } = this.extension;
+      let script;
       console.log(loader.objects);
-      script.template = await loader.getObject(`vue-component-json-schema-template`);
+      Promise.resolve()
+        .then(() => loader.getObject(`vue-component-json-schema-script`))
+        .then((s) => {
+          script = s;
+        })
+        .then(() => loader.getObject(`vue-component-json-schema-template`))
+        .then((template) => {
+          script.template = template;
+        })
+        .then(() => Vue.component(`json-schema-form`, script))
+        .then(() => this.console.log(`initVueComponent() complete`))
+        .then(() => resolve())
+        .catch((err) => reject(err));
 
-      Vue.component(`json-schema-form`, script);
-      resolve();
+      // const script = await loader.getObject(`vue-component-json-schema-script`);
+      // script.template = await loader.getObject(
+      //   `vue-component-json-schema-template`
+      // );
+
+      // Vue.component(`json-schema-form`, script);
+      // resolve();
     });
   }
 
-  initRaid(str) {
+  initRaid(raidStr) {
     return new Promise((resolve, reject) => {
-      //let list = this.getHtmlId(str);
-      str = (str) ? str : $(`#${this.extension.schema.extension.html}-extension-view`).html();
-      let list = this.getHtmlId(str);
-      if(!this.raid) {
+      // let list = this.getHtmlId(str);
+      const str =
+        raidStr ||
+        $(`#${this.extension.schema.extension.html}-extension-view`).html();
+      const list = this.getHtmlId(str);
+      if (!this.raid) {
         this.console.log(`new raid`);
         const raid = this.extension.loader.getCoreObject(`raid`);
+        // eslint-disable-next-line new-cap
         this.raid = new raid(list);
-      }
-      else {
+      } else {
         this.console.log(`update raid`);
         this.raid.updateIdList(list);
       }
@@ -179,61 +223,73 @@ export default class ExtensionUi {
     this.click = (id) => this.saidObj(id).click();
 
     this.vueDebug = () => {
-      let arr = {};
-      for(let i in this.page)
-        if(this.page[i].object.vue && 
+      const arr = {};
+      Object.keys(this.page).forEach((i) => {
+        if (
+          this.page[i].object.vue &&
           this.page[i].object.vue.loader &&
-          this.page[i].object.vue.loader.extension) {
-          this.page[i].object.vue.loader.extension.debug = !this.page[i].object.vue.loader.extension.debug;
-          console.log(`Debug ${i}: ${this.page[i].object.vue.loader.extension.debug}`);
+          this.page[i].object.vue.loader.extension
+        ) {
+          this.page[i].object.vue.loader.extension.debug =
+            !this.page[i].object.vue.loader.extension.debug;
+          console.log(
+            `Debug ${i}: ${this.page[i].object.vue.loader.extension.debug}`
+          );
           arr[i] = this.page[i].object.vue.loader.extension.debug;
         }
+      });
+      // for(let i in this.page)
       return arr;
     };
   }
 
   initScript() {
-    for(let i in this.page) {
-      let page = this.page[i];
-      if(page.object && page.object.init)
-        page.object.init();
-    }
+    console.log(`initScript()`);
+    console.log(`this.page:`, this.page);
+    Object.keys(this.page).forEach((i) => {
+      console.log(`page init:`, i, this.page[i]);
+      const page = this.page[i];
+      if (page.object && page.object.init) page.object.init();
+    });
+    // for(let i in this.page) {
+    // }
   }
 
   initNavEvent() {
-    for(let i in this.page) {
-      //this.console.log(this.saidObj);
-      let navObj = this.saidObj(`${this.ext.html}.nav.${this.page[i].schema.name}`);
+    Object.keys(this.page).forEach((i) => {
+      // this.console.log(this.saidObj);
+      const navObj = this.saidObj(
+        `${this.ext.html}.nav.${this.page[i].schema.name}`
+      );
       navObj.on(`click`, () => {
         this.onNavClick(this.page[i]);
-        
       });
-      //this.console.log(navObj);
-    }
+      // this.console.log(navObj);
+    });
+    // for(let i in this.page) {
+    // }
   }
 
   onNavClick(page) {
     this.console.log(`onNavClick(${page.schema.name})`);
-    if(page.object)
-      page.object.render();
+    if (page.object) page.object.render();
   }
 
   getCustomObject(id, options, ...args) {
     this.console.log(`getCustomObject(${id}) >> `);
     return new Promise((resolve, reject) => {
-      if(!this.customObjects.hasOwnProperty(id) || !options || !options.unique) {
-        let CustomObject = this.extension.loader.getCustomObject(id);
-        if(CustomObject) {
-          let customObject = new CustomObject(...args);
-          if(options && options.unique)
-            this.customObjects[id] = customObject;
+      if (
+        !Object.prototype.hasOwnProperty.call(this.customObjects, id) ||
+        !options ||
+        !options.unique
+      ) {
+        const CustomObject = this.extension.loader.getCustomObject(id);
+        if (CustomObject) {
+          const customObject = new CustomObject(...args);
+          if (options && options.unique) this.customObjects[id] = customObject;
           resolve(customObject);
-        }
-        else
-          reject(`CustomObject id '${id}' not found!`);
-      }
-      else
-        resolve(this.customObjects[id]);
+        } else reject(new Error(`CustomObject id '${id}' not found!`));
+      } else resolve(this.customObjects[id]);
     });
   }
 
@@ -242,24 +298,23 @@ export default class ExtensionUi {
     $("a.nav-link:first-child").trigger(`click`);
   }
 
-  getNav() {
-    
-  }
+  getNav() {}
 
   getHtmlId(str) {
-    return $(`*`, str).map(function() {
-      if(this.id)
-        return this.id;
-    }).get();
+    return $(`*`, str)
+      .map(function () {
+        if (this.id) return this.id;
+      })
+      .get();
   }
 
   genComponent(type, id, schema) {
     let result = ``;
-    switch(type) {
+    switch (type) {
       case `input-text`:
-        result = `<input type="text" class="" id="${id}">`
+        result = `<input type="text" class="" id="${id}">`;
         break;
-      default :
+      default:
         console.warn(`genComponent with 'type': '${type}' not support!!!`);
         break;
     }
@@ -267,36 +322,42 @@ export default class ExtensionUi {
   }
 
   generateData(schema, extend = false) {
+    this.console.log(`generateData():`, schema);
     let result = {};
-    if(schema.type == `object`) {
-      for(let i in schema.properties) {
-        result[i] = this.generateData(schema.properties[i], extend);
-        if(schema.required.includes(i) && extend)
-          result[i].required = true;
-      }
-    }
-    else if(schema.type == `array`) {
+    if (schema.type === `object`) {
+      this.console.log(`ui.schema:`, schema);
+      const schemaProperties = schema.properties || schema.patternProperties;
+      Object.keys(schemaProperties).forEach((i) => {
+        result[i] = this.generateData(schemaProperties[i], extend);
+        if (schema.required.includes(i) && extend) result[i].required = true;
+      });
+      // for(let i in schema.properties) {
+      // }
+    } else if (schema.type === `array`) {
       result = [];
-    }
-    else {
-      // let value = (schema.default) ? schema.default :
-      //   (schema.type == `string`) ? `` : 
-      //   (schema.type == `number`) ? 0 : 
-      //   (schema.type == `boolean`) ? false : null;
-      let param = schema;
-      let value = (param.const) ? param.const :
-        (param.default) ? param.default :
-        (param.enum && param.enum.length > 0) ? param.enum[0] :
-        (param.type == `string`) ? `` :
-        (param.type == `number`) ? (param.min) ? param.min : 0 :
-        (param.type == `boolean`) ? false : undefined;
-      if(extend) {
+    } else {
+      const param = schema;
+      const value = param.const
+        ? param.const
+        : param.default
+        ? param.default
+        : param.enum && param.enum.length > 0
+        ? param.enum[0]
+        : param.type === `string`
+        ? ``
+        : param.type === `number`
+        ? param.min
+          ? param.min
+          : 0
+        : param.type === `boolean`
+        ? false
+        : undefined;
+      if (extend) {
         result = JSON.parse(JSON.stringify(schema));
         result.value = value;
-      }
-      else
-        result = value;
+      } else result = value;
     }
+    console.log(`data:`, result);
     return result;
   }
 
@@ -305,20 +366,24 @@ export default class ExtensionUi {
   }
 
   shortJsonElement(schema, elem) {
-    //this.console.log(`PageSysport: shortJsonElement(${elem}) >> `);
-    if(schema[elem]) {
+    this.console.log(`PageSysport: shortJsonElement(${elem}):`, schema);
+    if (schema[elem]) {
+      this.console.log(`founded:`, elem, schema[elem]);
       return schema[elem];
     }
-    else if(Array.isArray(schema) || typeof schema == `object`) {
-      for(let i in schema) {
-        let res = this.shortJsonElement(schema[i], elem);
-        if(res)
-          return res;
-      }
-      return null;
+    if (Array.isArray(schema) || typeof schema === `object`) {
+      let result = null;
+      Object.keys(schema).forEach((i) => {
+        this.console.log(`recurse[${i}]:`, schema[i]);
+        const res = this.shortJsonElement(schema[i], elem);
+        if (res) {
+          result = res;
+        }
+      });
+      this.console.log(`founded:`, result);
+      return result;
     }
-    else {
-      return null;
-    }
+    this.console.log(`founded:`, null);
+    return null;
   }
 }

@@ -98,7 +98,7 @@ export default class ExtensionLoader {
       // let prefix = `/extensions/${this.schema.extension.full}`;
       //path = (path.startsWith(prefix) || path.startsWith(`http`)) ? path : [prefix, `static`, path].join("/").replace(/\/+/g, "/");
       path = this.path(`${path}`);
-      //console.log(`object : ${path} : `);
+      console.log(`object : ${path} : `);
       let obj = (await import(`${path}`)).default;
       //console.log(obj);
       resolve(obj);

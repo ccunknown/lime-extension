@@ -1,64 +1,97 @@
-const Validator = require('jsonschema').Validator;
+/* eslint-disable import/no-dynamic-require */
+/* eslint-disable global-require */
+const { Validator } = require(`jsonschema`);
+const Path = require(`path`);
+
 const {
   ValidateConfigSchema,
   AttributeList,
-  AlternateList
+  AlternateList,
 } = require(`./define`);
 
 class ServiceConfigTranslator {
   constructor(enginesService) {
-    console.log(`[${this.constructor.name}]`, `constructor() >> `)
     this.enginesService = enginesService;
+    console.log(
+      `[${this.constructor.name}]`,
+      this.enginesService.constructor.name
+    );
     this.validator = new Validator();
   }
 
   generateConfigSchema(params) {
-    console.log(`ServiceConfigTranslator: generateConfigSchema() >> `);
-    console.log(`Params: ${JSON.stringify(params, null, 2)}`);
-    return new Promise(async (resolve, reject) => {
+    console.log(`[${this.constructor.name}]: generateConfigSchema() >> `);
+    // console.log(`>> params: ${JSON.stringify(params, null, 2)}`);
+    return new Promise((resolve, reject) => {
       //  Copy config from ValidateConfigSchema.
-      let config = JSON.parse(JSON.stringify(ValidateConfigSchema));
+      const config = JSON.parse(JSON.stringify(ValidateConfigSchema));
 
       //  Assign 'alternate' attribute.
       AlternateList.forEach((index) => {
-        if(config.properties.hasOwnProperty(index))
+        if (Object.prototype.hasOwnProperty.call(config.properties, index))
           config.properties[index].alternate = true;
       });
 
       //  Assign 'attrs' attribute.
       AttributeList.forEach((index) => {
-        if(config.properties.hasOwnProperty(index.target))
+        if (
+          Object.prototype.hasOwnProperty.call(config.properties, index.target)
+        )
           config.properties[index.target].attrs = index.attrs;
       });
 
       //  Initial 'enum' attribute.
-      let engineTemplate = await this.enginesService.getTemplate(null, {"deep": true});
-      config.properties[`template`].enum = engineTemplate.map((elem) => elem.name);
-
-      //  Extend engine config using 'params.template'.
-      if(params && params.template && params.template != ``) {
-        let EngineConfigTranslator = require(`./engines/${params.template}/config-translator.js`);
-        let engConfTrans = new EngineConfigTranslator(this.enginesService);
-        let engConf = await engConfTrans.generateConfigSchema(params);
-        // console.log(`engConf: ${JSON.stringify(engConf, null, 2)}`);
-        for(let i in engConf.properties) {
-          config.properties[i] = engConf.properties[i];
-        }
-        config.required = [...config.required, ...engConf.required];
-        if(engConf.hasOwnProperty(`additionalProperties`))
-          config.additionalProperties = engConf.additionalProperties;
-      }
-
-      resolve(config);
+      let engineTemplates;
+      Promise.resolve()
+        .then(() =>
+          this.enginesService.objects.getTemplate(null, { deep: true })
+        )
+        .then((templates) => {
+          engineTemplates = templates;
+        })
+        .then(() => {
+          config.properties.template.enum = engineTemplates.map((e) => e.name);
+          if (params && params.template && params.template.length) {
+            const dir = this.enginesService.config.directory;
+            const EngineConfigTranslator = require(Path.join(
+              dir.startsWith(`./`) ? Path.join(__dirname, dir) : dir,
+              params.template,
+              `config-translator.js`
+            ));
+            const engConfTrans = new EngineConfigTranslator(
+              this.enginesService
+            );
+            return engConfTrans.generateConfigSchema(params);
+          }
+          return undefined;
+        })
+        .then((engConf) => {
+          if (engConf) {
+            Object.keys(engConf.properties).forEach((i) => {
+              config.properties[i] = engConf.properties[i];
+            });
+            config.required = [...config.required, ...engConf.required];
+            if (
+              Object.prototype.hasOwnProperty.call(
+                engConf,
+                `additionalProperties`
+              )
+            )
+              config.additionalProperties = engConf.additionalProperties;
+          }
+        })
+        .then(() => resolve(config))
+        .catch((err) => reject(err));
     });
   }
 
   validate(config) {
     console.log(`ServiceConfigTranslator: validate() >> `);
     return new Promise((resolve, reject) => {
-      this.generateConfigSchema(config)
-      .then((schema) => resolve(this.validator.validate(config, schema)))
-      .catch((err) => reject(err));
+      Promise.resolve()
+        .then(() => this.generateConfigSchema(config))
+        .then((schema) => resolve(this.validator.validate(config, schema)))
+        .catch((err) => reject(err));
     });
   }
 }

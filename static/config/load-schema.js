@@ -36,12 +36,16 @@
                 "vue-toasted",
                 "popper",
                 "bootstrap",
-                
+                "d3",
+                "jiahuang-d3-timeline",
+
+                `extension-script-chart-render`,
                 "extension-script-collector",
                 "extension-script-api",
                 "extension-script-raid",
                 "extension-script-ui",
                 "extension-script-page",
+                "extension-script-coloring-tool",
                 "extension-script-webrtc-rtcpage-controller",
                 "extension-script-webrtc-channel-pair",
                 "extension-script-webrtc-session",
@@ -51,10 +55,11 @@
             {
               "type": "parallel",
               "load": [
-                "page-devices",
+                "page-objects",
+                // "page-devices",
                 "page-scripts",
-                "page-engines",
-                "page-sysport",
+                // "page-engines",
+                // "page-sysport",
                 "page-configs"
               ]
             },
@@ -74,10 +79,11 @@
             "extension-view-resource",
             "extension-view-rtc-overlay",
             "custom-rest",
-            "script-devices",
+            "script-objects",
+            // "script-devices",
             "script-scripts",
-            "script-engines",
-            "script-sysport",
+            // "script-engines",
+            // "script-sysport",
             "script-configs"
           ]
         }
@@ -86,6 +92,11 @@
 
     "define": {
 
+      "extension-script-chart-render": {
+        "type": `global-script`,
+        "path": `/core/js/chart-render/chart-render.js`,
+        "object-name": `LimeExtensionChartRender`,
+      },
       "extension-script-collector": {
         "type": "core-script",
         "path": "/core/js/collector.js",
@@ -141,6 +152,11 @@
         "path": "/core/js/webrtc/rtcpage-controller.js",
         "object-name": "ExtensionRTCPageController",
         "core": "rtcPageController",
+      },
+      "extension-script-coloring-tool": {
+        "type": "global-script",
+        "path": "/core/js/coloring-tool.js",
+        "object-name": "LimeExtensionRTCColoringTool",
       },
 
       "extension-view-resource": {
@@ -205,6 +221,29 @@
         "object-name": "jsonSchemaVue"
       },
 
+      "d3": {
+        "type": `script`,
+        "path": `/resource/js/d3.min.js`
+      },
+
+      "jiahuang-d3-timeline": {
+        "type": `script`,
+        "path": `/resource/js/jiahuang-d3-timeline.js`
+      },
+
+
+      "page-objects": {
+        "name": `objects`,
+        "type": `custom-view`,
+        "path": `/custom/views/objects.html`,
+        "icon": `fas fa-network-wired`,
+        "link-script": `script-objects`,
+      },
+      "script-objects": {
+        "type": "custom-script",
+        "path": `/custom/js/objects.js`,
+        "object-name": `LimeExtenisonPageObjects`
+      },
 
       "page-devices": {
         "name": "devices",
@@ -297,7 +336,7 @@
   };
 
   return new Promise(async (resolve, reject) => {
-    let Extension = (await import(`/extensions/${schema.extension.full}/static/core/js/extension.js`)).default;
+    const Extension = (await import(`/extensions/${schema.extension.full}/static/core/js/extension.js`)).default;
     //console.log(Extension);
     new Extension(schema);
     resolve();

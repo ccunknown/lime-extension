@@ -16,8 +16,8 @@ const { Property } = require(`gateway-addon`);
 // ];
 
 class PropertyUnit extends Property {
-  constructor(device, master, name, schema) {
-    super(device, name, schema);
+  constructor(master, name, schema) {
+    super(master.device.to.wtDevice, name, schema);
     /*
     constructor(device, name, propertyDescr) {
       this.device = device;

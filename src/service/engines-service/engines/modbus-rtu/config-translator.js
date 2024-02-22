@@ -31,7 +31,7 @@ class ServiceConfigTranslator {
       });
 
       //  Initial 'enum' attribute.
-      let portList = await this.sysportService.get();
+      let portList = await this.sysportService.objects.get();
       config.properties[`port`].enum = [];
       for(let i in portList)
         config.properties[`port`].enum.push(i);

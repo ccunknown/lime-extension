@@ -8,13 +8,14 @@ const Path = require(`path`);
 const ModbusRTU = require("modbus-serial");
 // const AsyncLock = require("async-lock");
 
-const EngineTemplate = require(`../../engine-template/engines-template.js`);
+const EngineTemplate = require(`../../engine-template/engine-template.js`);
+// const { ObjectState } = require(`../../../object-template/object-state.js`);
 
 class ModbusRtu extends EngineTemplate {
-  constructor(enginesService, config) {
-    super(enginesService, config);
+  constructor(enginesService, id, config) {
+    super(enginesService, id, config);
     this.enginesService = enginesService;
-    this.sysportService = enginesService.sysportService;
+    this.ioportsService = enginesService.ioportsService;
     this.config = config;
     this.lastProcessTimestamp = new Date();
     this.event = new EventEmitter();
@@ -31,16 +32,23 @@ class ModbusRtu extends EngineTemplate {
 
   init() {
     return new Promise((resolve, reject) => {
-      let port;
+      let ioport;
       Promise.resolve()
-        .then(() => this.sysportService.get(this.config.port, { object: true }))
-        .then((sysportSchema) => {
-          port = sysportSchema.object;
+        .then(() => this.getPort())
+        .then((port) => {
+          ioport = port;
         })
+        // .then(() => {
+        //   console.log(
+        //     `[${this.constructor.name}]`,
+        //     `isPortOpen:`,
+        //     ioport.port.isOpen
+        //   );
+        // })
         .then(() => this.initMod())
         .then(() => require(`./rtubufferedport`))
         .then((RtuBufferedPort) => {
-          this.port = new RtuBufferedPort(port);
+          this.port = new RtuBufferedPort(ioport.port);
         })
         .then(() => resolve())
         .catch((err) => reject(err));
@@ -50,6 +58,7 @@ class ModbusRtu extends EngineTemplate {
   initMod() {
     const open = (obj, next) => {
       if (next) {
+        // this.om.obj.log(`obj`, typeof obj, obj.constructor.name);
         obj.open(next);
         return undefined;
       }
@@ -64,17 +73,43 @@ class ModbusRtu extends EngineTemplate {
 
     this.client.connectRTUBuffered = (port, next) => {
       // create the SerialPort
-      const SerialPort = require("./rtubufferedport");
-      this.client._port = new SerialPort(this.port);
+      const RtuBufferedPort = require("./rtubufferedport");
+      console.log(`[${this.constructor.name}]`, `port:`, port.constructor.name);
+      console.log(
+        `[${this.constructor.name}]`,
+        `this.port:`,
+        this.port.constructor.name
+      );
+      this.client._port = new RtuBufferedPort(this.port);
+      // this.client._port = ioport.port;
       return open(this.client, next);
     };
   }
 
-  start() {
-    // console.log(`[${this.constructor.name}]`, `engine start() >> `);
-    // if (this.getState() !== `restarting`) this.setState(`starting`);
+  getPort() {
+    return this.enginesService.getIoport(this.config.port);
+  }
+
+  openPort() {
     return new Promise((resolve, reject) => {
       Promise.resolve()
+        .then(() => this.getPort())
+        .then((ioport) =>
+          ioport.port.open((err) => {
+            if (err) throw err;
+            resolve();
+          })
+        )
+        .then(() => resolve())
+        .catch((err) => reject(err));
+    });
+  }
+
+  start() {
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        // .then(() => this.getPort())
+        // .then(() => this.openPort())
         .then(() =>
           this.client.connectRTUBuffered(this.port, (error) => {
             if (error) {
@@ -83,7 +118,6 @@ class ModbusRtu extends EngineTemplate {
               this.port._client.removeAllListeners("close");
               this.port._client.on(`close`, (err) => {
                 this.om.obj.log(`port close. >> `);
-                this.setState(`stopped`);
                 if (err) {
                   this.om.obj.error(err);
                 }
@@ -97,29 +131,17 @@ class ModbusRtu extends EngineTemplate {
   }
 
   stop() {
-    // if (this.getState() !== `restarting`) this.setState(`stoping`);
     return new Promise((resolve, reject) => {
       Promise.resolve()
-        .then(() =>
+        .then(() => {
+          console.log(`[${this.constructor.name}]`, `client closing`);
           this.client.close(() => {
+            console.log(`[${this.constructor.name}]`, `client closed`);
             resolve();
-          })
-        )
-        .catch((err) => reject(err));
-    });
-  }
-
-  restart() {
-    this.setState(`restarting`);
-    return new Promise((resolve) => {
-      Promise.resolve()
-        .then(() => this.stop())
-        .then(() => this.start())
+          });
+        })
         .then(() => resolve())
-        .catch((err) => {
-          this.om.obj.error(err);
-          setTimeout(() => this.restart(), 5000);
-        });
+        .catch((err) => reject(err));
     });
   }
 
@@ -142,11 +164,13 @@ class ModbusRtu extends EngineTemplate {
   }
 
   processor(jobId, cmd) {
-    // const timestamp = new Date().toISOString();
     return new Promise((resolve, reject) => {
-      if (this.getState() !== `running`) {
-        reject(new Error(`Port currently "${this.getState()}".`));
-      } else if (cmd.action === `read`) {
+      // console.log(
+      //   `[${this.constructor.name}]`,
+      //   `isPortOpen:`,
+      //   this.port._client.isOpen
+      // );
+      if (cmd.action === `read`) {
         this.client.setID(cmd.id);
         let val;
         const func =
@@ -162,6 +186,7 @@ class ModbusRtu extends EngineTemplate {
         if (func) {
           let timeout;
           Promise.resolve()
+            .then(() => !this.port._client.isOpen && this.openPort())
             .then(() => this.dynamicDelay(this.config.delay))
             .then(() => {
               timeout = setTimeout(() => {
@@ -175,20 +200,19 @@ class ModbusRtu extends EngineTemplate {
             })
             .then(() => func(cmd.address, cmd.numtoread))
             .then((ret) => {
-              this.lastProcessTimestamp = new Date();
+              const timestamp = new Date();
               clearTimeout(timeout);
-              this.om.task.log(
-                jobId,
-                `end req: ${this.lastProcessTimestamp.toISOString()}`
-              );
+              this.om.task.log(jobId, `end req: ${timestamp.toISOString()}`);
               val = ret;
             })
-            // .then(() => clearTimeout(timeout))
             .then(() => {
               const ret = [...val.buffer];
               resolve(ret);
             })
-            .catch((err) => reject(err));
+            .catch((err) => reject(err))
+            .finally(() => {
+              this.lastProcessTimestamp = new Date().getTime();
+            });
         } else {
           const err = new Error(`Table "${cmd.table}" miss match!!!`);
           reject(err);
@@ -204,10 +228,13 @@ class ModbusRtu extends EngineTemplate {
   dynamicDelay(ms) {
     return new Promise((resolve, reject) => {
       try {
-        const timestamp = new Date();
+        const timestamp = new Date().getTime();
         const alreadyDelay = timestamp - this.lastProcessTimestamp;
         const remainingDelay = ms - alreadyDelay;
-        // this.lastProcessTimestamp = timestamp;
+        // this.om.obj.log(`target delay:`, ms);
+        // this.om.obj.log(`calcul delay:`, remainingDelay);
+        // this.om.obj.log(`last timestamp:`, this.lastProcessTimestamp);
+        // this.om.obj.log(`curr timestamp:`, timestamp);
         setTimeout(() => resolve(), Math.max(remainingDelay, 0));
       } catch (err) {
         reject(err);

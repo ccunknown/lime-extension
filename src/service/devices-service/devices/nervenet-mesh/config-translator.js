@@ -61,7 +61,7 @@ class DeviceConfigTranslator {
 
       //  Initial 'enum' attribute.
       config.properties.engine.enum = await this.devicesService.getCompatibleEngine(CompatibleList.engine);
-      let propertiesDirectorySchema = (await this.devicesService.getDirectorySchema(`property`, {"deep": true, "absolute": `${__dirname}`})).children;
+      let propertiesDirectorySchema = (await this.devicesService.directory.getSchema(`property`, {"deep": true, "absolute": `${__dirname}`})).children;
       config.properties.properties.patternProperties[this.propIdPattern].properties.template.enum = propertiesDirectorySchema.map((elem) => elem.name);
 
       //  Extend properties config using 'params.properties'.

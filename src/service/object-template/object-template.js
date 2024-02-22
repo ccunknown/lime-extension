@@ -1,5 +1,6 @@
 /* eslint-disable class-methods-use-this */
 const { v1: uuid } = require(`uuid`);
+const ObjectMetricBuilder = require("./object-metric");
 const ObjectMonitor = require("./object-monitor");
 const ObjectOperator = require("./object-operator");
 
@@ -7,6 +8,10 @@ class ObjectTemplate {
   constructor(service, id) {
     this.om = new ObjectMonitor(service, id);
     this.oo = new ObjectOperator(this, service, id);
+    this.mb = new ObjectMetricBuilder(
+      this.om.storageDir,
+      this.om.id /* as file name */
+    );
 
     this.om.obj.log(`${service.id}:${id}`, `Construct object-template`);
   }
@@ -48,10 +53,11 @@ class ObjectTemplate {
         )
         .then((job) => job.finished())
         .then((ret) => {
-          this.om.task.end(jobId, this.resultToString(ret));
+          // this.om.task.end(jobId, this.resultToString(ret));
           resolve(ret);
         })
         .catch((err) => {
+          // console.error(err);
           resolve({ error: err });
         });
     });
@@ -73,6 +79,14 @@ class ObjectTemplate {
     } catch (err) {
       return `*no result translate`;
     }
+  }
+
+  generateMetric() {
+    return this.mb.buildMetric();
+  }
+
+  deleteMetric() {
+    return this.mb.deleteMetric();
   }
 }
 

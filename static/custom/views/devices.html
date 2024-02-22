@@ -97,8 +97,9 @@
                         </button>
                         <div class="dropdown-menu bg-dark text-light">
                           <a 
-                          v-if="!!ui.slider['edit-id']"
-                          @click="fn.showPropertyMetrics(i)" class="dropdown-item d-flex text-light" href="#">
+                            v-if="!!ui.slider['edit-id']"
+                            @click="fn.showPropertyMetrics(i)" class="dropdown-item d-flex text-light" href="#"
+                          >
                             <div class="miso-icon-box-16">
                               <i class="fas fa-chart-bar fa-lg"></i>
                             </div>
@@ -122,14 +123,10 @@
                   </div>
                 </template>
               </div>
-
             </div>
           </div>
-
         </div>
-
       </div>
-
     </div>
   </div>
   
@@ -187,6 +184,17 @@
                     <i class="fas fa-bars fa-lg"></i>
                   </button>
                   <div class="dropdown-menu bg-dark text-light">
+                    <a 
+                      @click="fn.addSubscribe(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
+                      <div class="miso-icon-box-16">
+                        <!-- <i class="fas fa-chart-bar fa-lg"></i> -->
+                        <i class="fa-solid fa-terminal fa-lg"></i>
+                      </div>
+                      <span>Log Subscribe</span>
+                    </a>
                     <a 
                       @click="fn.showMetrics(id)" 
                       class="dropdown-item d-flex text-light" 
@@ -285,32 +293,80 @@
               </div>
             </div>
             <!-- Item Body -->
-            <div class="card-body bg-secondary d-flex flex-column justify-content-between">
-              <p class="card-text text-light">
+            <div class="card-body bg-secondary d-flex flex-row justify-content-between">
+              <div class="mr-3">
+                <table cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td>
+                      <div class="text-truncate d-flex justify-content-end mt-2">
+                        <span class="header-item text-truncate">
+                          <span class="bg-dark text-light">template</span>
+                          <span class="p-0"></span>
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="text-truncate d-flex mt-2">
+                        <span class="header-item text-truncate">
+                          <span class="p-0"></span>
+                          <span class="bg-info text-light">{{item.template}}</span>
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                  <template
+                    v-for="(statusValue, statusKey) in fn.craftDeviceStatus(item.state)"
+                  >
+                    <tr>
+                      <td>
+                        <div class="text-truncate d-flex justify-content-end mt-2">
+                          <span class="header-item text-truncate">
+                            <span
+                              class=""
+                              :class="[
+                                statusValue.keyLevel >= 90
+                                  ? 'bg-success text-light'
+                                  : statusValue.keyLevel >= 50
+                                  ? 'bg-warning text-dark'
+                                  : statusValue.keyLevel >= 0
+                                  ? 'bg-danger text-light'
+                                  : 'bg-dark text-light'
+                              ]"
+                            >
+                              {{statusKey}}
+                            </span>
+                            <span class="p-0"></span>
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="text-truncate d-flex mt-2">
+                          <span class="header-item text-truncate">
+                            <span class="p-0"></span>
+                            <span 
+                              class="" 
+                              :class="[
+                                statusValue.level >= 90
+                                  ? 'bg-success text-light'
+                                  : statusValue.level >= 50
+                                  ? 'bg-warning text-dark'
+                                  : statusValue.level >= 0
+                                  ? 'bg-danger text-light'
+                                  : 'bg-dark text-light'
+                              ]"
+                            >
+                              {{Object.prototype.hasOwnProperty.call(statusValue, 'value') ? statusValue.value : statusValue}}
+                            </span>
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  </template>
+                </table>
+              </div>
+              <p class="card-text line-clamp-4 text-light grow-1">
                 {{item.description}}
               </p>
-              <div>
-                <div class="text-truncate d-flex mt-2">
-                  <span class="header-item text-truncate mr-2">
-                    <span class="bg-dark text-light">template</span>
-                    <span class="bg-info text-light">{{item.template}}</span>
-                  </span>
-                </div>
-                <div class="text-truncate d-flex mt-2">
-                  <span class="header-item text-truncate mr-2">
-                    <span class="bg-dark text-light">status</span>
-                    <span 
-                    class="" 
-                    :class="{
-                      'bg-success text-light': ['running', 'semi-running'].includes(item.state),
-                      'bg-warning text-dark': item.state == 'pending',
-                      'bg-danger text-light': !['running', 'semi-running', 'pending'].includes(item.state)
-                    }">
-                      {{item.state}}
-                    </span>
-                  </span>
-                </div>
-              </div>
             </div>
           </div>
           <!-- Adder -->
@@ -324,11 +380,8 @@
               </div>
             </div>
           </div>
-
         </div>
-
       </div>
-
     </div>
   </div>
 
@@ -418,7 +471,7 @@
   <div v-if="loader.extension.debug">
     <code class="text-light">
       <template v-for="(elem, index) in $data">
-        <div v-if="index != 'loader'">
+        <div v-if="index !== 'loader'">
           <b>{{index}} :</b>
           <pre class="text-light">{{elem}}</pre>
         </div>

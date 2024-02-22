@@ -6,7 +6,7 @@ const ModbusRTU = require('modbus-serial');
 const AsyncLock = require('async-lock');
 const Path = require(`path`);
 
-var MIN_MODBUSRTU_FRAMESZ = 5;
+const MIN_MODBUSRTU_FRAMESZ = 5;
 
 class ModbusRtu {
   constructor(enginesService, config) {
@@ -25,10 +25,22 @@ class ModbusRtu {
   }
 
   init(port) {
+    console.log(
+      `[${this.constructor.name}]`,
+      `port:`,
+      port.id,
+      `[${port.constructor.name}]`
+    );
+    console.log(
+      `[${this.constructor.name}]`,
+      `port:`,
+      port.id,
+      `[${port.port.constructor.name}]`
+    );
     return new Promise((resolve, reject) => {
       this.initMod();
       let RtuBufferedPort = require(`./rtubufferedport`);
-      this.port = new RtuBufferedPort(port);
+      this.port = new RtuBufferedPort(port.port);
       resolve();
     });
   }

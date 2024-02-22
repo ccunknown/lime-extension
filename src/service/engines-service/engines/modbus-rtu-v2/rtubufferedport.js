@@ -110,6 +110,7 @@ RTUBufferedPort.prototype._emitData = function(start, length) {
  * @param callback
  */
 RTUBufferedPort.prototype.open = function(callback) {
+    console.log(`[${this.constructor.name}]`, `open() >>`);
     this._client.open(callback);
 };
 

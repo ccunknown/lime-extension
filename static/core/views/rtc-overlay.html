@@ -4,61 +4,190 @@
 >
   <div class="miso-absolute-overlay-content text-light d-flex">
     <div class="miso-absolute-overlay-content-console w-100 d-flex flex-column">
-      <div
-        class="
-          miso-absolute-overlay-content-console-monitor
-          border-warning
-          w-100
-          grow-1
-        "
-        style="
-          font-family: Consolas,monaco,monospace;
-          overflow: scroll;
-          white-space: nowrap;
-        "
-      >
-        <template
-          v-for="log in resource.logList"
+      <!-- Console panel -->
+      <div class="d-flex flex-column align-items-end grow-1">
+        <!-- Console display -->
+        <div
+          id="contents-rtcoverlay-console-display"
+          class="
+            miso-absolute-overlay-content-console-monitor
+            bottomright-union
+            border-warning
+            grow-1
+            w-100
+            d-flex
+            flex-column
+          "
+          style="
+            font-family: Consolas,monaco,monospace;
+            white-space: nowrap;
+            overflow: scroll;
+            height: 100px;
+          "
         >
-          <div>
-            <span>{{log.timestamp.toISOString()}}</span>
-            :
-            <span>{{log.message}}</span>
-          </div>
-        </template>
-      </div>
-      <div
-        class="
-          miso-absolute-overlay-content-console-cmd
-          border-warning
-          d-flex flex-column
-          justify-content-between
-        "
-      >
-        <div>
-          <template
-            v-for="subscribeText in resource.subscribeList"
+          <!-- <template
+            v-for="log in resource.logList"
           >
-            <div class="list-group-item list-group-item-action bg-transparent text-light d-flex justify-content-between">
-              <div class="grow-1 d-flex flex-column">
-                <span>Sub: {{subscribeText}}</span>
-              </div>
-              <span>
-                <button 
-                  class="btn btn-danger"
-                  @click="fn.removeSubscribe(subscribeText)"
-                >
-                  <i class="fas fa-trash fa-lg"></i>
-                </button>
+            <div class="d-flex flex-row mb-1">
+              <span class="bg-dark">{{log.timestamp.toISOString()}}</span>
+              &nbsp;:&nbsp;
+              <span
+                class="text-truncate"
+                style="
+                  width: 200px;
+                  min-width: 200px;
+                  direction: rtl;
+                "
+                data-toggle="tooltop"
+                :title="log.cooked.id"
+                :style="log.cooked.idColor"
+              >
+                {{log.cooked.id}}
+              </span>
+              &nbsp;
+              <span
+                :style="log.cooked.jidColor"
+              >
+                {{log.cooked.jid}}
+              </span>
+              &nbsp;
+              <span
+                :style="log.cooked.levelColor"
+              >
+                {{log.cooked.message}}
               </span>
             </div>
+          </template> -->
+        </div>
+        <!-- Control bar -->
+        <div
+          class="
+            vertical-union
+            round-edge
+            text-truncate
+            d-flex flex-row justify-content-end
+          "
+          style="font-size: 1rem;"
+        >
+          <!-- Play/Pause button -->
+          <div
+            class="
+              horizontal-union
+              text-light
+              pointer-cursor
+            "
+            @click="fn.consolePlayToggle()"
+            style="width: 2.5rem; height: 2.5rem;"
+          >
+            <div
+              class="
+                w-100 h-100
+                bg-success
+                d-flex justify-content-center align-items-center
+              "
+              :class="{hide: ui.play}"
+            >
+              <i class="fas fa-play"></i>
+            </div>
+            <div
+              class="
+                w-100 h-100
+                bg-info
+                d-flex justify-content-center align-items-center
+              "
+              :class="{hide: !ui.play}"
+            >
+              <i class="fas fa-pause"></i>
+            </div>
+          </div>
+          <div
+            class="
+              horizontal-union
+              text-light
+              pointer-cursor
+            "
+            @click="fn.consoleClear()"
+            style="width: 2.5rem; height: 2.5rem;"
+          >
+            <div
+              class="
+                w-100 h-100
+                bg-danger
+                d-flex justify-content-center align-items-center
+              "
+            >
+              <i class="fas fa-xmark"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subscription panel -->
+      <div style="position: relative">
+        <!-- Quick subscribe -->
+        <div
+          class="vertical-union round-edge d-flex flex-row text-truncate"
+          style="position: absolute; bottom: 100%; font-size: 1rem;"
+        >
+          <template v-for="elem in resource.quickSubscribeList">
+            <div
+              class="
+                horizontal-union
+                bg-dark text-light p-2
+                pointer-cursor
+              "
+              @click="fn.addSubscribe(elem.topic)"
+            >
+              {{elem.title}}
+            </div>  
           </template>
+          <div
+            class="
+              horizontal-union
+              bg-danger text-light p-2
+              pointer-cursor
+              hide
+            "
+            @click="fn.removeSubscribe()"
+          >
+            None
+          </div>
         </div>
-        <div class="d-flex justify-content-between align-items-center p-3">
-          <input type="text" class="grow-1 mr-3" v-model="resource.cmdInput">
-          <button class="btn btn-primary" @click="fn.addSubscribe()">Subscribe</button>
-        </div>
-      </div>  
+        <!-- Subscribe commandline -->
+        <div
+          class="
+            miso-absolute-overlay-content-console-cmd
+            topleft-union
+            border-warning
+            d-flex flex-column
+            justify-content-between
+          "
+        >
+          <div>
+            <template
+              v-for="subscribeText in resource.subscribeList"
+            >
+              <div class="list-group-item list-group-item-action bg-transparent text-light d-flex justify-content-between">
+                <div class="grow-1 d-flex flex-column">
+                  <span>Sub: {{subscribeText}}</span>
+                </div>
+                <span>
+                  <button 
+                    class="btn btn-danger"
+                    @click="fn.removeSubscribe(subscribeText)"
+                  >
+                    <i class="fas fa-trash fa-lg"></i>
+                  </button>
+                </span>
+              </div>
+            </template>
+          </div>
+          <div class="d-flex justify-content-between align-items-center p-3">
+            <input type="text" class="grow-1 mr-3" v-model="resource.cmdInput">
+            <button class="btn btn-primary" @click="fn.addSubscribe()">Subscribe</button>
+          </div>
+        </div>  
+      </div>
     </div>
   </div>
 </div>

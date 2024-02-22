@@ -39,12 +39,13 @@ export default class ExtensionMain extends window.Extension {
 
   initLoader() {
     return new Promise((resolve, reject) => {
-      import(`/extensions/${this.id}/static/core/js/loader.js`)
-      .then((ExtensionLoader) => new ExtensionLoader.default(this))
-      .then((loader) => this.loader = loader)
-      .then(() => this.loader.init())
-      .then(() => resolve())
-      .catch((err) => reject(err));
+      Promise.resolve()
+        .then(() => import(`/extensions/${this.id}/static/core/js/loader.js`))
+        .then((ExtensionLoader) => new ExtensionLoader.default(this))
+        .then((loader) => this.loader = loader)
+        .then(() => this.loader.init())
+        .then(() => resolve())
+        .catch((err) => reject(err));
     });
   }
 
@@ -62,7 +63,7 @@ export default class ExtensionMain extends window.Extension {
 
       //  Sequential promise using 'reduce'.
       let initialCoreComp = [this.ui, this.collector, this.api].reduce((prev, next) => {
-        return prev.then(() => next.init()).catch((err) => reject(err));
+        return prev.then(() => next.init()).catch((err) => console.error(err));
       }, Promise.resolve());
       initialCoreComp.then(() => resolve());
     });
@@ -94,11 +95,16 @@ export default class ExtensionMain extends window.Extension {
     // config.apiEndpoint = `/${this.loader.define[`url-prefix`].split(`/`).filter(e => e.length).join(`/`)}/api`;
     // return this.rtcpeer.init(config);
     return new Promise((resolve, reject) => {
+      setTimeout(() => { resolve() }, 2000);
       Promise.resolve()
       .then(() => this.rtcpeer.init(config))
       .then(() => this.rtcpeer.start())
       .then((ret) => resolve(ret))
-      .catch((err) => reject(err));
+      // .catch((err) => reject(err));
+      .catch((err) => {
+        console.error(err);
+        reject(err);
+      })
     });
   }
 

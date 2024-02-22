@@ -14,26 +14,38 @@ class ObjectMonitor {
       service.id,
       id
     );
+    const logConfig = {
+      files: [
+        {
+          dirname: storageDir,
+          filename: `${id}`,
+        },
+      ],
+    };
+    if (extension.config.log && extension.config.log.console) {
+      logConfig.console = { label: id };
+    }
     const properties = {
       extension,
       service,
       id,
       storageDir,
-      publishPath: `/service/${service.id}/monitor/${id}`,
+      publishPath: `/service/${service.id}/monitor/${id}/`,
       rtcPeerService: service.laborsManager.getService(`rtcpeer-service`).obj,
-      logger: winston.createLogger(
-        generateConfig({
-          console: {
-            label: id,
-          },
-          files: [
-            {
-              dirname: storageDir,
-              filename: `${id}`,
-            },
-          ],
-        })
-      ),
+      logger: winston.createLogger(generateConfig(logConfig)),
+      // logger: winston.createLogger(
+      //   generateConfig({
+      //     // console: {
+      //     //   label: id,
+      //     // },
+      //     files: [
+      //       {
+      //         dirname: storageDir,
+      //         filename: `${id}`,
+      //       },
+      //     ],
+      //   })
+      // ),
       task: {},
     };
 
@@ -51,18 +63,21 @@ class ObjectMonitor {
   initObjectLogger() {
     this.obj = {
       state: (state) => {
-        this.logger.info(`[STATE:${state}]`);
+        const msg = `[STATE:${state}]`;
+        this.logger.info(msg);
+        this.publish(msg, `state`);
       },
       log: (...message) => {
-        this.logger.info([...message].join(` `));
-        this.publish(message, this.publishPath);
+        const msg = [...message].join(` `);
+        this.logger.info(msg);
+        this.publish(msg);
       },
       error: (err) => {
-        this.logger.error(
-          `[ERR: <${err.name}:${err.message}> <stack:[${err.stack
-            .split(`\n`)
-            .join(`, `)}]>]`
-        );
+        const msg = `[ERR: <${err.name}:${err.message}> <stack:[${err.stack
+          .split(`\n`)
+          .join(`, `)}]>]`;
+        this.logger.error(msg);
+        this.publish(msg, `log`, `error`);
       },
     };
   }
@@ -74,15 +89,25 @@ class ObjectMonitor {
         return id;
       },
       start: (id = uuid()) => {
-        this.obj.log(`[JID:${id}]`, `[ACT:JOBSTART]`);
+        this.obj.log(`[JID:${id}]`, `[ACT:START]`);
         return id;
       },
       log: (id = uuid(), ...message) => {
         this.obj.log(`[JID:${id}]`, `[LOG:${[...message].join(` `)}]`);
       },
       end: (id = uuid(), result = null) => {
-        this.obj.log(`[JID:${id}]`, `[ACT:JOBEND]`, `[RES:${result}]`);
+        this.obj.log(`[JID:${id}]`, `[ACT:END]`, `[RES:${result}]`);
         return id;
+      },
+      reject: (id, err = new Error(`Undefine error`)) => {
+        const msg = [
+          `[JID:${id}]`,
+          `[ACT:REJECT: <${err.name}:${err.message}> <stack:[${err.stack
+            .split(`\n`)
+            .join(`, `)}]>]`,
+        ].join(` `);
+        this.logger.error(msg);
+        this.publish(msg, `log`, `error`);
       },
       error: (id, err = new Error(`Undefine error`)) => {
         const msg = [
@@ -92,13 +117,19 @@ class ObjectMonitor {
             .join(`, `)}]>]`,
         ].join(` `);
         this.logger.error(msg);
-        this.publish(msg, this.publishPath);
+        this.publish(msg, `log`, `error`);
       },
     };
   }
 
-  publish(msg) {
-    this.rtcPeerService.publish(this.publishPath, msg);
+  publish(msg, category = `log`, level = `log`, timestamp = new Date()) {
+    const topic = Path.join(this.publishPath, category);
+    const message = JSON.stringify({
+      timestamp,
+      level,
+      message: msg,
+    });
+    this.rtcPeerService.publish(topic, message);
   }
 }
 

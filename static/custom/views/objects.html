@@ -1,0 +1,1434 @@
+<div class="miso-slide-container" id="extension-lime-content-objects-section">
+  
+  <!-- Body Loader -->
+  <div
+    class="
+      miso-v-container
+      justify-content-center
+      align-items-center
+      miso-transition-400
+    "
+    :class="{
+      hide: ui.base.ready
+    }"
+    style="
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 200;
+    "
+  >
+    <!-- Background -->
+    <div
+      style="
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 190;
+        background-color: var(--lime-dark);
+        opacity: 0.5;
+      "
+    >
+
+    </div>
+    <!-- Animate Box -->
+    <div
+      class="
+        miso-v-container miso-gap
+        justify-content-center
+        align-items-center
+        rounded border border-dark
+        bg-dark
+      "
+      style="
+        width: 30%;
+      "
+    >
+      <!-- Text -->
+      <div class="text-light" style="font-size: 1rem;">
+        <center>
+          Please wait, this process will take a while.
+        </center>
+      </div>
+      <!-- Loading bar -->
+      <div class="progress w-100">
+        <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="miso-slide-slide" :class="{hide: ui.slider.hide}">
+  </div>
+
+  <div class="miso-slide-base miso-transition-400">
+    <div class="card text-dark border-warning w-100">
+      <!-- Base Card Header -->
+      <div class="card-header bg-warning border-warning">
+        <div class="d-flex justify-content-between">
+          <!-- Icon & Title -->
+          <div class="text-truncate">
+            <i class="fas fa-cogs mr-2"></i>
+            <b>Objects System</b>
+          </div>
+        </div>
+      </div>
+      <!-- Base Card Body -->
+      <div class="card-body bg-dark">
+        <!-- Base Body Item Container -->
+        <div 
+          class="miso-h-container p-0"
+          :class="{
+            hide: !ui.base.ready
+          }"
+          style="
+            overflow-x: hidden;
+            overflow-y: overlay;
+          "
+        >
+          <!-- Responsive virtualize container -->
+          <div
+            class="
+              miso-h-container
+              miso-extend-leftpanel-lte-768
+              w-100 p-0
+            "
+            style="
+              overflow-y: visible;
+            "
+          >
+            <!-- Left panel -->
+            <div
+              class="
+                miso-h-container
+                miso-card-content-maxh
+                miso-transition-400
+                miso-zindex-100
+                p-0
+              "
+              :class="{
+                'miso-translate-leftpanel-lte-768': !!ui.base.leftPanel || !ui.base.selected.config
+              }"
+              style="
+                gap: 0;
+                min-height: 100px
+              "
+            >
+              <!-- Panel -->
+              <div
+                class="
+                  miso-v-container miso-gap
+                  overflow-hidden
+                  bg-dark
+                  p-0 pr-2
+                "
+              >
+                <!-- Filter bar -->
+                <div
+                  class="
+                    miso-h-container miso-gap
+                    justify-content-between
+                    mb-2 p-0
+                  "
+                >
+                  <div
+                    class="
+                      miso-h-container
+                      round-edge
+                      p-0
+                      text-truncate
+                    "
+                    style="
+                      font-size: 1rem;
+                      width: fit-content;
+                    "
+                  >
+                    <div
+                      class="
+                        miso-activable-bg-secondary
+                        horizontal-union
+                        border border-secondary
+                        bg-dark text-light p-2
+                        pointer-cursor
+                        miso-hover-border-light
+                      "
+                      :class="{
+                        active: ui.base.quickFilter.includes(`device`)
+                      }"
+                      @click="fn.toggleQuickFilter('device')"
+                    >
+                      Devices
+                    </div>
+                    <div
+                      class="
+                        miso-activable-bg-secondary
+                        horizontal-union
+                        border border-secondary
+                        bg-dark text-light p-2
+                        pointer-cursor
+                        miso-hover-border-light
+                      "
+                      :class="{
+                        active: ui.base.quickFilter.includes(`engine`)
+                      }"
+                      @click="fn.toggleQuickFilter('engine')"
+                    >
+                      Engines
+                    </div>
+                    <div
+                      class="
+                        miso-activable-bg-secondary
+                        horizontal-union
+                        border border-secondary
+                        bg-dark text-light p-2
+                        pointer-cursor
+                        miso-hover-border-light
+                      "
+                      :class="{
+                        active: ui.base.quickFilter.includes(`ioport`)
+                      }"
+                      @click="fn.toggleQuickFilter('ioport')"
+                    >
+                      IOPorts
+                    </div>
+                  </div>
+                  <div
+                    class="dropdown"
+                  >
+                    <div
+                      class="
+                        miso-h-container
+                        justify-content-center
+                        align-items-center
+                        p-0
+                        pointer-cursor
+                        rounded
+                        border border-secondary
+                        bg-dark
+                        text-secondary
+                        miso-hover-border-light
+                        miso-hover-text-light
+                      "
+                      style="
+                        width: 26px;
+                        height: 26px;
+                      "
+                      data-toggle="dropdown"
+                    >
+                      <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="dropdown-menu dropdown-menu-right">
+                      <button
+                        class="dropdown-item"
+                        @click="fn.add(`device`)"
+                      >
+                        Device
+                      </button>
+                      <button
+                        class="dropdown-item"
+                        @click="fn.add(`engine`)"
+                      >
+                        Engine
+                      </button>
+                      <button
+                        class="dropdown-item"
+                        @click="fn.add(`ioport`)"
+                      >
+                        IOPort
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <!-- Object Cards container -->
+                <div
+                  class="
+                    miso-items-container
+                    miso-v-container miso-gap
+                    overflow-auto
+                    p-0
+                  "
+                  style="
+                    min-width: 250px;
+                    max-width: 250px;
+                  "
+                >
+                  <!-- Items -->
+                  <template
+                    v-for="objectLayer in ['device', 'engine', 'ioport']"
+                  >
+                    <!-- <template v-for="(item, id) in resource[`${objectLayer}s`]"> -->
+                      <div 
+                        v-for="(item, id) in resource[`${objectLayer}s`]"
+                        class="
+                          miso-small-card card
+                          bg-dark text-light
+                          pointer-cursor
+                        "
+                        :class="{
+                          hide: !ui.base.quickFilter.includes(objectLayer)
+                        }"
+                        @click="fn.clickObject([id], objectLayer)"
+                      >
+                        <div
+                          class="
+                            miso-h-container
+                            round-edge
+                            miso-activable-border-yellow miso-hover-border-yellow
+                            border border-secondary
+                            p-0
+                          "
+                          :class="{active: Array.isArray(ui.base.activeId) ? ui.base.activeId[0] === id : ui.base.activeId === id}"
+                        >
+                          <!-- type -->
+                          <div
+                            class="
+                              miso-v-container
+                              miso-active-indicator
+                              horizontal-union
+                              align-items-center justify-content-center
+                              p-1
+                            "
+                          >
+                            <span
+                              style="
+                                writing-mode: vertical-rl;
+                                -webkit-transform: rotate(-180deg);
+                                font-size: 1rem;
+                                font-weight: bold;
+                              "
+                            >
+                              {{objectLayer.toUpperCase()}}
+                            </span>
+                          </div>
+                          <div
+                            class="
+                              miso-v-container
+                              miso-items-container horizontal-union
+                              text-truncate font-weight-bold grow-1 p-1
+                            "
+                          >
+                            <span class="text-truncate">
+                              {{item.name}}
+                            </span>
+                            <div
+                              class="miso-h-container p-0"
+                              :class="[
+                                resource[`${objectLayer}s`][id].state.config.value === 'valid'
+                                  ? resource[`${objectLayer}s`][id].state.enable.value
+                                    ? resource[`${objectLayer}s`][id].state.inServiceList.value && resource[`${objectLayer}s`][id].state.objectState.value === 'running'
+                                      ? 'text-success'
+                                      : 'text-danger'
+                                    : 'text-secondary'
+                                  : 'text-danger'
+                              ]"
+                              :key="resource[`${objectLayer}s`][id].state.value"
+                            >
+                              <!-- status bullet -->
+                              <i
+                                class="
+                                  fa-solid fa-circle
+                                  mr-3
+                                "
+                              >
+                              </i>
+                              <!-- <i
+                                class="
+                                  fa-solid fa-circle
+                                  mr-3
+                                "
+                                :class="[
+                                  resource[`${objectLayer}s`][id].state.config.value === 'valid'
+                                    ? resource[`${objectLayer}s`][id].state.enable.value
+                                      ? resource[`${objectLayer}s`][id].state.inServiceList.value && resource[`${objectLayer}s`][id].state.objectState.value === 'running'
+                                        ? 'text-success'
+                                        : 'text-danger'
+                                      : 'text-secondary'
+                                    : 'text-danger'
+                                ]"
+                              >
+                              </i> -->
+                              <!-- template -->
+                              <span class="badge text-truncate bg-info text-light">{{item.template}}</span>
+                            </div>
+                          </div>
+                          <div
+                            class="
+                              miso-active-indicator
+                              horizontal-union miso-card-header-btn-box
+                              d-flex align-items-center
+                              p-2
+                            "
+                          >
+                            <i class="fa-solid fa-angles-right"></i>
+                          </div>
+                        </div>
+                      </div>
+                    <!-- </template> -->
+                  </template>
+                </div>
+              </div>
+              <!-- Toggle switch -->
+              <div
+                class="
+                  miso-h-container
+                  align-items-center
+                  miso-hide-gt-768
+                  p-0
+                "
+                style="
+                  position: absolute;
+                  left: var(--lime-miso-content-leftpanel-width);
+                  top: calc(50% - 24px);
+                "
+              >
+                <div
+                  class="
+                    rounded
+                    bg-dark
+                    text-light
+                    pl-0 pr-2 py-2
+                  "
+                  style="
+                    border-top-left-radius: 0 !important;
+                    border-bottom-left-radius: 0 !important;
+                  "
+                >
+                  <div
+                    class="
+                      d-flex align-items-center
+                      rounded
+                      border border-secondary
+                      p-1 py-3
+                      pointer-cursor
+                      miso-hover-border-light
+                    "
+                    @click="fn.toggleLeftPanel()"
+                    style="
+                      height: fit-content;
+                    "
+                  >
+                    <div
+                      class="
+                        d-flex
+                        align-items-center
+                        miso-transition-400
+                      "
+                      :class="{
+                        'miso-rotate-180': !!ui.base.leftPanel,
+                      }"
+                    >
+                      <i class="fas fa-chevron-right"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Right panel -->
+            <div
+              class="
+                miso-v-container miso-gap
+                miso-card-content-maxh
+                grow-1
+                rounded
+                p-0
+              "
+              style="
+                overflow-y: visible !important;
+                max-width: calc(100% - var(--lime-miso-content-leftpanel-width));
+              "
+            >
+              <!-- Object header -->
+              <div
+                v-if="ui.base.selected.config || ['add'].includes(ui.mode)"
+                class="
+                  miso-h-container miso-gap
+                  justify-content-between
+                  rounded
+                  bg-secondary
+                "
+              >
+                <!-- Breadcrumbs -->
+                <div
+                  class="miso-h-container miso-gap flex-wrap p-0"
+                >
+                  <template
+                    v-for="(v, i) in ui.base.activeId"
+                  >
+                    <div
+                      v-if="!!i"
+                      class="
+                        miso-h-container align-items-center
+                        rounded bg-dark text-light px-2 m-0
+                      "
+                    >
+                      <i class="fas fa-chevron-right"></i>
+                    </div>
+                    <div
+                      class="
+                        miso-v-container
+                        rounded pointer-cursor
+                        bg-dark text-light font-weight-bold
+                        px-2 m-0
+                      "
+                      @click="fn.clickObject(ui.base.activeId.slice(0, i+1))"
+                    >
+                      <span
+                        v-if="['view'].includes(ui.mode)"
+                      >
+                        {{
+                          fn.getJsonElement(
+                            ui.base.activeId.slice(0, i+1).join(`.properties.`),
+                            resource[`${ui.base.objectLayer}s`]
+                          )
+                            ? fn.getJsonElement(
+                                ui.base.activeId.slice(0, i+1).join(`.properties.`),
+                                resource[`${ui.base.objectLayer}s`]
+                              ).name
+                            : ui.mode === `add`
+                              ? ui.base.form && ui.base.form.name
+                                ? ui.base.form.name
+                                : `new ${ui.base.activeId.length === 1 ? ui.base.objectLayer : `property`}`
+                              : `unknown`
+                        }}
+                      </span>
+                      <span
+                        v-if="['add', 'edit'].includes(ui.mode)"
+                        :key="ui.base.form.name"
+                      >
+                        {{
+                          fn.getObjectName(ui.base.activeId.slice(0, i+1))
+                        }}
+                      </span>
+                      <!-- <span>
+                        {{
+                          fn.getJsonElement(
+                            ui.base.activeId.slice(0, i+1).join(`.properties.`),
+                            resource[`${ui.base.objectLayer}s`]
+                          )
+                            ? fn.getJsonElement(
+                                ui.base.activeId.slice(0, i+1).join(`.properties.`),
+                                resource[`${ui.base.objectLayer}s`]
+                              ).name
+                            : ui.mode === `add`
+                              ? ui.base.form && ui.base.form.name
+                                ? ui.base.form.name
+                                : `new ${ui.base.activeId.length === 1 ? ui.base.objectLayer : `property`}`
+                              : `unknown`
+                        }}
+                      </span> -->
+                      <span
+                        class="font-weight-light small"
+                      >
+                        {{v}}
+                      </span>
+                    </div>
+                  </template>
+                </div>
+                <!-- Button box -->
+                <div class="miso-h-container miso-gap p-0">
+                  <!-- Button start -->
+                  <div
+                    class="
+                      miso-icon-box-24
+                      border border-success rounded
+                      text-light bg-success
+                      miso-hover-border-light
+                    "
+                    :class="{
+                      'hide': !['view'].includes(ui.mode) || ['running'].includes(ui.base.selected.config.state.objectState.value)
+                    }"
+                    @click="fn.objectCmd.start()"
+                    data-toggle="tooltip"
+                    title="Start"
+                  >
+                    <i class="fas fa-play fa-lg"></i>
+                  </div>
+                  <!-- Button stop -->
+                  <div
+                    class="
+                      miso-icon-box-24
+                      border border-danger rounded
+                      text-light bg-danger
+                      miso-hover-border-light
+                    "
+                    :class="{
+                      'hide': !['view'].includes(ui.mode) || !['running'].includes(ui.base.selected.config.state.objectState.value)
+                    }"
+                    @click="fn.objectCmd.stop()"
+                    data-toggle="tooltip"
+                    title="Stop"
+                  >
+                    <i class="fas fa-stop fa-lg"></i>
+                  </div>
+                  <!-- Button edit -->
+                  <div
+                    class="
+                      miso-icon-box-24
+                      border border-warning rounded
+                      text-dark bg-warning
+                      miso-hover-border-light
+                    "
+                    :class="{
+                      'hide': !['view'].includes(ui.mode)
+                    }"
+                    @click="fn.edit()"
+                    data-toggle="tooltip"
+                    title="Edit"
+                  >
+                    <i class="fas fa-edit fa-lg"></i>
+                  </div>
+                  <!-- Button delete -->
+                  <div
+                    class="
+                      miso-icon-box-24
+                      border border-danger rounded
+                      text-light bg-danger
+                      miso-hover-border-light
+                    "
+                    :class="{
+                      'hide': !['edit'].includes(ui.mode)
+                    }"
+                    @click="fn.remove()"
+                    data-toggle="tooltip"
+                    title="Delete"
+                  >
+                    <i class="fas fa-trash fa-lg"></i>
+                  </div>
+                  <!-- Button save -->
+                  <div
+                    class="
+                      miso-icon-box-24
+                      border border-success rounded
+                      text-light bg-success
+                      miso-hover-border-light  
+                    "
+                    :class="{
+                      'hide': !['edit', 'add'].includes(ui.mode)
+                    }"
+                    @click="fn.save()"
+                    data-toggle="tooltip"
+                    title="Save"
+                  >
+                    <i class="fas fa-save fa-lg"></i>
+                  </div>
+                  <!-- Button back -->
+                  <!-- <div
+                    class="
+                      miso-icon-box-24
+                      border border-danger rounded
+                      text-light bg-danger
+                      miso-hover-border-light
+                    "
+                    :class="{
+                      'hide': !['edit', 'add'].includes(ui.mode)
+                    }"
+                    @click="
+                      ui.base.activeId.length > 1
+                        ? ui.base.activeId.pop() && fn.render()
+                        : fn.view()"
+                    data-toggle="tooltip"
+                    title="Back"
+                  > -->
+                  <div
+                    class="
+                      miso-icon-box-24
+                      border border-danger rounded
+                      text-light bg-danger
+                      miso-hover-border-light
+                    "
+                    :class="{
+                      'hide': !['edit', 'add'].includes(ui.mode)
+                    }"
+                    @click="fn.back()"
+                    data-toggle="tooltip"
+                    title="Back"
+                  >
+                    <i class="fas fa-backspace fa-lg"></i>
+                  </div>
+                </div>
+              </div>
+              <!-- Object body view mode -->
+              <div
+                v-if="ui.base.selected && ui.mode === 'view'"
+                class="
+                  miso-v-container miso-gap
+                  grow-1 p-0
+                "
+              >
+                <!-- Object child -->
+                <div
+                  v-if="ui.base.selected.config && ui.base.selected.config.properties"
+                  class="
+                    miso-h-container
+                    rounded
+                    bg-secondary
+                    p-0
+                  "
+                  :key="ui.base.selected.config"
+                >
+                  <!-- Content -->
+                  <div
+                    class="
+                      miso-h-container miso-gap
+                      flex-wrap
+                      rounded
+                      bg-secondary
+                      grow-1
+                      p-2
+                    "
+                  >
+                    <template
+                      v-for="(value, key) in ui.base.selected.config.properties"
+                    >
+                      <div
+                        class="
+                          d-flex
+                          justify-content-center
+                          rounded
+                          bg-dark text-light
+                          p-1
+                          pointer-cursor
+                        "
+                        style="
+                          font-size: 1.2rem;
+                          font-weight: bold;
+                          width: fit-content;
+                        "
+                        @click="
+                          fn.clickObject(
+                            Array.isArray(ui.base.activeId) ? fn.addToArray(ui.base.activeId, key) : [ui.base.activeId, key]
+                          )
+                        "
+                      >
+                        {{key}}
+                      </div>
+                    </template>
+                  </div>
+                  <!-- Vertical badge -->
+                  <div
+                    class="
+                      miso-h-container
+                      horizontal-union
+                      align-items-center
+                      rounded
+                      bg-dark text-light
+                      border border-secondary
+                      p-1
+                    "
+                  >
+                    <span
+                      style="
+                        writing-mode: vertical-rl;
+                        font-size: 1rem;
+                        font-weight: bold;
+                      "
+                    >
+                      Props
+                    </span>
+                  </div>
+                </div>
+                <!-- Object info -->
+                <div
+                  v-if="ui.base.selected.config"
+                  class="
+                    miso-h-container miso-gap
+                    justify-content-between
+                    rounded
+                    p-0
+                  "
+                >
+                  <!-- Object status -->
+                  <div
+                    class="
+                      miso-h-container
+                      rounded
+                      bg-secondary
+                      p-0
+                    "
+                  >
+                    <!-- Vertical badge -->
+                    <div
+                      class="
+                        miso-h-container
+                        horizontal-union
+                        align-items-center
+                        rounded
+                        bg-dark text-light
+                        border border-secondary
+                        p-1 mr-0
+                      "
+                    >
+                      <span
+                        style="
+                          writing-mode: vertical-rl;
+                          transform: rotate(-180deg);
+                          font-size: 1rem;
+                          font-weight: bold;
+                        "
+                      >
+                        Status
+                      </span>
+                    </div>
+                    <!-- Content -->
+                    <div
+                      class="
+                        miso-v-container
+                        rounded
+                        bg-secondary
+                        grow-1
+                        p-2
+                      "
+                    >
+                      <table cellspacing="0" cellpadding="0">
+                        <tr>
+                          <td>
+                            <div class="text-truncate d-flex justify-content-end mt-2">
+                              <span class="header-item text-truncate">
+                                <span class="bg-dark text-light">template</span>
+                                <span class="p-0"></span>
+                              </span>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="text-truncate d-flex mt-2">
+                              <span class="header-item text-truncate">
+                                <span class="p-0"></span>
+                                <span class="bg-info text-light">
+                                  {{ui.base.selected.config.template}}
+                                </span>
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                        <template
+                          v-for="(statusValue, statusKey) in fn.craftObjectStatus(ui.base.selected.config)"
+                        >
+                          <tr>
+                            <td>
+                              <div class="text-truncate d-flex justify-content-end mt-2">
+                                <span class="header-item text-truncate">
+                                  <span
+                                    class=""
+                                    :class="[
+                                      statusValue.keyLevel >= 90
+                                        ? 'bg-success text-light'
+                                        : statusValue.keyLevel >= 50
+                                        ? 'bg-warning text-dark'
+                                        : statusValue.keyLevel >= 0
+                                        ? 'bg-danger text-light'
+                                        : 'bg-dark text-light'
+                                    ]"
+                                  >
+                                    {{statusKey}}
+                                  </span>
+                                  <span class="p-0"></span>
+                                </span>
+                              </div>
+                            </td>
+                            <td>
+                              <div class="text-truncate d-flex mt-2">
+                                <span class="header-item text-truncate">
+                                  <span class="p-0"></span>
+                                  <span 
+                                    class="" 
+                                    :class="[
+                                      statusValue.level >= 90
+                                        ? 'bg-success text-light'
+                                        : statusValue.level >= 50
+                                        ? 'bg-warning text-dark'
+                                        : statusValue.level >= 0
+                                        ? 'bg-danger text-light'
+                                        : 'bg-dark text-light'
+                                    ]"
+                                  >
+                                    {{Object.prototype.hasOwnProperty.call(statusValue, 'value') ? statusValue.value : statusValue}}
+                                  </span>
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                        </template>
+                      </table>
+                    </div>
+                  </div>
+                  <!-- Object description -->
+                  <div
+                    class="
+                      miso-h-container
+                      rounded
+                      bg-secondary
+                      grow-1
+                      h-100
+                      p-0
+                    "
+                  >
+                    <!-- Content -->
+                    <div
+                      class="
+                        grow-1
+                        p-2
+                      "
+                      style="
+                        font-size: 1.2rem;
+                        max-height: 70px;
+                        overflow: auto
+                      "
+                    >
+                      {{ui.base.selected.config.description}}
+                    </div>
+                    <!-- Vertical badge -->
+                  <div
+                    class="
+                      miso-h-container
+                      horizontal-union
+                      align-items-center
+                      rounded
+                      bg-dark text-light
+                      border border-secondary
+                      p-1
+                    "
+                  >
+                    <span
+                      style="
+                        writing-mode: vertical-rl;
+                        font-size: 1rem;
+                        font-weight: bold;
+                      "
+                    >
+                      Description
+                    </span>
+                  </div>
+                  </div>
+                </div>
+                <!-- Metric data -->
+                <div
+                  v-if="ui.base.selected.metric"
+                  class="
+                    miso-h-container
+                    rounded
+                    bg-secondary
+                    text-truncate
+                    p-0
+                  "
+                  style="
+                    font-size: 1.2rem;
+                  "
+                >
+                  <!-- Metric -->
+                  <div
+                    v-if="ui.base.selected.metric"
+                    class="
+                      miso-v-container
+                      rounded
+                      bg-secondary
+                      grow-1
+                      text-truncate
+                      p-2
+                    "
+                  >
+                    <!-- Object uptime -->
+                    <div
+                      class="
+                        miso-h-container miso-gap
+                        justify-content-between
+                        align-items-center
+                        text-truncate
+                        w-100
+                      "
+                    >
+                      <div class="text-truncate">
+                        Data range: {{fn.metric.dataTimeRange()}}
+                      </div>
+                      <!-- Metric button -->
+                      <div
+                        class="
+                          miso-icon-box-24
+                          miso-hover-border-light
+                          border border-dark rounded
+                          text-light
+                          bg-dark
+                        "
+                        @click="fn.metric.flush()"
+                        data-toggle="tooltip"
+                        title="Flush metric data"
+                      >
+                        <i class="fas fa-trash fa-lg"></i>
+                      </div>
+                    </div>
+                    <!-- Object Donut chart (success rate, serve quality) -->
+                    <div class="miso-responsive-container">
+                      <div
+                        class="
+                          miso-h-container
+                          miso-custom-metric-chart-layout-donut
+                          miso-balance-grow
+                          justify-content-between
+                          align-items-center
+                        "
+                      >
+                        <!-- Success rate -->
+                        <div
+                          id="extension-lime-content-objects-basemain-chart-successrate"
+                          class="miso-chart w-100 grow-1"
+                          style="
+                            min-width: 100px;
+                            width: 50% !important;
+                            max-width: 150px;
+                          "
+                        >
+                          <!-- {{fn.metric.renderSuccessRate()}} -->
+                        </div>
+                        <div
+                          class="
+                            miso-v-container
+                            miso-chart-legends
+                            justify-content-center
+                          "
+                          style="
+                            font-size: 1.2rem;
+                            font-weight: bold;
+                            width: fit-content;
+                            min-width: 100px;
+                            max-width: 140px;
+                          "
+                        >
+                          <table>
+                            <tr>
+                              <td colspan="2" align="center" nowrap>Job detail</td>
+                            </tr>
+                            <tr>
+                              <td align="right" style="width: 50%" nowrap>Success :</td>
+                              <td nowrap>{{ui.base.selected.metric.jobs.success}}</td>
+                            </tr>
+                            <tr>
+                              <td align="right" style="width: 50%" nowrap>Fail :</td>
+                              <td nowrap>{{ui.base.selected.metric.jobs.fail}}</td>
+                            </tr>
+                          </table>
+                        </div>
+                        <!-- Average wait time -->
+                        <div
+                          id="extension-lime-content-objects-basemain-chart-avgwaittime"
+                          class="miso-chart w-100 grow-1"
+                          style="
+                            min-width: 100px;
+                            width: 50% !important;
+                            max-width: 150px;
+                          "
+                        >
+                          <!-- {{fn.metric.renderServeQuality()}} -->
+                        </div>
+                        <div
+                          class="
+                            miso-v-container
+                            miso-chart-legends
+                            justify-content-center
+                          "
+                          style="
+                            font-size: 1.2rem;
+                            font-weight: bold;
+                            width: fit-content;
+                            min-width: 100px;
+                            max-width: 140px;
+                          "
+                        >
+                          <table>
+                            <tr>
+                              <td colspan="2" align="center" nowrap>Average Time (ms)</td>
+                            </tr>
+                            <tr>
+                              <td align="right" style="width: 50%" nowrap>Waiting :</td>
+                              <td>{{Math.round(ui.base.selected.metric.jobs.averageWaitingTime*100)/100}}</td>
+                            </tr>
+                            <tr>
+                              <td align="right" style="width: 50%" nowrap>Process :</td>
+                              <td>{{Math.round(ui.base.selected.metric.jobs.averageServiceTime*100)/100}}</td>
+                            </tr>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Jobs heat timeline -->
+                    <div
+                      id="extension-lime-content-objects-basemain-chart-job-heat-timeline"
+                    >
+                    </div>
+                    <!-- Jobs timeline -->
+                    <div></div>
+                    <!-- Metric calculate time -->
+                    <div>
+                      Metric calculate time: {{ui.base.selected.metric.calculateTime}}ms
+                    </div>
+                  </div>
+                  <!-- Vertical badge -->
+                  <div
+                    class="
+                      miso-h-container
+                      horizontal-union
+                      align-items-center
+                      rounded
+                      bg-dark text-light
+                      border border-secondary
+                      p-1
+                    "
+                  >
+                    <span
+                      style="
+                        writing-mode: vertical-rl;
+                        font-size: 1rem;
+                        font-weight: bold;
+                      "
+                    >
+                      Data Metric
+                    </span>
+                  </div>
+                </div>
+                <!-- Config detail -->
+                <div
+                  v-if="ui.base.selected.config"
+                  class="
+                    miso-h-container
+                    rounded
+                    bg-secondary
+                    p-0
+                  "
+                >
+                  <!-- Content -->
+                  <div
+                    class="
+                      miso-h-container
+                      miso-responsive-container
+                      horizontal-union grow-1
+                    "
+                    style="
+                      font-size: 1.2rem;
+                    "
+                  >
+                    <!-- All details -->
+                    <table class="miso-hide-gt-450 w-100" style="table-layout: fixed;">
+                      <template
+                        v-for="(value, key) in ui.base.selected.config"
+                      >
+                        <tr
+                          v-if="[
+                            `name`, 
+                            `description`,
+                            `template`,
+                            `enable`
+                          ].includes(key)"
+                        >
+                          <td
+                            align="right"
+                            style="
+                              width: 50%;
+                              font-weight: bold;
+                            "
+                          >
+                            {{key}} :
+                          </td>
+                          <td class="text-truncate">
+                            {{value}}
+                          </td>
+                        </tr>
+                        <tr
+                          v-if="![
+                            `name`, 
+                            `description`,
+                            `template`,
+                            `enable`, 
+                            `objectLayer`,
+                            `state`,
+                            `properties`
+                          ].includes(key)"
+                        >
+                          <td
+                            align="right"
+                            style="
+                              width: 50%;
+                              font-weight: bold;
+                            "
+                          >
+                            {{key}} :
+                          </td>
+                          <td>{{value}}</td>
+                        </tr>
+                      </template>
+                    </table>
+                    <!-- Standard details -->
+                    <table class="miso-hide-lte-450 w-50">
+                      <template
+                        v-for="(value, key) in ui.base.selected.config"
+                      >
+                        <tr
+                          v-if="[
+                            `name`, 
+                            `description`,
+                            `template`,
+                            `enable`,
+                          ].includes(key)"
+                        >
+                          <td
+                            align="right"
+                            style="
+                              width: 50%;
+                              font-weight: bold;
+                            "
+                          >
+                            {{key}} :
+                          </td>
+                          <td>{{value}}</td>
+                        </tr>
+                      </template>
+                    </table>
+                    <!-- Other details -->
+                    <table class="miso-hide-lte-450 w-50">
+                      <template
+                        v-for="(value, key) in ui.base.selected.config"
+                      >
+                        <tr
+                          v-if="![
+                            `name`, 
+                            `description`,
+                            `template`,
+                            `enable`,
+                            `objectLayer`,
+                            `state`,
+                            `properties`
+                          ].includes(key)"
+                        >
+                          <td
+                            align="right"
+                            style="
+                              width: 50%;
+                              font-weight: bold;
+                            "
+                          >
+                            {{key}} :
+                          </td>
+                          <td>{{value}}</td>
+                        </tr>
+                      </template>
+                    </table>
+                  </div>
+                  <!-- Vertical badge -->
+                  <div
+                    class="
+                      miso-h-container
+                      horizontal-union
+                      align-items-center
+                      rounded
+                      bg-dark text-light
+                      border border-secondary
+                      p-1
+                    "
+                  >
+                    <span
+                      style="
+                        writing-mode: vertical-rl;
+                        font-size: 1rem;
+                        font-weight: bold;
+                      "
+                    >
+                      Details
+                    </span>
+                  </div>
+                </div>
+                <!-- <div class="text-light" :key="ui.base.selected.config">
+                  selected.config: {{ui.base.selected.config}}<br><br>
+                  selected.objectLayer: {{ui.base.objectLayer}}
+                </div> -->
+              </div>
+              <!-- Object body add & edit mode -->
+              <div
+                v-if="ui.base.selected && ['add', 'edit'].includes(ui.mode)"
+                class="
+                  miso-v-container miso-gap
+                  grow-1
+                  rounded
+                  text-light
+                "
+              >
+                <!-- Genaral info -->
+                <template
+                  v-for="(param, index) in ui.base.activeId.length > 1 ? ui.base.formSchema.properties.properties.patternProperties['^[^\n]+$'].properties : ui.base.formSchema.properties"
+                >
+                  <!-- All attribute -->
+                  <div
+                    class=""
+                    :class="{
+                      'miso-h-container miso-h-union align-items-stretch': param.type === 'boolean',
+                      'miso-v-container miso-v-union align-items-start': param.type !== 'boolean'
+                    }"
+                    style="
+                      font-size: 1rem;
+                    "
+                  >
+                    <label
+                      class="badge badge-secondary m-0"
+                      style="
+                        font-size: 1rem;
+                      "
+                    >
+                      {{param.title || index}}
+                    </label>
+                    <div
+                      class="
+                        miso-h-container p-0 align-items-center
+                        rounded border border-secondary
+                        bg-secondary
+                      "
+                      :class="{
+                        'w-100': param.type !== 'boolean'
+                      }"
+                    >
+                      <json-schema-form 
+                        v-if="!['properties', 'state'].includes(index)"
+                        v-bind:param="param"
+                        class="rounded-0 border border-secondary bg-light text-dark w-100"
+                        v-bind:class="{
+                          'no-resize': param.attrs && param.attrs.type === 'textarea'
+                        }"
+                        v-model="ui.base.form[index]"
+                        @change="param.alternate && fn.onAlternateChange()"
+                      >
+                      </json-schema-form>
+                      <div
+                        v-if="index === 'properties'"
+                        class="
+                          miso-v-container miso-gap
+                          rounded bg-dark
+                          w-100
+                        "
+                      >
+                        <template
+                          v-for="(prop, propId) in ui.base.form.properties"
+                        >
+                          <div
+                            class="
+                              miso-h-container miso-gap
+                              justify-content-between
+                              align-items-center
+                              rounded border border-secondary
+                              miso-hover-bg-secondary
+                            "
+                          >
+                            <!-- Property short detail -->
+                            <div
+                              class="
+                                miso-v-container miso-gap
+                                text-truncate
+                                p-0
+                              "
+                            >
+                              <span
+                                class="text-truncate"
+                                style="
+                                  font-weight: bold;
+                                  font-size: 1.2rem;
+                                "
+                              >
+                                {{prop.name}}
+                              </span>
+                              <span class="text-truncate pl-3">{{propId}}</span>
+                            </div>
+                            <!-- Property button box -->
+                            <div
+                              class="
+                                miso-h-container miso-gap
+                                p-0
+                              "
+                            >
+                              <!-- Edit button -->
+                              <div
+                                class="
+                                  miso-icon-box-24
+                                  border border-warning rounded
+                                  text-dark bg-warning
+                                  miso-hover-border-light
+                                "
+                                data-toggle="tooltip"
+                                title="Edit"
+                                @click="fn.editProp([...ui.base.activeId, propId])"
+                              >
+                                <i class="fas fa-edit fa-lg"></i>
+                              </div>
+                              <!-- Delete button -->
+                              <div
+                                class="
+                                  miso-icon-box-24
+                                  border border-danger rounded
+                                  text-light bg-danger
+                                  miso-hover-border-light
+                                "
+                                data-toggle="tooltip"
+                                title="Delete"
+                                @click="fn.remove([...ui.base.activeId, propId])"
+                              >
+                                <i class="fas fa-trash fa-lg"></i>
+                              </div>
+                            </div>
+                          </div>
+                        </template>
+                        <div
+                          class="
+                            miso-h-container
+                            justify-content-center align-items-center
+                            rounded bg-info border border-info
+                            miso-hover-border-light
+                            pointer-cursor
+                            p-1 w-100
+                          "
+                          style="font-weight: bold"
+                          @click="fn.addProp()"
+                        >
+                          <span>Add property</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+                <!-- Specific info -->
+                
+                <!-- form: {{ui.base.form}}
+                <br><br>
+                parentForm: {{ui.base.parentForm}}
+                <br><br>
+                formSchema: {{ui.base.formSchema}} -->
+               
+              </div>
+              <!-- Object body edit add -->
+              <!-- <div
+                v-if="ui.base.selected && ui.mode === 'add'"
+                class="
+                  miso-v-container miso-gap
+                  grow-1 p-0
+                "
+              >
+                Add mode
+              </div> -->
+            </div>
+          </div>
+        </div>
+        <!--
+        <div class="text-light">
+          resource: {{resource}}
+          <br><br>
+          ui: {{ui}}
+        </div>
+        -->
+      </div>
+    </div>
+  </div>
+  <!-- activeId: {{ui.base.activeId}}
+  <br>
+  objectLayer: {{ui.base.objectLayer}}
+  <br>
+  selected: {{ui.base.selected}} -->
+
+  <!-- {{resource}} -->
+
+</div>

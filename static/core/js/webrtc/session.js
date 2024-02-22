@@ -1,3 +1,5 @@
+/* eslint-disable no-bitwise */
+/* eslint-disable class-methods-use-this */
 /* eslint-disable no-undef */
 /* eslint-disable no-underscore-dangle */
 export default class ExtensionRTCSession extends EventTarget {
@@ -15,9 +17,9 @@ export default class ExtensionRTCSession extends EventTarget {
       answerCandidate: [],
       channel: null,
       metric: {
-        createDate: (new Date()).toString()
+        createDate: new Date().toString(),
       },
-      subscribeList: []
+      subscribeList: [],
     };
     this.initParam(this, defaultOption);
     this.initParam(this, option);
@@ -26,8 +28,10 @@ export default class ExtensionRTCSession extends EventTarget {
   }
 
   initParam(dest, src) {
-    for(let i in src)
-      dest[i] = src[i];
+    Object.entries(src).forEach(([key, val]) => {
+      // eslint-disable-next-line no-param-reassign
+      dest[key] = val;
+    });
   }
 
   init() {
@@ -41,111 +45,152 @@ export default class ExtensionRTCSession extends EventTarget {
     return new Promise((resolve, reject) => {
       Promise.resolve()
 
-      // Create peer connection.
-      .then(() => this.createPeerConnection())
+        // Create peer connection.
+        .then(() => this.createPeerConnection())
 
-      // Create session.
-      .then(() => this.createSession())
-      .then((targetSessionId) => {
-        this.sessionId = targetSessionId;
-        console.log(`sessionId:`, this.sessionId);
-      })
+        // Create session.
+        .then(() => this.createSession())
+        .then((targetSessionId) => {
+          this.sessionId = targetSessionId;
+          console.log(`sessionId:`, this.sessionId);
+        })
 
-      // Create data channel.
-      .then(() => this.createChannel())
+        // Create data channel.
+        .then(() => this.createChannel())
 
-      // Get offer.
-      .then(() => this.getOffer(this.sessionId))
-      .then((offer) => this.offer = offer)
-      .then(() => this.peerConnection.setRemoteDescription(new RTCSessionDescription(this.offer)))
+        // Get offer.
+        .then(() => this.getOffer(this.sessionId))
+        .then((offer) => {
+          this.offer = offer;
+        })
+        .then(() =>
+          this.peerConnection.setRemoteDescription(
+            new RTCSessionDescription(this.offer)
+          )
+        )
 
-      // Create answer.
-      .then(() => this.peerConnection.createAnswer())
-      .then((ansDesc) => {
-        this.answerDescription = ansDesc;
-        this.answer = {
-          type: this.answerDescription.type,
-          sdp: this.answerDescription.sdp
-        };
-        return this.peerConnection.setLocalDescription(this.answerDescription);
-      })
+        // Create answer.
+        .then(() => this.peerConnection.createAnswer())
+        .then((ansDesc) => {
+          this.answerDescription = ansDesc;
+          this.answer = {
+            type: this.answerDescription.type,
+            sdp: this.answerDescription.sdp,
+          };
+          return this.peerConnection.setLocalDescription(
+            this.answerDescription
+          );
+        })
 
-      // Set answer to server.
-      .then(() => this.addAnswer())
+        // Set answer to server.
+        .then(() => this.addAnswer())
 
-      // Get offer candidate.
-      .then(() => this.getOfferCandidate())
-      .then((ret) => this.offerCandidate = ret)
-      .then(() => console.log(`[${this.constructor.name}]`, `offer candidate`, this.offerCandidate))
-      .then(() => this.offerCandidate.forEach(e => {
-        this.peerConnection.addIceCandidate(new RTCIceCandidate(e));
-      }))
+        // Get offer candidate.
+        .then(() => this.getOfferCandidate())
+        .then((ret) => {
+          this.offerCandidate = ret;
+        })
+        .then(() =>
+          console.log(
+            `[${this.constructor.name}]`,
+            `offer candidate`,
+            this.offerCandidate
+          )
+        )
+        .then(() =>
+          this.offerCandidate.forEach((e) => {
+            this.peerConnection.addIceCandidate(new RTCIceCandidate(e));
+          })
+        )
 
-      .then(() => this.waitChannelReady())
+        .then(() => this.waitChannelReady())
 
-      .then((ret) => resolve(ret))
-      .catch((err) => reject(err));
+        .then((ret) => resolve(ret))
+        .catch((err) => reject(err));
     });
   }
 
   waitChannelReady() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       let senderReady = false;
       let receiverReady = false;
       this.channel.addEventListener(
-        `send-channel-open`, 
-        () => (senderReady = true) && receiverReady && resolve(), 
+        `send-channel-open`,
+        () => {
+          senderReady = true;
+          if (receiverReady) resolve();
+        },
         { once: true }
       );
       this.channel.addEventListener(
-        `receive-channel-open`, 
-        () => (receiverReady = true) && senderReady && resolve(), 
+        `receive-channel-open`,
+        () => {
+          receiverReady = true;
+          if (senderReady) resolve();
+        },
         { once: true }
       );
     });
   }
 
-  createPeerConnection(peerConnectionConfig = this.config.peerConnectionConfig) {
+  createPeerConnection(
+    peerConnectionConfig = this.config.peerConnectionConfig
+  ) {
     console.log(`[${this.constructor.name}]`, `createPeerConnection() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
-      .then(() => {
-        this.peerConnection = new RTCPeerConnection(peerConnectionConfig);
-        this.peerConnection.onicecandidate = (e) => {
-          console.log(`[${this.constructor.name}]`, `answer candidate`, e.candidate);
-          console.log(`[${this.constructor.name}]`, `sessionId`, this.sessionId);
-          e.candidate && this.addAnswerCandidate(e.candidate.toJSON());
-        };
-      })
-      .then(() => this.peerConnection)
-      .then(() => resolve())
-      .catch((err) => reject(err));
+        .then(() => {
+          this.peerConnection = new RTCPeerConnection(peerConnectionConfig);
+          this.peerConnection.onicecandidate = (e) => {
+            console.log(
+              `[${this.constructor.name}]`,
+              `answer candidate`,
+              e.candidate
+            );
+            console.log(
+              `[${this.constructor.name}]`,
+              `sessionId`,
+              this.sessionId
+            );
+            if (e.candidate) this.addAnswerCandidate(e.candidate.toJSON());
+          };
+        })
+        .then(() => this.peerConnection)
+        .then(() => resolve())
+        .catch((err) => reject(err));
     });
   }
 
   createSession(config = this.config.apiOptions) {
     console.log(`[${this.constructor.name}]`, `createSession() >> `);
     return new Promise((resolve, reject) => {
-      let url = `/${config.endpoint.split(`/`).filter(e => e.length).join(`/`)}/rtcpeer/session`;
+      const url = `/${config.endpoint
+        .split(`/`)
+        .filter((e) => e.length)
+        .join(`/`)}/rtcpeer/session`;
       console.log(`url:`, `${url}`);
       Promise.resolve()
-      .then(() => this.apiFetch({
-        url: `/session`,
-        method: `POST`
-      }))
-
-      .then((body) => {
-        console.log(`body:`, body);
-        return body.id;
-      })
-      .then((ret) => resolve(ret))
-      .catch((err) => reject(err));
+        .then(() =>
+          this.apiFetch({
+            url: `/session`,
+            method: `POST`,
+          })
+        )
+        .then((body) => {
+          console.log(`body:`, body);
+          return body.id;
+        })
+        .then((ret) => resolve(ret))
+        .catch((err) => reject(err));
     });
   }
 
   createChannel() {
     console.log(`[${this.constructor.name}]`, `createChannel() >> `);
-    this.channel = new ExtensionRTCChannelPair(this.peerConnection, this.config.channel);
+    this.channel = new ExtensionRTCChannelPair(
+      this.peerConnection,
+      this.config.channel
+    );
     this.channel.addEventListener(`message`, this.onMessage.bind(this));
   }
 
@@ -153,12 +198,14 @@ export default class ExtensionRTCSession extends EventTarget {
     console.log(`[${this.constructor.name}]`, `getOffer() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
-      .then(() => this.apiFetch({
-        url: `/session/${sessionId}/offer`,
-        method: `GET`
-      }))
-      .then((ret) => resolve(ret))
-      .catch((err) => reject(err));
+        .then(() =>
+          this.apiFetch({
+            url: `/session/${sessionId}/offer`,
+            method: `GET`,
+          })
+        )
+        .then((ret) => resolve(ret))
+        .catch((err) => reject(err));
     });
   }
 
@@ -166,12 +213,14 @@ export default class ExtensionRTCSession extends EventTarget {
     console.log(`[${this.constructor.name}]`, `getOfferCandidate() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
-      .then(() => this.apiFetch({
-        url: `/session/${sessionId}/offer-candidate`,
-        method: `GET`
-      }))
-      .then((ret) => resolve(ret))
-      .catch((err) => reject(err));
+        .then(() =>
+          this.apiFetch({
+            url: `/session/${sessionId}/offer-candidate`,
+            method: `GET`,
+          })
+        )
+        .then((ret) => resolve(ret))
+        .catch((err) => reject(err));
     });
   }
 
@@ -179,17 +228,22 @@ export default class ExtensionRTCSession extends EventTarget {
     console.log(`[${this.constructor.name}]`, `addAnswer() >> `, answer);
     return new Promise((resolve, reject) => {
       Promise.resolve()
-      .then(() => this.apiFetch({
-        url: `/session/${sessionId}/answer`,
-        method: `POST`,
-        body: answer
-      }))
-      .then((ret) => resolve(ret))
-      .catch((err) => reject(err));
+        .then(() =>
+          this.apiFetch({
+            url: `/session/${sessionId}/answer`,
+            method: `POST`,
+            body: answer,
+          })
+        )
+        .then((ret) => resolve(ret))
+        .catch((err) => reject(err));
     });
   }
 
-  addAnswerCandidate(candidate = this.answerCandidate, sessionId = this.sessionId) {
+  addAnswerCandidate(
+    candidate = this.answerCandidate,
+    sessionId = this.sessionId
+  ) {
     console.log(`[${this.constructor.name}]`, `addAnswerCandidate() >> `);
     return new Promise((resolve, reject) => {
       Promise.resolve()
@@ -303,6 +357,30 @@ export default class ExtensionRTCSession extends EventTarget {
     });
   }
 
+  removeSubscribe(topic) {
+    const payload = {
+      command: topic ? `subscribe-remove` : `subscribe-remove-all`,
+    };
+    if (topic) payload.topic = topic;
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        .then(() => this.sendRequest(payload))
+        .then((ret) => {
+          console.log(`remove subscribe:`, ret);
+          if (
+            ret &&
+            [`subscribe-removed`, `all-subscribe-removed`].includes(ret.command)
+          ) {
+            console.log(`remove subscribe complete`);
+          } else {
+            throw new Error(`Remove subscribe fail.`);
+          }
+        })
+        .then(() => resolve())
+        .catch((err) => reject(err));
+    });
+  }
+
   sendReply(messageId, options = {}) {
     const payload = {
       messageId,
@@ -363,59 +441,75 @@ export default class ExtensionRTCSession extends EventTarget {
         body: ``,
       }
     )
-  */ 
+  */
   apiFetch(options) {
-    console.log(`[${this.constructor.name}]`, `apiFetch:`, `[${options.method}]: ${options.url}`);
-    options.body && console.log(`[${this.constructor.name}]`, `body:`, options.body);
+    console.log(
+      `[${this.constructor.name}]`,
+      `apiFetch:`,
+      `[${options.method}]: ${options.url}`
+    );
+    if (options.body)
+      console.log(`[${this.constructor.name}]`, `body:`, options.body);
     return new Promise((resolve, reject) => {
       options.url = this.pathJoin(this.config.apiOptions.endpoint, options.url);
       options.headers = this.config.apiOptions.headers;
-      if(typeof options.body == `object`) {
+      if (typeof options.body === `object`) {
         options.headers[`content-type`] = `application/json`;
         options.body = JSON.stringify(options.body);
       }
       Promise.resolve()
-      .then(() => fetch(options.url, options))
-      .then((res) => 
-        (!res.ok)
-        ? res.json()
-          .then((body) => reject({
-            status: res.status, 
-            body: (body ? JSON.stringify(body) : undefined)
-          }))
-        : resolve(res.json())
-      )
-      .catch((err) => reject(err));
+        .then(() => fetch(options.url, options))
+        .then((res) =>
+          !res.ok
+            ? res.json().then((body) => {
+                // eslint-disable-next-line prefer-promise-reject-errors
+                reject({
+                  status: res.status,
+                  body: body ? JSON.stringify(body) : undefined,
+                });
+              })
+            : resolve(res.json())
+        )
+        .catch((err) => reject(err));
     });
   }
 
   // Millicious
 
   pathJoin(...args) {
-    let arr = [];
-    args.forEach(str => arr.push.apply(arr, str.split(`/`).filter(e => e.length)));
+    const arr = [];
+    args.forEach((str) =>
+      // eslint-disable-next-line prefer-spread
+      arr.push.apply(
+        arr,
+        str.split(`/`).filter((e) => e.length)
+      )
+    );
     return `/${arr.join(`/`)}`;
   }
 
   decodeMessage(text) {
     try {
       return JSON.parse(text);
-    } catch(err) {
+    } catch (err) {
       return text;
     }
   }
 
   encodeMessage(arg) {
-    return (typeof arg == `object`) ? JSON.stringify(arg) : arg;
+    return typeof arg === `object` ? JSON.stringify(arg) : arg;
   }
 
   uuid() {
-    var dt = new Date().getTime();
-    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = (dt + Math.random() * 16) % 16 | 0;
+    let dt = new Date().getTime();
+    const uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+      /[xy]/g,
+      (c) => {
+        const r = (dt + Math.random() * 16) % 16 | 0;
         dt = Math.floor(dt / 16);
-        return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-    });
+        return (c === `x` ? r : (r & 0x3) | 0x8).toString(16);
+      }
+    );
     return uuid;
   }
 }

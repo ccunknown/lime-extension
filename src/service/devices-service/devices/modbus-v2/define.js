@@ -1,109 +1,108 @@
 const ValidateConfigSchema = {
-  "type": "object",
-  "required": ["script", "engine", "address"],
-  "additionalProperties": false,
-  "properties": {
-    "engine": {
-      "type": "string",
-      "title": "Engine"
+  type: "object",
+  required: ["script", "engine", "address"],
+  additionalProperties: false,
+  properties: {
+    engine: {
+      type: "string",
+      title: "Engine",
     },
-    "script": {
-      "type": "string",
-      "title": "Script"
-    },
-
-    "ip": {
-      "type": "string",
-      "title": "Device IP Address"
-    },
-    "port": {
-      "type": "number",
-      "title": "Device Port Number",
-      "default": 502
-    },
-    
-    "address": {
-      "type": "number",
-      "title": "Modbus Address",
-      "default": 1,
-      "minimum": 0
+    script: {
+      type: "string",
+      title: "Script",
     },
 
-    "retry": {
-      "type": "boolean",
-      "title": "Retry to start",
-      "default": true
+    ip: {
+      type: "string",
+      title: "Device IP Address",
     },
-    "retryNumber": {
-      "type": "number",
-      "title": "Number for retryment",
-      "default": 2
-    },
-    "retryDelay": {
-      "type": "number",
-      "title": "Retryment delay",
-      "default": 30000,
-      "minimum": 1000
+    port: {
+      type: "number",
+      title: "Device Port Number",
+      default: 502,
     },
 
-    "properties": {
-      "type": "object",
-      "title": "Property",
-      "required": [],
-      "patternProperties": {
+    address: {
+      type: "number",
+      title: "Modbus Address",
+      default: 1,
+      minimum: 0,
+    },
+
+    properties: {
+      type: "object",
+      title: "Property",
+      required: [],
+      patternProperties: {
         "{{{idPattern.regex}}}": {
-          "type": "object",
-          "required": ["template"],
-          "additionalProperties": false,
-          "properties": {
-            "template": {
-              "type": "string",
-              "title": "Property template"
-            }
-          }
-        }
-      }
-    }
-  }
+          type: "object",
+          required: ["name", "template", "enable"],
+          additionalProperties: false,
+          properties: {
+            name: {
+              type: "string",
+              title: "Name",
+              pattern: "^[a-zA-Z0-9 -_<>]+$",
+              minLength: 4,
+              maxLength: 50,
+              default: "Property",
+            },
+            description: {
+              type: "string",
+              title: "Description",
+            },
+            template: {
+              type: "string",
+              title: "Property Template",
+            },
+            enable: {
+              type: "boolean",
+              default: true,
+            },
+          },
+        },
+      },
+    },
+  },
 };
 
 const CompatibleList = {
   // "script": [`modbus-rtu`, `modbus-tcp`, `modbus`],
-  "script": [],
-  "engine": [`modbus-rtu`, `modbus-rtu-v2`, `modbus-tcp`]
+  script: [],
+  engine: [`modbus-rtu`, `modbus-rtu-v2`, `modbus-tcp`],
 };
 
 const AlternateList = [
   "engine",
   "script",
   "retry",
-  "properties.^[^\n]+$.template"
+  "properties.^[^\n]+$.template",
 ];
 
 const AttributeList = [
   {
-    "target": `address`,
-    "attrs": {
-      "placeholder": "Modbus address"
-    }
+    target: `address`,
+    attrs: {
+      placeholder: "Modbus address",
+    },
   },
   {
-    "target": `retryNumber`,
-    "attrs": {
-      "placeholder": "-1 for infinite retryment."
-    }
+    target: `retryNumber`,
+    attrs: {
+      placeholder: "-1 for infinite retryment.",
+    },
   },
   {
-    "target": `retryDelay`,
-    "attrs": {
-      "placeholder": "Delay (ms) before new retryment."
-    }
-  }
+    target: `retryDelay`,
+    attrs: {
+      placeholder: "Delay (ms) before new retryment.",
+    },
+  },
 ];
 
 module.exports = {
   ValidateConfigSchema,
   CompatibleList,
   AlternateList,
-  AttributeList
+  AttributeList,
 };

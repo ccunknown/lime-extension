@@ -1,0 +1,440 @@
+<div class="miso-slide-container" id="extension-lime-content-devices-section">
+
+  <div class="miso-slide-slide" :class="{hide: ui.slider.hide}">
+    <div class="card text-dark border-warning w-100">
+
+      <div class="card-header bg-warning border-warning">
+        <div class="d-flex justify-content-between">
+          <!-- Icon & Title -->
+          <div class="text-truncate">
+            <!-- <i class="fas fa-tablet-alt mr-2"></i> -->
+            <i class="fas fa-network-wired mr-2"></i>
+            <b>Devices</b>
+          </div>
+          <!-- Header Button -->
+          <div class="">
+            <button class="btn btn-success" @click="fn.save()">
+              <i class="fas fa-save fa-lg"></i>
+              <b>Save</b>
+            </button>
+            <button class="btn btn-danger" @click="fn.renderBase()">
+              <i class="fas fa-undo fa-lg"></i>
+              <b>Back</b>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body bg-dark">
+
+        <div 
+        v-if="!ui.slider.ready"
+        class="">
+          <div class="d-flex flex-column justify-content-center">
+            <br>
+            <div class="text-light">
+              <center>
+                Please wait, this process will take a while.
+              </center>
+            </div>
+            <br>
+            <div class="progress">
+              <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div 
+        v-if="ui.slider.ready"
+        class="miso-form-container align-items-center col-sm-12 col-md-10 col-lg-8 w-100">
+
+          <div class="miso-badge-header-group align-items-end w-100">
+            <label class="miso-label-badge badge-info font-size-inherit">Device</label>
+            <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
+
+              <template v-for="(param, index) in resource.deviceConfigSchema.properties">
+                <div class="miso-badge-header-group grow-1">
+                  <label v-if="fn.typeIdentify(param) != 'object'" class="miso-label-badge badge-secondary">
+                    {{(param.title) ? param.title : index}}
+                  </label>
+                  <json-schema-form 
+                  v-bind:param="param"
+                  class="miso-badge-union border-secondary"
+                  v-bind:class="{'no-resize': param.attrs && param.attrs.type == 'textarea'}"
+                  v-model="deviceForm[index]"
+                  @change="param.alternate && fn.onAlternateChange()">
+                  </json-schema-form>
+                </div>
+              </template>
+
+            </div>
+          </div>
+
+          <div 
+          v-if="fn.hasPropertyConfigSchema()"
+          class="miso-badge-header-group align-items-end w-100">
+            <label class="miso-label-badge badge-info font-size-inherit">Property</label>
+            <div class="miso-badge-union d-flex flex-column border-dash border-info p-3 w-100">
+              <!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg">Add Property</button> -->
+              <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#extension-lime-content-devices-modal-property">Add Property</button>
+
+              <!-- Property Container -->
+              <div 
+              v-if="!fn.isEmpty(ui.slider.final.properties)"
+              class="border-dash border-warning mt-2 pt-1 pr-1 pl-1">
+                <template v-for="(prop, i) in ui.slider.final.properties">
+                  <div class="d-flex justify-content-between align-items-center text-light bg-secondary w-100 mb-1 p-1">
+                    <div class="d-flex text-truncate">
+                      <span class="badge badge-warning mx-2 text-truncate">{{prop.template}}</span>
+                      <span class="text-truncate text-warning mr-1">[{{i}}]</span>
+                      <span class="text-truncate">{{(prop.title) ? prop.title : ``}}</span>
+                    </div>
+                    <div class="miso-card-header-btn-box">
+                      <div class="dropdown">
+                        <button class="btn btn-secondary" data-toggle="dropdown">
+                          <i class="fas fa-bars fa-lg"></i>
+                        </button>
+                        <div class="dropdown-menu bg-dark text-light">
+                          <a 
+                            v-if="!!ui.slider['edit-id']"
+                            @click="fn.showPropertyMetrics(i)" class="dropdown-item d-flex text-light" href="#"
+                          >
+                            <div class="miso-icon-box-16">
+                              <i class="fas fa-chart-bar fa-lg"></i>
+                            </div>
+                            <span>Metrics</span>
+                          </a>
+                          <a @click="fn.editProperty(i)" class="dropdown-item d-flex text-light" href="#">
+                            <div class="miso-icon-box-16">
+                              <i class="fas fa-edit fa-lg"></i>
+                            </div>
+                            <span>Edit</span>
+                          </a>
+                          <a @click="fn.removeProperty(i)" class="dropdown-item d-flex text-light" href="#">
+                            <div class="miso-icon-box-16">
+                              <i class="fas fa-trash fa-lg"></i>
+                            </div>
+                            <span>Delete</span>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+  
+  <div class="miso-slide-base">
+    <div class="card text-dark border-warning w-100">
+      <!-- Base Card Header -->
+      <div class="card-header bg-warning border-warning">
+        <div class="d-flex justify-content-between">
+          <!-- Icon & Title -->
+          <div class="text-truncate">
+            <!-- <i class="fas fa-tablet-alt mr-2"></i> -->
+            <i class="fas fa-network-wired mr-2"></i>
+            <b>Devices</b>
+          </div>
+        </div>
+      </div>
+      <!-- Base Card Body -->
+      <div class="card-body bg-dark">
+        <!-- Base Body Loader -->
+        <div 
+        v-if="!ui.base.ready"
+        class="">
+          <div class="d-flex flex-column justify-content-center">
+            <br>
+            <div class="text-light">
+              <center>
+                Please wait, this process will take a while.
+              </center>
+            </div>
+            <br>
+            <div class="progress">
+              <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100">
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Base Body Item Container -->
+        <div 
+        v-if="ui.base.ready"
+        class="miso-grid-item-container">
+          <!-- Items -->
+          <div 
+          class="card miso-grid-item" 
+          v-for="(item, id) in resource.config">
+            <!-- Item Header -->
+            <div class="card-header d-flex justify-content-between bg-dark text-light">
+              <!-- Icon & Title -->
+              <div class="text-truncate">
+                {{item.name}} [{{id}}]
+              </div>
+              <!-- Header Button -->
+              <div class="miso-card-header-btn-box">
+                <div class="dropdown">
+                  <button class="btn btn-secondary" data-toggle="dropdown">
+                    <i class="fas fa-bars fa-lg"></i>
+                  </button>
+                  <div class="dropdown-menu bg-dark text-light">
+                    <a 
+                      @click="fn.addSubscribe(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
+                      <div class="miso-icon-box-16">
+                        <!-- <i class="fas fa-chart-bar fa-lg"></i> -->
+                        <i class="fa-solid fa-terminal fa-lg"></i>
+                      </div>
+                      <span>Log Subscribe</span>
+                    </a>
+                    <a 
+                      @click="fn.showMetrics(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
+                      <div class="miso-icon-box-16">
+                        <i class="fas fa-chart-bar fa-lg"></i>
+                      </div>
+                      <span>Metrics</span>
+                    </a>
+                    <a 
+                      v-if="[
+                        'stopped',
+                        'semi-running'
+                      ].includes(item.state)" 
+                      @click="fn.start(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
+                      <div class="miso-icon-box-16">
+                        <i class="fas fa-play fa-lg"></i>
+                      </div>
+                      <span>Start</span>
+                    </a>
+                    <a
+                      v-if="[
+                        'running', 
+                        'semi-running', 
+                        'pending', 
+                        'continuous-fail'
+                      ].includes(item.state)" 
+                      @click="fn.stop(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
+                      <div class="miso-icon-box-16">
+                        <i class="fas fa-stop fa-lg"></i>
+                      </div>
+                      <span>Stop</span>
+                    </a>
+                    <a 
+                      v-if="[
+                        'disabled', 
+                        'corrupted'
+                      ].includes(item.state)" 
+                      @click="fn.addToService(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
+                      <div class="miso-icon-box-16">
+                        <i class="fas fa-history fa-lg"></i>
+                      </div>
+                      <span>Add to Service</span>
+                    </a>
+                    <a 
+                      v-if="[
+                        'running', 
+                        'semi-running', 
+                        'pending',
+                        'continuous-fail',
+                        'stopped', 
+                        'no-property', 
+                        'corrupted'
+                      ].includes(item.state)" 
+                      @click="fn.removeFromService(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
+                      <div class="miso-icon-box-16">
+                        <i class="fas fa-caret-down fa-lg"></i>
+                      </div>
+                      <span>Remove from Service</span>
+                    </a>
+                    <a 
+                      @click="fn.edit(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
+                      <div class="miso-icon-box-16">
+                        <i class="fas fa-edit fa-lg"></i>
+                      </div>
+                      <span>Edit</span>
+                    </a>
+                    <a 
+                      @click="fn.remove(id)" 
+                      class="dropdown-item d-flex text-light" 
+                      href="#"
+                    >
+                      <div class="miso-icon-box-16">
+                        <i class="fas fa-trash fa-lg"></i>
+                      </div>
+                      <span>Delete</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Item Body -->
+            <div class="card-body bg-secondary d-flex flex-column justify-content-between">
+              <p class="card-text text-light">
+                {{item.description}}
+              </p>
+              <div>
+                <div class="text-truncate d-flex mt-2">
+                  <span class="header-item text-truncate mr-2">
+                    <span class="bg-dark text-light">template</span>
+                    <span class="bg-info text-light">{{item.template}}</span>
+                  </span>
+                </div>
+                <div class="text-truncate d-flex mt-2">
+                  <span class="header-item text-truncate mr-2">
+                    <span class="bg-dark text-light">status</span>
+                    <span 
+                    class="" 
+                    :class="{
+                      'bg-success text-light': ['running', 'semi-running'].includes(item.state),
+                      'bg-warning text-dark': item.state == 'pending',
+                      'bg-danger text-light': !['running', 'semi-running', 'pending'].includes(item.state)
+                    }">
+                      {{item.state}}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Adder -->
+          <div 
+          class="card miso-grid-item miso-grid-item-adder bg-secondary"
+          @click="fn.add()">
+            <div class="card-body">
+              <div class="d-flex flex-column justify-content-center align-items-center w-100 h-100">
+                <i class="fas fa-plus fa-4x"></i>
+                <span>Create new device</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <div
+  class="modal fade bd-example-modal-lg miso-modal"
+  v-if="resource.deviceConfigSchema && resource.deviceConfigSchema.properties && resource.deviceConfigSchema.properties.properties"
+  id="extension-lime-content-devices-modal-property">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h5 class="modal-title">Property</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <template 
+          v-for="(param, index) in resource.deviceConfigSchema.properties.properties.patternProperties['^[^\n]+$'].properties">
+            <div class="miso-badge-header-group grow-1">
+              <label v-if="fn.typeIdentify(param) != 'object'" class="miso-label-badge badge-secondary">
+                {{(param.title) ? param.title : index}}
+              </label>
+              <json-schema-form 
+              v-bind:param="param"
+              v-bind:value="propertyForm[index]"
+              class="miso-badge-union border-secondary"
+              v-bind:class="{'no-resize': param.attrs && param.attrs.type == 'textarea'}"
+              v-model="propertyForm[index]"
+              @change="param.alternate && fn.onAlternateChange()">
+              </json-schema-form>
+            </div>
+          </template>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" @click="fn.addProperty()">Save changes</button>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+  <div
+  class="modal fade bd-example-modal-lg miso-modal"
+  id="extension-lime-content-devices-modal-metrics">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h5 class="modal-title">Metrics</h5>
+        </div>
+
+        <div 
+        class="modal-body"
+        style="max-height: calc(100vh - 125px); overflow: auto;">
+          <div 
+          v-if="!metrics"
+          class="d-flex flex-column justify-content-center">
+            <br>
+            <div class="text-light">
+              <center>
+                Please wait, this process will take a while.
+              </center>
+            </div>
+            <br>
+            <div class="progress">
+              <div class="progress-bar progress-bar-black-striped bg-warning progress-bar-animated w-100">
+              </div>
+            </div>
+          </div>
+          <code 
+          v-else
+          class="text-light">
+            <pre class="text-light">{{JSON.stringify(metrics, null, 2)}}</pre>
+          </code>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+  <div v-if="loader.extension.debug">
+    <code class="text-light">
+      <template v-for="(elem, index) in $data">
+        <div v-if="index !== 'loader'">
+          <b>{{index}} :</b>
+          <pre class="text-light">{{elem}}</pre>
+        </div>
+      </template>
+    </code>
+  </div>
+</div>

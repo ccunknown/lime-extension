@@ -1,51 +1,69 @@
-const Validator = require('jsonschema').Validator;
+const { Validator } = require(`jsonschema`);
 const {
   ValidateConfigSchema,
   AttributeList,
-  AlternateList
+  AlternateList,
 } = require(`./define`);
 
 class ServiceConfigTranslator {
   constructor(enginesService) {
     this.enginesService = enginesService;
-    this.sysportService = this.enginesService.sysportService;
+    this.ioportsService = this.enginesService.ioportsService;
     this.validator = new Validator();
   }
 
   generateConfigSchema() {
     console.log(`ServiceConfigTranslator: generateConfigSchema() >> `);
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       //  Copy config from ValidateConfigSchema.
-      let config = JSON.parse(JSON.stringify(ValidateConfigSchema));
+      const config = JSON.parse(JSON.stringify(ValidateConfigSchema));
 
       //  Assign 'alternate' attribute.
       AlternateList.forEach((index) => {
-        if(config.properties.hasOwnProperty(index))
+        if (Object.prototype.hasOwnProperty.call(config.properties, index))
           config.properties[index].alternate = true;
       });
 
       //  Assign 'attrs' attribute.
       AttributeList.forEach((index) => {
-        if(config.properties.hasOwnProperty(index.target))
+        if (
+          Object.prototype.hasOwnProperty.call(config.properties, index.target)
+        )
           config.properties[index.target].attrs = index.attrs;
       });
 
       //  Initial 'enum' attribute.
-      let portList = await this.sysportService.get();
-      config.properties[`port`].enum = [];
-      for(let i in portList)
-        config.properties[`port`].enum.push(i);
+      Promise.resolve()
+        .then(() => this.ioportsService.objects.get())
+        .then((portList) => {
+          console.log(
+            `[${this.constructor.name}]`,
+            `portList`,
+            Object.keys(portList)
+          );
+          config.properties.port.enum = [];
+          Object.keys(portList).forEach((i) => {
+            config.properties.port.enum.push(i);
+          });
+        })
+        .then(() => resolve(config))
+        .catch((err) => reject(err));
+      // let portList = await this.ioportsService.objects.get();
+      // config.properties[`port`].enum = [];
+      // for(let i in portList)
+      //   config.properties[`port`].enum.push(i);
 
-      resolve(config);
+      // resolve(config);
     });
   }
 
   validate(config) {
     console.log(`ServiceConfigTranslator: validate() >> `);
     return new Promise((resolve, reject) => {
-      this.generateConfigSchema(config)
-      .then((schema) => resolve(this.validator.validate(config, schema)))
-      .catch((err) => reject(err));
+      Promise.resolve()
+        .then(() => this.generateConfigSchema(config))
+        .then((schema) => resolve(this.validator.validate(config, schema)))
+        .catch((err) => reject(err));
     });
   }
 }
